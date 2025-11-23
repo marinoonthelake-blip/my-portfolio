@@ -1,3 +1,5 @@
+// Force Vercel Rebuild
+
 export default function Home() {
   return (
     <div style={{ padding: 50, background: 'blue', color: 'white' }}>
