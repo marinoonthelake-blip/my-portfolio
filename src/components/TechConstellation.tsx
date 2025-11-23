@@ -4,69 +4,24 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
-// --- 1. CONFIGURATION ---
-const STAGE_X = 400; 
-const STAGE_Y = 0;
-
+// --- 1. LIVE INTELLIGENCE DATA ---
 const LIVE_TRENDS = {
-  "Strategy": [
-    "DETECTING: EU AI Act enforcement shifts...",
-    "ANALYSIS: Enterprise risk migration > Model Gov.",
-    "SIGNAL: Geopolitical data sovereignty fragmentation."
-  ],
-  "Engineering": [
-    "BENCHMARK: DeepSeek-V3 vs Gemini inference delta.",
-    "DEPLOY: Next.js 15 PPR production pipelines.",
-    "PATTERN: Agentic Workflow adoption rates."
-  ],
-  "Creative": [
-    "TREND: WebGPU adoption +40% in e-commerce.",
-    "UX: Glassmorphism & Bento Grids dominating SaaS.",
-    "METRIC: 3D Storytelling reduces bounce rates."
-  ],
+  "Strategy": ["DETECTING: EU AI Act enforcement...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
+  "Engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini.", "DEPLOY: Next.js 15 PPR.", "PATTERN: Agentic Workflows."],
+  "Creative": ["TREND: WebGPU adoption +40%.", "UX: Glassmorphism & Bento Grids.", "METRIC: 3D Storytelling -40% bounce."],
   "Global Ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
   "Gemini API": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
   "JONATHAN": ["SYSTEM: CONNECTED.", "STATUS: READY.", "MODE: EXECUTIVE OVERVIEW."]
 };
 
-// --- 2. DATA ---
 const initialData = {
   nodes: [
-    // CORE
-    { 
-      id: "JONATHAN", group: 1, val: 120, color: "#FFFFFF",
-      title: "JONATHAN W. MARINO", 
-      role: "STRATEGIC TECHNOLOGY EXECUTIVE",
-      desc: "A hybrid executive architecting the intersection of Geopolitics, Data, and Design. Weaponizing technical curiosity to solve systemic organizational challenges.",
-      bullets: ["15+ Years Experience", "Boardroom to Backend Bridge", "1.4M Citizens Mapped"],
-      metrics: ["Global Scale", "Polymathic", "Impact-Driven"]
-    },
-    // STRATEGIC
-    { 
-      id: "Strategy", group: 2, val: 60, color: "#0070F3", 
-      title: "STRATEGIC RISK & POLICY", role: "Geopolitical Architect", 
-      desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement. Specializing in data sovereignty and compliance.",
-      bullets: ["Orchestrated 'Beyond the Map' (1.4M Citizens)", "Navigated multi-stakeholder diplomacy", "Established privacy frameworks"],
-      metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"]
-    },
-    // ENGINEERING
-    { 
-      id: "Engineering", group: 2, val: 60, color: "#00FF94", 
-      title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI Lead", 
-      desc: "Deploying AI agents to automate workflows and reclaim executive hours. Building internal tools that turn operational bottlenecks into efficiencies.",
-      bullets: ["Built 'SlideSense' (GenAI Automation)", "Developed 'Stevie' (Audio AI)", "Architected global keyword tools"],
-      metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"]
-    },
-    // CREATIVE
-    { 
-      id: "Creative", group: 2, val: 60, color: "#FF0055", 
-      title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", 
-      desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in. Leveraging motion psychology to drive adoption.",
-      bullets: ["Directed 'Monk-e-Mail' (50M+ Visitors)", "Led 3D Design for E-Trade Baby", "Pioneered '3D Swirl' formats"],
-      metrics: ["50M+ Engagement", "Super Bowl Ads", "Interactive Story"]
-    },
-    // ORBIT
-    { id: "Global Ops", group: 3, val: 20, color: "#0070F3", title: "GLOBAL OPERATIONS", role: "Scale", desc: "Standardizing vendor ops across APAC/EMEA." },
+    { id: "JONATHAN", group: 1, val: 120, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "STRATEGIC TECH EXEC", desc: "Architecting the intersection of Geopolitics, Data, and Design.", bullets: ["15+ Years Exp", "Boardroom to Backend", "1.4M Citizens Mapped"], metrics: ["Global Scale", "Polymathic", "Impact-Driven"] },
+    { id: "Strategy", group: 2, val: 60, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical Architect", desc: "Mitigating enterprise risk by translating abstract policy mandates into code.", bullets: ["Orchestrated 'Beyond the Map'", "Navigated diplomacy", "Privacy frameworks"], metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"] },
+    { id: "Engineering", group: 2, val: 60, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI Lead", desc: "Deploying AI agents to automate workflows and reclaim executive hours.", bullets: ["Built 'SlideSense'", "Developed 'Stevie'", "Global keyword tools"], metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"] },
+    { id: "Creative", group: 2, val: 60, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives.", bullets: ["Directed 'Monk-e-Mail'", "E-Trade Baby Design", "3D Swirl formats"], metrics: ["50M+ Engagement", "Super Bowl Ads", "Interactive Story"] },
+    
+    { id: "Global Ops", group: 3, val: 20, color: "#0070F3", title: "GLOBAL OPS", role: "Scale", desc: "Standardizing vendor ops across APAC/EMEA." },
     { id: "Governance", group: 3, val: 20, color: "#0070F3", title: "GOVERNANCE", role: "Policy", desc: "Automated policy enforcement via code." },
     { id: "Next.js 15", group: 3, val: 20, color: "#00FF94", title: "NEXT.JS 15", role: "Architecture", desc: "Server Components & PPR." },
     { id: "Gemini API", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "LLM Integration", desc: "Deep integration of Multimodal AI." },
@@ -84,6 +39,8 @@ const initialData = {
 };
 
 const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
+const STAGE_X = 400; 
+const STAGE_Y = 0;
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
@@ -106,7 +63,6 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // PHYSICS CONFIG
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
@@ -119,11 +75,10 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // INTELLIGENCE ENGINE
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["SCANNING NETWORK...", "ACQUIRING TARGET..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["SCANNING...", "CONNECTING..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -137,7 +92,6 @@ export default function TechConstellation() {
     }
   }, [activeNode, isTransitioning]);
 
-  // ANIMATION SEQUENCE
   const transitionToNode = (node: any) => {
     if (!fgRef.current) return;
 
@@ -184,28 +138,26 @@ export default function TechConstellation() {
     return () => clearInterval(interval);
   }, []);
 
-  // --- USER INTERACTION & RESUME ---
+  // --- FIX: Added string casting to node.id ---
   const triggerInteraction = useCallback((nodeId: string) => {
-    // 1. Stop Auto-Pilot
     autoPilotRef.current = false;
     
-    // 2. Move Node
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const graphNodes = (initialData.nodes as any[]); 
     const node = graphNodes.find(n => n.id === nodeId);
+    
     if (node) transitionToNode(node);
 
-    // 3. RESTART TIMER (5 Seconds)
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
       autoPilotRef.current = true;
-    }, 5000); // Restart fast to keep energy up
+    }, 5000); 
   }, []);
 
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* --- LEFT CARD --- */}
+      {/* LEFT CARD */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[650px] flex items-center p-8 md:p-12 z-20 pointer-events-none">
         <div 
           className={`pointer-events-auto w-full transition-all duration-700 transform 
@@ -213,26 +165,24 @@ export default function TechConstellation() {
         >
            <div className="bg-black/70 backdrop-blur-3xl border border-white/10 p-10 md:p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
               
-              {/* Color Bar */}
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
-              {/* 1. PROMINENT LIVE FEED HEADER */}
-              <div className="mb-8 border-b border-white/10 pb-6 bg-white/5 -mx-10 -mt-10 p-10">
-                <div className="flex items-center justify-between mb-3">
+              {/* LIVE FEED */}
+              <div className="mb-8 border-b border-gray-800 pb-6">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-gray-500">System Focus</span>
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Live Intelligence Stream</span>
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                        <span className="text-[9px] font-mono text-white uppercase tracking-wider">Scanning</span>
                     </div>
-                    <span className="font-mono text-[10px] text-gray-500">{new Date().toLocaleTimeString()}</span>
                 </div>
-                <p className="text-sm font-mono text-[#00FF94] leading-relaxed">
-                  &gt; {currentTrend}<span className="animate-pulse text-white">_</span>
+                <p className="text-xs font-mono text-[#00FF94] h-8 leading-relaxed">
+                  {currentTrend}<span className="animate-pulse text-white">_</span>
                 </p>
               </div>
 
-              {/* 2. TITLE */}
-              <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest font-bold" 
+              <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest" 
                   style={{ color: activeNode?.color }}>
                 {activeNode?.role}
               </h3>
@@ -240,12 +190,10 @@ export default function TechConstellation() {
                 {activeNode?.title || activeNode?.id}
               </h1>
 
-              {/* 3. DESCRIPTION */}
               <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl">
                 {activeNode?.desc}
               </p>
 
-              {/* 4. BULLETS */}
               {activeNode?.bullets && (
                 <div className="grid gap-3 mb-8">
                   {activeNode.bullets.map((b: string, i: number) => (
@@ -257,7 +205,17 @@ export default function TechConstellation() {
                 </div>
               )}
 
-              {/* 5. ACTION BUTTON (Moved to Bottom) */}
+              {activeNode?.metrics && (
+                <div className="grid grid-cols-3 gap-4 mb-8 pt-8 border-t border-white/10">
+                  {activeNode.metrics.map((m: string) => (
+                    <div key={m} className="text-center">
+                      <span className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wider">Metric</span>
+                      <span className="block text-sm font-bold text-white">{m}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="mt-4 pt-6 border-t border-gray-800">
                   <button 
                     onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})}
@@ -270,7 +228,7 @@ export default function TechConstellation() {
         </div>
       </div>
 
-      {/* --- RIGHT BRAIN CANVAS --- */}
+      {/* RIGHT BRAIN CANVAS */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
@@ -278,10 +236,10 @@ export default function TechConstellation() {
         graphData={initialData}
         backgroundColor="#050505"
         
-        // INTERACTIONS: Restart timer on all actions
-        onNodeClick={(node) => triggerInteraction(node.id)}
-        onNodeDrag={() => triggerInteraction(activeNode.id)} 
-        onBackgroundClick={() => triggerInteraction(activeNode.id)}
+        // FIX: Explicitly cast ID to string
+        onNodeClick={(node) => triggerInteraction(node.id as string)}
+        onNodeDrag={() => triggerInteraction(activeNode.id as string)} 
+        onBackgroundClick={() => triggerInteraction(activeNode.id as string)}
         
         cooldownTicks={100}
         d3AlphaDecay={0.05} 
