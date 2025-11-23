@@ -56,12 +56,17 @@ const MASTER_DATA = {
     { id: "Viral History", group: 4, val: 20, color: "#FFCC00", title: "VIRAL HISTORY", role: "Legacy", desc: "Architect of 'Monk-e-Mail' (50M+ users).", bullets: ["Flash Era Viral Hits", "Social Engineering", "Mass Scale"], metrics: ["50M+ Users", "Cultural Icon", "Early Web 2.0"] },
   ],
   links: [
+    // Core Connections
     { source: "JONATHAN", target: "Strategy" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
-    { source: "Strategy", target: "Global Ops" }, { source: "Strategy", target: "Governance" }, { source: "Strategy", target: "Geopolitics" },
+    // Strategy Cluster
+    { source: "Strategy", target: "Geopolitics" }, { source: "Strategy", target: "Governance" }, { source: "Strategy", target: "Global Ops" },
+    // Engineering Cluster
     { source: "Engineering", target: "GenAI" }, { source: "Engineering", target: "Cloud" }, { source: "Engineering", target: "Next.js" }, { source: "Engineering", target: "Analytics" },
     { source: "GenAI", target: "Audio AI" }, { source: "GenAI", target: "Governance" },
+    // Creative Cluster
     { source: "Creative", target: "Motion" }, { source: "Creative", target: "WebGL" }, { source: "Creative", target: "Storytelling" }, { source: "Creative", target: "AR / VR" },
     { source: "Motion", target: "GSAP" }, { source: "Motion", target: "Viral History" },
+    // Cross
     { source: "Gemini API", target: "Audio AI" }, { source: "Global Ops", target: "Strategy" }
   ]
 };
@@ -191,6 +196,7 @@ export default function TechConstellation() {
     }, 5000); 
   }, [graphData]);
 
+  // --- SCROLL HANDLER ---
   const handleDeepLink = () => {
     const targetMap: Record<string, string> = {
         "SlideSense": "slide-sense",
@@ -225,7 +231,7 @@ export default function TechConstellation() {
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
-              {/* LIVE FEED */}
+              {/* LIVE FEED HEADER */}
               <div className="mb-8 border-b border-white/10 pb-6 bg-white/5 -mx-10 -mt-10 p-10">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -276,7 +282,6 @@ export default function TechConstellation() {
                 </div>
               )}
 
-              {/* CTA */}
               <div className="mt-4 pt-6 border-t border-gray-800">
                   <button 
                     onClick={handleDeepLink}
@@ -298,6 +303,7 @@ export default function TechConstellation() {
         graphData={graphData} // USING CLONED DATA
         backgroundColor="#050505"
         
+        // FIX: Cast ID to string
         onNodeClick={(node) => handleInteraction(node.id as string)}
         onNodeDrag={() => { if (activeNode) handleInteraction(activeNode.id as string); }} 
         onBackgroundClick={() => { if (activeNode) handleInteraction(activeNode.id as string); }}
