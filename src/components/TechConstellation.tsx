@@ -21,22 +21,38 @@ const LIVE_TRENDS = {
     "DESIGN: Glassmorphism & Bento Grids.",
     "METRIC: Interactive story = -40% bounce."
   ],
-  "Global Ops": [
-    "LIVE: Vendor consolidation in EMEA.",
-    "OPS: AI-driven SOP generation."
-  ],
-  "Gemini API": [
-    "UPDATE: Gemini 1.5 Pro context expansion.",
-    "USE CASE: Multimodal accessibility."
-  ]
+  "Global Ops": ["LIVE: Vendor consolidation in EMEA.", "OPS: AI-driven SOP generation."],
+  "Gemini API": ["UPDATE: Gemini 1.5 Pro context expansion.", "USE CASE: Multimodal accessibility."]
 };
 
+// --- 2. RICH DATA (Expanded for Executive Reading) ---
 const initialData = {
   nodes: [
-    { id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "Strategic Tech Exec", desc: "Architecting the intersection of Policy, Code, and Design." },
-    { id: "Strategy", group: 2, val: 30, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk via policy/code bridges." },
-    { id: "Engineering", group: 2, val: 30, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Automating workflows to reclaim executive hours." },
-    { id: "Creative", group: 2, val: 30, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives." },
+    { 
+      id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF",
+      title: "JONATHAN W. MARINO", role: "Strategic Technology Executive",
+      desc: "A hybrid executive architecting the intersection of Geopolitics, Data, and Design. Bridging the gap between Boardroom Strategy and Backend Reality.",
+      metrics: ["15+ Years Exp", "Global Scale", "Polymathic"]
+    },
+    { 
+      id: "Strategy", group: 2, val: 30, color: "#0070F3", 
+      title: "STRATEGIC RISK", role: "Geopolitical & Technical", 
+      desc: "Mitigating enterprise risk by bridging the gap between policy mandates and code enforcement. Specializing in data sovereignty across fractured geopolitical landscapes.",
+      metrics: ["1.4M Citizens Mapped", "Privacy Compliance", "Cross-Border Policy"]
+    },
+    { 
+      id: "Engineering", group: 2, val: 30, color: "#00FF94", 
+      title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", 
+      desc: "Deploying AI agents (SlideSense) to automate workflows and reclaim executive hours. Architecting scalable internal tools that reduce operational friction.",
+      metrics: ["$300k+ Annual Savings", "Automated Governance", "Gemini API Integration"]
+    },
+    { 
+      id: "Creative", group: 2, val: 30, color: "#FF0055", 
+      title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", 
+      desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in. Leveraging motion psychology to drive adoption of new technologies.",
+      metrics: ["50M+ User Engagement", "Super Bowl Campaigns", "Interactive Storytelling"]
+    },
+    // ORBIT
     { id: "Global Ops", group: 3, val: 10, color: "#0070F3" },
     { id: "Governance", group: 3, val: 10, color: "#0070F3" },
     { id: "Next.js 15", group: 3, val: 10, color: "#00FF94" },
@@ -55,24 +71,25 @@ const initialData = {
 
 const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
 
-// THE STAGE: Where we drag the nodes to (Right side of screen)
-const FOCUS_X = 250;
+// THE STAGE: Shifted +400px Right to clear the card
+const FOCUS_X = 400; 
 const FOCUS_Y = 0;
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
+  
+  // State for Content & Transitions
   const [activeNode, setActiveNode] = useState<any>(initialData.nodes[0]); 
-  const [isAutoPilot, setIsAutoPilot] = useState(true);
-  const [isClient, setIsClient] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false); // Controls Fade Out/In
   const [currentTrend, setCurrentTrend] = useState("");
   
-  // Internal Refs for Animation Loop
+  // Logic Refs
   const tourIndexRef = useRef(0);
-  const draggingNodeRef = useRef<any>(null);
+  const autoPilotRef = useRef(true);
+  const currentNodeRef = useRef<any>(null);
 
   useEffect(() => {
-    setIsClient(true);
     if (typeof window !== "undefined") {
       setDimensions({ w: window.innerWidth, h: window.innerHeight });
       const resize = () => setDimensions({ w: window.innerWidth, h: window.innerHeight });
@@ -81,28 +98,25 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // 1. INITIAL SETUP: Lock Camera, Start Physics
+  // PHYSICS CONFIG
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
+        graph.d3Force('charge')?.strength(-200); 
+        graph.d3Force('link')?.distance(100);
+        graph.d3Force('center')?.strength(0.02); // Loose center pull
         
-        // Set Physics: Loose and floaty
-        graph.d3Force('charge')?.strength(-150); 
-        graph.d3Force('link')?.distance(80);
-        graph.d3Force('center')?.strength(0.01); // Very weak center pull so we can drag easily
-
-        // CAMERA: Lock it once. We never move the camera again.
-        // We zoom into the "Stage" area at (250, 0)
+        // LOCK CAMERA on the "Right Stage"
         graph.centerAt(FOCUS_X, FOCUS_Y, 0);
         graph.zoom(3.5, 0);
     }
-  }, [isClient]);
+  }, []);
 
-  // 2. TYPING EFFECT (Updates Left Card)
+  // TYPING EFFECT
   useEffect(() => {
-    if (activeNode) {
+    if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING DATA STREAM...", "CONNECTING..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING SYSTEM DATA...", "CONNECTING..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -114,87 +128,89 @@ export default function TechConstellation() {
       }, 20);
       return () => clearInterval(typeInterval);
     }
-  }, [activeNode]);
+  }, [activeNode, isTransitioning]);
 
-  // 3. THE "MAGNETIC DRAG" FUNCTION
-  const magnetizeNode = (nodeId: string) => {
+  // --- ANIMATION SEQUENCE ---
+  const transitionToNode = (node: any) => {
     if (!fgRef.current) return;
-    
-    // Find node in LIVE data (d3 mutates it)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const graphNodes = (initialData.nodes as any[]); 
-    const node = graphNodes.find(n => n.id === nodeId);
 
-    if (node) {
-      // A. Release previous node
-      if (draggingNodeRef.current && draggingNodeRef.current !== node) {
-        draggingNodeRef.current.fx = undefined; // Let it float free
-        draggingNodeRef.current.fy = undefined;
-      }
+    // 1. Trigger Fade OUT
+    setIsTransitioning(true);
 
-      // B. Update State (Left Card) immediately
-      setActiveNode(node);
-      draggingNodeRef.current = node;
-
-      // C. ANIMATE PHYSICS PROPERTIES (The Seamless Move)
-      // Instead of moving camera, we animate the node's "Fixed Position" (fx, fy)
-      // to the center of our stage. The physics engine handles the rest.
-      
-      // Lock current position to start drag
-      node.fx = node.x;
-      node.fy = node.y;
-
-      gsap.to(node, {
-        fx: FOCUS_X, // Drag to Target X
-        fy: FOCUS_Y, // Drag to Target Y
-        duration: 2.5,
-        ease: "power3.inOut",
-        onUpdate: () => {
-          // Keep physics hot during animation so lines stretch smoothly
-          fgRef.current?.d3ReheatSimulation(); 
-        }
-      });
+    // 2. Release Old Node Physics
+    if (currentNodeRef.current && currentNodeRef.current !== node) {
+      currentNodeRef.current.fx = undefined;
+      currentNodeRef.current.fy = undefined;
     }
+    currentNodeRef.current = node;
+
+    // 3. Physics Drag (Happens while text is fading out)
+    node.fx = node.x;
+    node.fy = node.y;
+    gsap.to(node, {
+      fx: FOCUS_X,
+      fy: FOCUS_Y,
+      duration: 2.5,
+      ease: "power3.inOut",
+      onUpdate: () => fgRef.current?.d3ReheatSimulation()
+    });
+
+    // 4. Wait for Fade Out (500ms), then Swap Data & Fade In
+    setTimeout(() => {
+      setActiveNode(node);
+      setIsTransitioning(false); // Trigger Fade IN
+    }, 600); 
   };
 
-  // 4. THE GAME LOOP (Auto-Pilot)
+  // --- GAME LOOP ---
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isAutoPilot) return;
+      if (!autoPilotRef.current) return;
 
-      // Advance Index
       const nextIndex = (tourIndexRef.current + 1) % TOUR_STEPS.length;
       tourIndexRef.current = nextIndex;
       
-      const targetId = TOUR_STEPS[nextIndex];
-      magnetizeNode(targetId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const graphNodes = (initialData.nodes as any[]);
+      const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
 
-    }, 5000); // Every 5 seconds
+      if (node) {
+        transitionToNode(node);
+      }
+    }, 10000); // 10 Seconds per node (Longer read time)
 
     return () => clearInterval(interval);
-  }, [isAutoPilot]);
-
-  // 5. MANUAL INTERACTION
-  const handleInteraction = useCallback((node: any) => {
-    setIsAutoPilot(false); // Stop loop
-    magnetizeNode(node.id); // Drag clicked node to center
   }, []);
 
-  if (!isClient) return null;
+  const handleInteraction = useCallback((node: any) => {
+    autoPilotRef.current = false;
+    transitionToNode(node);
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* LEFT CARD (Fixed UI) */}
+      {/* --- LEFT CARD (Fades In/Out based on isTransitioning) --- */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[750px] flex items-center p-8 md:p-16 z-20 pointer-events-none">
-        <div className={`pointer-events-auto w-full transition-all duration-700 transform ${activeNode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
-           <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
-              <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" style={{ backgroundColor: activeNode?.color || '#fff' }} />
+        <div 
+          className={`pointer-events-auto w-full transition-all duration-700 transform 
+            ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
+        >
+           <div className="bg-black/70 backdrop-blur-3xl border border-white/10 p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
               
+              {/* Color Bar */}
+              <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
+                   style={{ backgroundColor: activeNode?.color || '#fff' }} />
+              
+              {/* HEADER */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex flex-col">
-                  <span className="font-mono text-xs tracking-[0.3em] uppercase text-gray-500 mb-1">System Node</span>
-                  <span className="font-mono text-white text-lg">{activeNode?.group === 1 ? 'KERNEL' : 'MODULE'}</span>
+                  <span className="font-mono text-xs tracking-[0.3em] uppercase text-gray-500 mb-1">
+                    System Node
+                  </span>
+                  <span className="font-mono text-white text-lg">
+                    {activeNode?.group === 1 ? 'KERNEL' : `SECTOR_0${activeNode?.group}`}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10">
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_red]" />
@@ -202,19 +218,42 @@ export default function TechConstellation() {
                 </div>
               </div>
 
-              <h3 className="font-mono text-[#0070F3] text-sm mb-3 uppercase tracking-widest" style={{ color: activeNode?.color }}>{activeNode?.role}</h3>
-              <h1 className="text-6xl font-sans font-bold text-white mb-10 leading-[0.9] tracking-tight">{activeNode?.title || activeNode?.id}</h1>
+              {/* TITLE */}
+              <h3 className="font-mono text-[#0070F3] text-sm mb-3 uppercase tracking-widest" 
+                  style={{ color: activeNode?.color }}>
+                {activeNode?.role}
+              </h3>
+              <h1 className="text-5xl md:text-6xl font-sans font-bold text-white mb-8 leading-[0.9] tracking-tight">
+                {activeNode?.title || activeNode?.id}
+              </h1>
 
-              <div className="mb-10 border-y border-gray-800 py-8 bg-black/40 -mx-12 px-12">
-                <p className="text-[10px] font-mono text-gray-500 mb-3 uppercase flex justify-between">
-                  <span>// INCOMING SIGNAL</span>
-                  <span>{new Date().toLocaleTimeString()}</span>
+              {/* RICH CONTENT BLOCK */}
+              <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 border-l-2 border-gray-800 pl-6">
+                {activeNode?.desc}
+              </p>
+
+              {/* METRICS GRID (New Feature) */}
+              {activeNode?.metrics && (
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  {activeNode.metrics.map((m: string) => (
+                    <div key={m} className="bg-white/5 border border-white/5 p-3 rounded text-center">
+                      <span className="text-xs font-mono text-gray-400">{m}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* TRENDS */}
+              <div className="mb-8 border-t border-gray-800 pt-6">
+                <p className="text-[10px] font-mono text-gray-500 mb-2 uppercase">
+                  // LIVE INTELLIGENCE
                 </p>
-                <p className="text-md font-mono text-[#00FF94] h-12 leading-relaxed">{currentTrend}<span className="animate-pulse text-white">_</span></p>
+                <p className="text-sm font-mono text-[#00FF94] h-6 leading-relaxed">
+                  {currentTrend}<span className="animate-pulse text-white">_</span>
+                </p>
               </div>
 
-              <p className="text-xl text-gray-300 font-sans leading-relaxed mb-10 max-w-2xl">{activeNode?.desc}</p>
-
+              {/* CTA */}
               {activeNode?.id === "JONATHAN" && (
                  <button 
                    onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})}
@@ -227,35 +266,29 @@ export default function TechConstellation() {
         </div>
       </div>
 
-      {/* RIGHT BRAIN (Canvas) */}
+      {/* --- RIGHT BRAIN --- */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
         height={dimensions.h}
         graphData={initialData}
         backgroundColor="#050505"
-        
-        // Interaction Handlers
         onNodeClick={handleInteraction}
-        onNodeDrag={() => setIsAutoPilot(false)}
-        onBackgroundClick={() => setIsAutoPilot(false)}
-
-        // Physics Settings
+        onNodeDrag={() => { autoPilotRef.current = false; }}
+        onBackgroundClick={() => { autoPilotRef.current = false; }}
+        
         cooldownTicks={100}
         d3AlphaDecay={0.01} 
-        d3VelocityDecay={0.3}
-
-        // Visuals
+        d3VelocityDecay={0.4}
+        
         nodeRelSize={8}
         linkColor={() => "#ffffff15"}
         linkWidth={1.5}
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
         
-        // Node Renderer
         nodeCanvasObject={(node, ctx, globalScale) => {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
-
           const isTarget = node.id === activeNode?.id;
           const isCore = node.group === 1;
           const color = (node.color as string) || "#fff";
@@ -282,7 +315,6 @@ export default function TechConstellation() {
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Only show labels for non-active nodes (Active is on the card)
           if (!isTarget && (isCore || node.group === 2)) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;
