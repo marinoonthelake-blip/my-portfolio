@@ -18,7 +18,7 @@ const LIVE_TRENDS = {
   "Creative": [
     "SIGNAL: WebGPU adoption rising in e-commerce for 3D product config.",
     "DESIGN SHIFT: 'Bento Grids' and 'Glassmorphism' dominating SaaS UI.",
-    "METRIC: Interactive storytelling reducing bounce rates by 40% vs static landing pages."
+    "METRIC: Interactive storytelling reduces bounce rates by 40% vs static landing pages."
   ],
   "Global Ops": [
     "LIVE: Vendor consolidation trends in EMEA markets.",
@@ -87,13 +87,15 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // PHYSICS CONFIG: CENTERED
+  // PHYSICS CONFIG: OFFSET CENTER
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-250); // Strong Repulsion
-        graph.d3Force('center')?.x(0); // FIX: Center X explicitly at 0
-        graph.d3Force('center')?.y(0); // FIX: Center Y explicitly at 0
+        graph.d3Force('charge')?.strength(-250); 
+        
+        // FIX: Push the physics center 250px to the RIGHT to avoid the card
+        graph.d3Force('center')?.x(250); 
+        graph.d3Force('center')?.y(0);
     }
   }, [isClient]);
 
@@ -116,15 +118,16 @@ export default function TechConstellation() {
     }
   }, [activeNode]);
 
-  // --- ROBUST AUTO-PILOT ---
+  // --- DEBUGGED AUTO-PILOT ---
   useEffect(() => {
     if (!isAutoPilot || !fgRef.current) return;
 
-    // Always clear previous timer to avoid overlaps
+    // Clear any existing timer
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    // Function to execute the move
     const executeMove = () => {
+      console.log(`[AUTO-PILOT] Attempting move to Index: ${tourIndex}`);
+
       // 1. Calculate Next Target
       const nextIndex = (tourIndex + 1) % TOUR_STEPS.length;
       const targetId = TOUR_STEPS[nextIndex];
@@ -133,25 +136,30 @@ export default function TechConstellation() {
       const graphNodes = (fgRef.current as any).graphData().nodes;
       const node = graphNodes.find((n: any) => n.id === targetId);
 
-      // 2. Attempt Move (if node exists and physics are ready)
-      if (node && Number.isFinite(node.x)) {
-        fgRef.current?.centerAt(node.x, node.y, 2000); // Center directly on node
-        fgRef.current?.zoom(2.8, 2000);
-        setActiveNode(node);
-        setTourIndex(nextIndex); // Only advance index if successful
+      // 2. Attempt Move
+      if (node) {
+        if (Number.isFinite(node.x)) {
+          console.log(`[AUTO-PILOT] Node '${targetId}' found at (${node.x}, ${node.y}). Moving Camera.`);
+          
+          // OFFSET CAMERA: We center at node.x - 250 to keep the node visible on the right
+          fgRef.current?.centerAt(node.x - 250, node.y, 2000); 
+          fgRef.current?.zoom(3.0, 2000);
+          setActiveNode(node);
+          setTourIndex(nextIndex); // Advance ONLY if successful
+        } else {
+          console.warn(`[AUTO-PILOT] Node '${targetId}' found but X is ${node.x}. Physics warming up.`);
+        }
       } else {
-        // If physics aren't ready, just try same index again quickly
-        // This prevents the loop from dying
-        console.log("Physics warming up...");
+        console.error(`[AUTO-PILOT] Target Node '${targetId}' NOT FOUND in graph data.`);
       }
 
-      // 3. SCHEDULE NEXT LOOP (The Heartbeat)
-      // We schedule this regardless of success/fail to keep the engine alive
+      // 3. SCHEDULE NEXT LOOP
+      // Shorter timer (4s) to keep momentum
       timeoutRef.current = setTimeout(executeMove, 4000); 
     };
 
     // Start the loop
-    timeoutRef.current = setTimeout(executeMove, 4000);
+    timeoutRef.current = setTimeout(executeMove, 1000); // Initial delay
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -159,10 +167,11 @@ export default function TechConstellation() {
   }, [tourIndex, isAutoPilot]);
 
   const handleInteraction = useCallback((node: any) => {
+    console.log("[USER] Manual Override engaged.");
     setIsAutoPilot(false);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setActiveNode(node);
-    fgRef.current?.centerAt(node.x, node.y, 1000);
+    fgRef.current?.centerAt(node.x - 250, node.y, 1000);
     fgRef.current?.zoom(3, 1000);
   }, []);
 
@@ -223,7 +232,7 @@ export default function TechConstellation() {
         backgroundColor="#050505"
         onNodeClick={handleInteraction}
         onNodeDrag={() => setIsAutoPilot(false)}
-        onBackgroundClick={() => setIsAutoPilot(false)}
+        onBackgroundClick={() => { setIsAutoPilot(false); }}
         cooldownTicks={100}
         d3AlphaDecay={0.01} 
         d3VelocityDecay={0.4}
@@ -262,7 +271,6 @@ export default function TechConstellation() {
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Label
           if (!isTarget && (isCore || node.group === 2)) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;
