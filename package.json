@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "d3-force": "^3.0.0",
     "gsap": "^3.13.0",
     "next": "16.0.3",
     "react": "19.2.0",

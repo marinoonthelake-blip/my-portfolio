@@ -1,18 +1,9 @@
 import Hero from "../components/Hero";
 import ExperienceTimeline from "../components/Timeline";
 import ProjectGallery from "../components/ProjectGallery";
+import ConstellationWrapper from "../components/ConstellationWrapper"; // <--- Import the Bridge
 
-
-
-import dynamic from 'next/dynamic';
-
-// Lazy load the graph to prevent SSR crashes and improve initial load speed (PPR Strategy)
-const TechConstellation = dynamic(() => import('../components/TechConstellation'), { 
-  ssr: false,
-  loading: () => <div className="h-[600px] w-full bg-[#050505] animate-pulse" />
-});
-
-// 1. Project Data (Updated with visual placeholders)
+// 1. Project Data
 const projectData = [
   {
     id: "slide-sense",
@@ -71,6 +62,9 @@ export default function Home() {
         tagline="Weaponizing technical curiosity."
         cta_text="View Projects"
       />
+
+      {/* Visual Data Section (The Constellation) */}
+      <ConstellationWrapper />
       
       {/* Project Gallery */}
       <section className="w-full max-w-6xl mx-auto px-[24px] md:px-[64px] py-20">
