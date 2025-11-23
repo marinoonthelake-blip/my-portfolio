@@ -2,45 +2,40 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
-import gsap from "gsap";
 
 // --- 1. LIVE INTELLIGENCE DATA ---
 const LIVE_TRENDS = {
   "Strategy": [
-    "SIGNAL DETECTED: EU AI Act enforcement phase beginning.",
-    "MARKET SHIFT: Enterprise risk moving from 'Cloud Security' to 'Model Governance'.",
-    "ANALYSIS: Geopolitical data sovereignty fragmentation in APAC regions."
+    "SIGNAL: EU AI Act enforcement beginning.",
+    "RISK SHIFT: Model Governance > Cloud Sec.",
+    "ANALYSIS: Data sovereignty fragmentation."
   ],
   "Engineering": [
-    "TRENDING: DeepSeek-V3 disrupting open-source inference costs.",
-    "STACK UPDATE: Next.js 15 PPR moving to stable production readiness.",
-    "OBSERVATION: Shift from RAG pipelines to Agentic Workflows in Enterprise."
+    "TRENDING: DeepSeek-V3 inference costs.",
+    "STACK: Next.js 15 PPR production readiness.",
+    "SHIFT: Agentic Workflows > RAG."
   ],
   "Creative": [
-    "SIGNAL: WebGPU adoption rising in e-commerce for 3D product config.",
-    "DESIGN SHIFT: 'Bento Grids' and 'Glassmorphism' dominating SaaS UI.",
-    "METRIC: Interactive storytelling reduces bounce rates by 40% vs static landing pages."
+    "SIGNAL: WebGPU adoption +40%.",
+    "DESIGN: Glassmorphism & Bento Grids.",
+    "METRIC: Interactive story = -40% bounce."
   ],
   "Global Ops": [
-    "LIVE: Vendor consolidation trends in EMEA markets.",
-    "OPS: AI-driven SOP generation replacing manual documentation."
+    "LIVE: Vendor consolidation in EMEA.",
+    "OPS: AI-driven SOP generation."
   ],
   "Gemini API": [
-    "UPDATE: Gemini 1.5 Pro context window expansion enabling full-codebase analysis.",
-    "USE CASE: Multimodal reasoning for accessibility (See: Stevie Project)."
+    "UPDATE: Gemini 1.5 Pro context expansion.",
+    "USE CASE: Multimodal accessibility."
   ]
 };
 
 const initialData = {
   nodes: [
-    { 
-      id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF",
-      title: "JONATHAN W. MARINO", role: "Strategic Technology Executive",
-      desc: "The central node. Architecting the intersection of Policy, Code, and Design." 
-    },
-    { id: "Strategy", group: 2, val: 30, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk by bridging the gap between policy mandates and code enforcement." },
-    { id: "Engineering", group: 2, val: 30, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Deploying AI agents (SlideSense) to automate workflows and reclaim $300k+ in executive hours." },
-    { id: "Creative", group: 2, val: 30, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in." },
+    { id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "Strategic Tech Exec", desc: "Architecting the intersection of Policy, Code, and Design." },
+    { id: "Strategy", group: 2, val: 30, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk via policy/code bridges." },
+    { id: "Engineering", group: 2, val: 30, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Automating workflows to reclaim executive hours." },
+    { id: "Creative", group: 2, val: 30, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives." },
     { id: "Global Ops", group: 3, val: 10, color: "#0070F3" },
     { id: "Governance", group: 3, val: 10, color: "#0070F3" },
     { id: "Next.js 15", group: 3, val: 10, color: "#00FF94" },
@@ -59,9 +54,6 @@ const initialData = {
 
 const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
 
-// The "Stage" coordinates where nodes will be pulled to (Right side of screen)
-const FOCUS_POINT = { x: 250, y: 0 };
-
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
@@ -71,10 +63,8 @@ export default function TechConstellation() {
   const [isClient, setIsClient] = useState(false);
   const [currentTrend, setCurrentTrend] = useState("");
   
-  // Refs
   const indexRef = useRef(0);
   const autoPilotRef = useRef(true);
-  const currentNodeRef = useRef<any>(null); // Track which node is currently "Held"
 
   useEffect(() => {
     setIsClient(true);
@@ -86,26 +76,24 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // PHYSICS CONFIG
+  // PHYSICS CONFIG: PUSH TO RIGHT
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-150); 
-        // Soft center pull so they don't fly away, but we override this with manual movement
-        graph.d3Force('center')?.strength(0.05); 
+        graph.d3Force('charge')?.strength(-300); 
         
-        // LOCK CAMERA: Set the viewport once and never move it again
-        // We look at (250, 0) which is where we will drag the nodes to
-        graph.centerAt(FOCUS_POINT.x, FOCUS_POINT.y, 0);
-        graph.zoom(2.5, 0);
+        // FIX: Shift center X by +250px to move brain to the right side
+        // This prevents overlap with the Left Card
+        graph.d3Force('center')?.x(250); 
+        graph.d3Force('center')?.y(0); 
     }
   }, [isClient]);
 
-  // TYPING ENGINE
+  // TYPING EFFECT
   useEffect(() => {
     if (activeNode) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING LIVE DATA STREAM...", "CONNECTING..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING LIVE FEED...", "CONNECTING..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -119,43 +107,7 @@ export default function TechConstellation() {
     }
   }, [activeNode]);
 
-  // --- HELPER: PHYSICS DRAG ---
-  const pullNodeToFocus = (node: any) => {
-    if (!fgRef.current) return;
-
-    // 1. Release the OLD node (if any) so it floats back
-    if (currentNodeRef.current && currentNodeRef.current !== node) {
-      currentNodeRef.current.fx = undefined;
-      currentNodeRef.current.fy = undefined;
-    }
-
-    // 2. Update Reference
-    currentNodeRef.current = node;
-    setActiveNode(node);
-
-    // 3. Animate the NEW node to the Focus Point
-    // We use GSAP to interpolate the 'x' and 'y', and lock 'fx'/'fy' on every frame
-    gsap.to(node, {
-      x: FOCUS_POINT.x,
-      y: FOCUS_POINT.y,
-      duration: 2,
-      ease: "power3.inOut",
-      onUpdate: () => {
-        node.fx = node.x; // Lock X position
-        node.fy = node.y; // Lock Y position
-      },
-      onComplete: () => {
-        // Keep it locked at the center
-        node.fx = FOCUS_POINT.x;
-        node.fy = FOCUS_POINT.y;
-      }
-    });
-
-    // 4. Wake up physics so neighbors react to the drag
-    fgRef.current.d3ReheatSimulation();
-  };
-
-  // --- THE GAME LOOP ---
+  // --- THE GAME LOOP (CRASH PROOF) ---
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoPilotRef.current || !fgRef.current) return;
@@ -163,27 +115,34 @@ export default function TechConstellation() {
       const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
       const targetId = TOUR_STEPS[nextIndex];
       
+      // FIX: Read directly from initialData (passed by reference)
+      // Do NOT call .graphData() on the ref
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const graphNodes = (fgRef.current as any).graphData().nodes;
-      const node = graphNodes.find((n: any) => n.id === targetId);
+      const node = initialData.nodes.find(n => n.id === targetId) as any;
 
-      if (node) {
-        // EXECUTE THE PULL
-        pullNodeToFocus(node);
+      if (node && Number.isFinite(node.x)) {
+        // Move camera to center on the node, but apply offset so node appears on the right
+        // CenterAt(x - offset) pushes the view left, moving objects right
+        fgRef.current?.centerAt(node.x - 250, node.y, 2500); 
+        fgRef.current?.zoom(2.8, 2500);
         
+        setActiveNode(node);
         indexRef.current = nextIndex;
         setTourIndex(nextIndex);
       }
 
-    }, 5000); // Every 5 seconds
+    }, 5000); 
 
     return () => clearInterval(interval);
   }, []);
 
   const handleInteraction = useCallback((node: any) => {
     setIsAutoPilot(false);
-    autoPilotRef.current = false;
-    pullNodeToFocus(node);
+    autoPilotRef.current = false; 
+    
+    setActiveNode(node);
+    fgRef.current?.centerAt(node.x - 250, node.y, 1000);
+    fgRef.current?.zoom(3, 1000);
   }, []);
 
   if (!isClient) return null;
@@ -192,7 +151,7 @@ export default function TechConstellation() {
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
       {/* --- LEFT CARD --- */}
-      <div className="absolute left-0 top-0 h-full w-full md:w-[800px] flex items-center p-8 md:p-16 z-20 pointer-events-none">
+      <div className="absolute left-0 top-0 h-full w-full md:w-[750px] flex items-center p-8 md:p-16 z-20 pointer-events-none">
         <div className={`pointer-events-auto w-full transition-all duration-1000 transform ${activeNode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
            <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" style={{ backgroundColor: activeNode?.color || '#fff' }} />
