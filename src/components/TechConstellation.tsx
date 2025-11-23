@@ -32,10 +32,18 @@ const LIVE_TRENDS = {
 
 const initialData = {
   nodes: [
-    { id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "Strategic Tech Exec", desc: "Architecting the intersection of Policy, Code, and Design." },
+    // CORE
+    { 
+      id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF",
+      title: "JONATHAN W. MARINO",
+      role: "Strategic Technology Executive",
+      desc: "The central node. Architecting the intersection of Policy, Code, and Design." 
+    },
+    // STRATEGIC PILLARS
     { id: "Strategy", group: 2, val: 30, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk via policy/code bridges." },
     { id: "Engineering", group: 2, val: 30, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Automating workflows to reclaim executive hours." },
     { id: "Creative", group: 2, val: 30, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives." },
+    // TACTICAL ORBIT
     { id: "Global Ops", group: 3, val: 10, color: "#0070F3" },
     { id: "Governance", group: 3, val: 10, color: "#0070F3" },
     { id: "Next.js 15", group: 3, val: 10, color: "#00FF94" },
@@ -76,14 +84,12 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // PHYSICS CONFIG: PUSH TO RIGHT
+  // PHYSICS CONFIG
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-300); 
-        
-        // FIX: Shift center X by +250px to move brain to the right side
-        // This prevents overlap with the Left Card
+        graph.d3Force('charge')?.strength(-500); // Massive spread to support high zoom
+        // Shift center X by +250px so the focused node sits in the open space on the right
         graph.d3Force('center')?.x(250); 
         graph.d3Force('center')?.y(0); 
     }
@@ -107,7 +113,7 @@ export default function TechConstellation() {
     }
   }, [activeNode]);
 
-  // --- THE GAME LOOP (CRASH PROOF) ---
+  // --- THE GAME LOOP ---
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoPilotRef.current || !fgRef.current) return;
@@ -115,16 +121,13 @@ export default function TechConstellation() {
       const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
       const targetId = TOUR_STEPS[nextIndex];
       
-      // FIX: Read directly from initialData (passed by reference)
-      // Do NOT call .graphData() on the ref
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const node = initialData.nodes.find(n => n.id === targetId) as any;
 
       if (node && Number.isFinite(node.x)) {
-        // Move camera to center on the node, but apply offset so node appears on the right
-        // CenterAt(x - offset) pushes the view left, moving objects right
-        fgRef.current?.centerAt(node.x - 250, node.y, 2500); 
-        fgRef.current?.zoom(2.8, 2500);
+        // EXTREME ZOOM: Zoom level 6.0 creates the "Microscope" effect
+        fgRef.current?.centerAt(node.x - 100, node.y, 2500); 
+        fgRef.current?.zoom(6.0, 2500);
         
         setActiveNode(node);
         indexRef.current = nextIndex;
@@ -141,8 +144,8 @@ export default function TechConstellation() {
     autoPilotRef.current = false; 
     
     setActiveNode(node);
-    fgRef.current?.centerAt(node.x - 250, node.y, 1000);
-    fgRef.current?.zoom(3, 1000);
+    fgRef.current?.centerAt(node.x - 100, node.y, 1000);
+    fgRef.current?.zoom(6.0, 1000);
   }, []);
 
   if (!isClient) return null;
@@ -210,18 +213,23 @@ export default function TechConstellation() {
         linkWidth={1.5}
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
+        
+        // THE MICROSCOPE RENDERER
         nodeCanvasObject={(node, ctx, globalScale) => {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
-          const isTarget = node.id === activeNode?.id;
-          const isCore = node.group === 1;
-          const color = (node.color as string) || "#fff";
-          const pulse = Math.sin(Date.now() / 800) * 3; 
-          const baseRadius = isCore ? 15 : 6;
-          const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
 
+          const isTarget = node.id === activeNode?.id;
+          const color = (node.color as string) || "#fff";
+          
+          // Calculate Size based on "Active" state
+          // If active, it becomes MASSIVE (Microscope effect)
+          const baseRadius = 10;
+          const radius = isTarget ? 40 : baseRadius; // Target is 4x larger
+
+          // 1. Draw Glow
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
-          gradient.addColorStop(0.4, color + '44');
+          gradient.addColorStop(0.4, color + '22'); // Fade
           gradient.addColorStop(1, 'transparent');
 
           ctx.beginPath();
@@ -229,22 +237,54 @@ export default function TechConstellation() {
           ctx.fillStyle = gradient;
           ctx.fill();
 
+          // 2. Draw Core
           ctx.beginPath();
-          ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
-          ctx.fillStyle = "#000";
+          ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
+          ctx.fillStyle = isTarget ? "#000" : color; // Active nodes are hollow
           ctx.fill();
           ctx.strokeStyle = color;
-          ctx.lineWidth = 2;
+          ctx.lineWidth = isTarget ? 4 : 0;
           ctx.stroke();
 
-          if (!isTarget && (isCore || node.group === 2)) {
-             const label = node.id as string;
-             const fontSize = 12 / globalScale;
-             ctx.font = `bold ${fontSize}px Sans-Serif`;
-             ctx.textAlign = 'center';
-             ctx.textBaseline = 'middle';
-             ctx.fillStyle = 'rgba(255,255,255,0.5)';
-             ctx.fillText(label, node.x!, node.y! + radius + fontSize + 4);
+          // 3. Draw "Data Rings" (Only on Active Node)
+          if (isTarget) {
+             // Inner Ring
+             ctx.beginPath();
+             ctx.arc(node.x!, node.y!, radius * 1.4, 0, 2 * Math.PI, false);
+             ctx.strokeStyle = color + '66';
+             ctx.lineWidth = 1;
+             ctx.setLineDash([5, 15]); // Dashed line
+             ctx.stroke();
+             ctx.setLineDash([]); // Reset
+
+             // Outer Ring
+             ctx.beginPath();
+             ctx.arc(node.x!, node.y!, radius * 1.8, 0, 2 * Math.PI, false);
+             ctx.strokeStyle = color + '33';
+             ctx.stroke();
+          }
+
+          // 4. Draw Text (Attached Information)
+          const label = node.id as string;
+          const fontSize = 16 / globalScale; // Keep text size reasonable
+          
+          // Main Label
+          ctx.font = `bold ${fontSize * 3}px Sans-Serif`; // Scaled up text
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = isTarget ? '#FFF' : 'rgba(255,255,255,0.6)';
+          
+          // If active, draw text INSIDE the node
+          if (isTarget) {
+             ctx.fillText(label, node.x!, node.y!);
+             
+             // Sub-label below
+             ctx.font = `${fontSize * 1.5}px Monospace`;
+             ctx.fillStyle = color;
+             ctx.fillText("ACTIVE", node.x!, node.y! + (radius * 0.6));
+          } else {
+             // If inactive, draw text BELOW
+             ctx.fillText(label, node.x!, node.y! + radius + fontSize + 2);
           }
         }}
       />
