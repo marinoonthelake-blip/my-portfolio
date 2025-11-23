@@ -3,8 +3,9 @@ import ProjectGallery from "../components/ProjectGallery";
 import ConstellationWrapper from "../components/ConstellationWrapper";
 import LogoTicker from "../components/LogoTicker";
 import ImpactMetrics from "../components/ImpactMetrics";
+import LiveNewsFeed from "../components/LiveNewsFeed"; // <--- NEW IMPORT
 
-// ... (Keep Data Arrays) ...
+// ... (Keep your existing projectData and careerData arrays) ...
 const projectData = [
   {
     id: "slide-sense",
@@ -57,13 +58,17 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-[#050505] overflow-x-hidden">
       
-      {/* SECTION 1: The Command Center (Full Height) */}
+      {/* 1. The Live Intelligence Feed (Fixed Right) */}
+      <LiveNewsFeed />
+
+      {/* 2. The Hero Layer */}
       <div className="relative w-full h-screen overflow-hidden">
         <ConstellationWrapper />
       </div>
 
-      {/* SECTION 2: The Content */}
-      <div id="content-start" className="relative z-20 bg-[#050505] border-t border-gray-900">
+      {/* 3. The Content Layer */}
+      {/* We add padding-right (pr-80) on desktop to ensure content isn't hidden behind the news feed */}
+      <div id="content-start" className="relative z-20 bg-[#050505] border-t border-gray-900 md:pr-80">
         <LogoTicker />
         <ImpactMetrics />
         
