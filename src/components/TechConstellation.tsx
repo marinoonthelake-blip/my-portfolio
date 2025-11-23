@@ -95,6 +95,7 @@ export default function TechConstellation() {
   const indexRef = useRef(0);
   const autoPilotRef = useRef(true);
   const currentNodeRef = useRef<any>(null);
+  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -165,7 +166,7 @@ export default function TechConstellation() {
     }, 800); 
   };
 
-  // AUTO-PILOT
+  // AUTO-PILOT LOOP
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoPilotRef.current) return;
@@ -183,82 +184,81 @@ export default function TechConstellation() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleInteraction = useCallback((node: any) => {
+  // --- USER INTERACTION & RESUME ---
+  const triggerInteraction = useCallback((nodeId: string) => {
+    // 1. Stop Auto-Pilot
     autoPilotRef.current = false;
-    transitionToNode(node);
+    
+    // 2. Move Node
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const graphNodes = (initialData.nodes as any[]); 
+    const node = graphNodes.find(n => n.id === nodeId);
+    if (node) transitionToNode(node);
+
+    // 3. RESTART TIMER (5 Seconds)
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      autoPilotRef.current = true;
+    }, 5000); // Restart fast to keep energy up
   }, []);
 
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* 1. TOP-LEFT HEADER (Static) */}
-      <div className="absolute top-0 left-0 p-8 md:p-12 z-50 pointer-events-auto">
-        <div className="flex flex-col items-start">
-          <span className="font-mono text-[#0070F3] text-xs mb-2 tracking-[0.3em] uppercase">
-            Strategic Technology Executive
-          </span>
-          <h1 className="text-3xl font-sans font-bold text-white leading-none tracking-tight drop-shadow-xl">
-            JONATHAN<br/>W. MARINO
-          </h1>
-        </div>
-      </div>
-
-      {/* 2. LEFT CARD (Dynamic) */}
+      {/* --- LEFT CARD --- */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[650px] flex items-center p-8 md:p-12 z-20 pointer-events-none">
-        <div className="w-full">
-           
-           {/* HERO CARD CONTAINER */}
-           <div className={`pointer-events-auto bg-black/70 backdrop-blur-3xl border border-white/10 p-10 md:p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl transition-all duration-700 transform ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
+        <div 
+          className={`pointer-events-auto w-full transition-all duration-700 transform 
+            ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
+        >
+           <div className="bg-black/70 backdrop-blur-3xl border border-white/10 p-10 md:p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
               
               {/* Color Bar */}
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
-              {/* 1. LIVE FEED (First focus) */}
-              <div className="mb-8 border-b border-gray-800 pb-6">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-gray-500">System Focus</span>
+              {/* 1. PROMINENT LIVE FEED HEADER */}
+              <div className="mb-8 border-b border-white/10 pb-6 bg-white/5 -mx-10 -mt-10 p-10">
+                <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[9px] font-mono text-white uppercase tracking-wider">Scanning</span>
+                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Live Intelligence Stream</span>
                     </div>
+                    <span className="font-mono text-[10px] text-gray-500">{new Date().toLocaleTimeString()}</span>
                 </div>
-                <p className="text-xs font-mono text-[#00FF94] h-8 leading-relaxed">
-                  {currentTrend}<span className="animate-pulse text-white">_</span>
+                <p className="text-sm font-mono text-[#00FF94] leading-relaxed">
+                  &gt; {currentTrend}<span className="animate-pulse text-white">_</span>
                 </p>
               </div>
 
-              {/* 2. TITLE (Inferred) */}
-              <div className="transition-opacity duration-700 delay-100">
-                  <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest" 
-                      style={{ color: activeNode?.color }}>
-                    {activeNode?.role}
-                  </h3>
-                  <h1 className="text-5xl md:text-6xl font-sans font-bold text-white mb-8 leading-[0.9] tracking-tight">
-                    {activeNode?.title || activeNode?.id}
-                  </h1>
-              </div>
+              {/* 2. TITLE */}
+              <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest font-bold" 
+                  style={{ color: activeNode?.color }}>
+                {activeNode?.role}
+              </h3>
+              <h1 className="text-5xl md:text-6xl font-sans font-bold text-white mb-8 leading-[0.9] tracking-tight">
+                {activeNode?.title || activeNode?.id}
+              </h1>
 
-              {/* 3. DESCRIPTION & BULLETS (Deep Dive) */}
-              <div className="transition-opacity duration-700 delay-200">
-                  <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl">
-                    {activeNode?.desc}
-                  </p>
+              {/* 3. DESCRIPTION */}
+              <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl">
+                {activeNode?.desc}
+              </p>
 
-                  {activeNode?.bullets && (
-                    <div className="grid gap-3 mb-8">
-                      {activeNode.bullets.map((b: string, i: number) => (
-                        <div key={i} className="flex items-start gap-3 text-gray-400">
-                          <span className="text-[#0070F3] mt-1">▸</span>
-                          <span className="font-mono text-sm leading-relaxed">{b}</span>
-                        </div>
-                      ))}
+              {/* 4. BULLETS */}
+              {activeNode?.bullets && (
+                <div className="grid gap-3 mb-8">
+                  {activeNode.bullets.map((b: string, i: number) => (
+                    <div key={i} className="flex items-start gap-3 text-gray-400">
+                      <span className="text-[#0070F3] mt-1">▸</span>
+                      <span className="font-mono text-sm leading-relaxed">{b}</span>
                     </div>
-                  )}
-              </div>
+                  ))}
+                </div>
+              )}
 
-              {/* 4. ACTION BUTTON (Bottom of Card) */}
-              <div className="mt-8 pt-6 border-t border-gray-800 transition-opacity duration-700 delay-300">
+              {/* 5. ACTION BUTTON (Moved to Bottom) */}
+              <div className="mt-4 pt-6 border-t border-gray-800">
                   <button 
                     onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})}
                     className="w-full border border-white/20 bg-white/5 px-6 py-4 text-xs font-mono text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest"
@@ -267,11 +267,10 @@ export default function TechConstellation() {
                   </button>
               </div>
            </div>
-
         </div>
       </div>
 
-      {/* 3. RIGHT BRAIN CANVAS */}
+      {/* --- RIGHT BRAIN CANVAS --- */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
@@ -279,9 +278,10 @@ export default function TechConstellation() {
         graphData={initialData}
         backgroundColor="#050505"
         
-        onNodeClick={handleInteraction}
-        onNodeDrag={() => { autoPilotRef.current = false; }}
-        onBackgroundClick={() => { autoPilotRef.current = false; }}
+        // INTERACTIONS: Restart timer on all actions
+        onNodeClick={(node) => triggerInteraction(node.id)}
+        onNodeDrag={() => triggerInteraction(activeNode.id)} 
+        onBackgroundClick={() => triggerInteraction(activeNode.id)}
         
         cooldownTicks={100}
         d3AlphaDecay={0.05} 
@@ -303,7 +303,6 @@ export default function TechConstellation() {
           const baseRadius = 6;
           const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
 
-          // Glow
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
           gradient.addColorStop(0.4, color + '44');
@@ -314,7 +313,6 @@ export default function TechConstellation() {
           ctx.fillStyle = gradient;
           ctx.fill();
 
-          // Core
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
           ctx.fillStyle = "#000";
@@ -323,7 +321,6 @@ export default function TechConstellation() {
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Labels
           if (node.group <= 2) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;
