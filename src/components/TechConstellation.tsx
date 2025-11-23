@@ -5,19 +5,19 @@ import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
 // --- 1. CONFIGURATION ---
-const STAGE_X = 400; 
+const STAGE_X = 300; 
 const STAGE_Y = 0;
 
 const LIVE_TRENDS = {
   "Strategy": ["DETECTING: EU AI Act enforcement...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
   "Engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini.", "DEPLOY: Next.js 15 PPR.", "PATTERN: Agentic Workflows."],
   "Creative": ["TREND: WebGPU adoption +40%.", "UX: Glassmorphism & Bento Grids.", "METRIC: 3D Storytelling -40% bounce."],
-  "Global Ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
-  "Gemini API": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
+  "GlobalOps": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
+  "GeminiAPI": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
   "JONATHAN": ["SYSTEM: CONNECTED.", "STATUS: READY.", "MODE: EXECUTIVE OVERVIEW."]
 };
 
-// --- 2. MASTER DATA (Immutable Source) ---
+// --- 2. MASTER DATA (Sanitized IDs: No Spaces!) ---
 const MASTER_DATA = {
   nodes: [
     // CORE
@@ -31,53 +31,50 @@ const MASTER_DATA = {
     },
     
     // STRATEGIC PILLAR
-    { id: "Strategy", group: 2, val: 60, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical Architect", desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement.", bullets: ["Orchestrated 'Beyond the Map'", "Navigated multi-stakeholder diplomacy", "Established privacy frameworks"], metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"] },
+    { id: "Strategy", group: 2, val: 60, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical Architect", desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement.", bullets: ["Orchestrated 'Beyond the Map'", "Navigated diplomacy", "Established privacy frameworks"], metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"] },
     { id: "Geopolitics", group: 3, val: 30, color: "#0070F3", title: "GEOPOLITICS", role: "Digital Sovereignty", desc: "Mapping unmapped territories (Rio Favelas) to establish civic identity.", bullets: ["Partnered with AfroReggae NGO", "Mapped 1.4M Citizens", "Data Sovereignty Policy"], metrics: ["Civic Identity", "NGO Alliance", "Crisis Mapping"] },
     { id: "Governance", group: 3, val: 30, color: "#0070F3", title: "GOVERNANCE", role: "Policy as Code", desc: "Automated compliance for global data standards via algorithmic guardrails.", bullets: ["GDPR/CCPA Automation", "Trust & Safety Architect", "Risk Radar Dashboard"], metrics: ["Zero Violations", "Automated Audit", "Policy <-> Code"] },
 
     // ENGINEERING PILLAR
     { id: "Engineering", group: 2, val: 60, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI Lead", desc: "Deploying AI agents to automate workflows and reclaim executive hours.", bullets: ["Built 'SlideSense' AI", "Developed 'Stevie' Audio Engine", "Global keyword tools"], metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"] },
     { id: "GenAI", group: 3, val: 40, color: "#00FF94", title: "GENERATIVE AI", role: "LLM Integration", desc: "Building enterprise tools on Gemini API to solve internal friction.", bullets: ["RAG Pipeline Architecture", "Multimodal Reasoning", "Agentic Workflows"], metrics: ["Efficiency +400%", "Latency <200ms", "Context Aware"] },
-    { id: "Audio AI", group: 3, val: 30, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Neural Speech", desc: "Pioneering text-to-speech accessibility tools for inclusive workspaces.", bullets: ["'Stevie' Audio Engine", "Neural TTS Pipelines", "WCAG 2.1 AA Compliance"], metrics: ["Inclusive Design", "Real-time Audio", "Accessibility"] },
+    { id: "AudioAI", group: 3, val: 30, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Neural Speech", desc: "Pioneering text-to-speech accessibility tools for inclusive workspaces.", bullets: ["'Stevie' Audio Engine", "Neural TTS Pipelines", "WCAG 2.1 AA Compliance"], metrics: ["Inclusive Design", "Real-time Audio", "Accessibility"] },
     { id: "Cloud", group: 3, val: 30, color: "#00FF94", title: "CLOUD INFRA", role: "GCP & Edge", desc: "Scalable architecture for global tool deployment.", bullets: ["Serverless Edge Functions", "Global CDN Strategy", "FinOps Optimization"], metrics: ["99.99% Uptime", "Edge Latency", "Auto-Scale"] },
-    { id: "Next.js", group: 3, val: 30, color: "#00FF94", title: "NEXT.JS 15", role: "Modern Web", desc: "Server Components and PPR for high-performance UI.", bullets: ["React Server Components", "Partial Prerendering", "Streaming Suspense"], metrics: ["Core Web Vitals", "SEO/GEO Optimized", "Zero-Bundle"] },
+    { id: "NextJS", group: 3, val: 30, color: "#00FF94", title: "NEXT.JS 15", role: "Modern Web", desc: "Server Components and PPR for high-performance UI.", bullets: ["React Server Components", "Partial Prerendering", "Streaming Suspense"], metrics: ["Core Web Vitals", "SEO/GEO Optimized", "Zero-Bundle"] },
     { id: "Analytics", group: 3, val: 30, color: "#00FF94", title: "DATA ANALYTICS", role: "GA4 & SQL", desc: "Custom widgets (CARTA) for document tracking.", bullets: ["Custom GA4 Implementations", "SQL Data Warehousing", "Looker Studio Dashboards"], metrics: ["Real-time Data", "Custom KPIs", "Full Visibility"] },
+    { id: "GeminiAPI", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "LLM Integration", desc: "Deep integration of Multimodal AI.", bullets: ["Context Caching", "Multimodal Inputs", "Vertex AI"], metrics: ["Enterprise Scale", "Security", "Performance"] },
 
     // CREATIVE PILLAR
     { id: "Creative", group: 2, val: 60, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives.", bullets: ["Directed 'Monk-e-Mail'", "E-Trade Baby Design", "3D Swirl formats"], metrics: ["50M+ Engagement", "Super Bowl Ads", "Interactive Story"] },
     { id: "Motion", group: 3, val: 30, color: "#FF0055", title: "MOTION DESIGN", role: "3D & Animation", desc: "Leveraging motion psychology to drive adoption of new technologies.", bullets: ["After Effects / Cinema 4D", "Character Animation", "Physics Simulation"], metrics: ["Oscar-Level VFX", "Viral Mechanics", "User Delight"] },
     { id: "WebGL", group: 3, val: 30, color: "#FF0055", title: "WEBGL", role: "Immersive Web", desc: "Browser-based 3D rendering for high-impact product demos.", bullets: ["Three.js / R3F", "GLSL Shaders", "Performance Optimization"], metrics: ["60FPS Mobile", "GPU Accelerated", "No Plugins"] },
     { id: "Storytelling", group: 3, val: 30, color: "#FF0055", title: "STORYTELLING", role: "Narrative Strategy", desc: "Aligning stakeholders through visual persuasion and data visualization.", bullets: ["Executive Keynotes", "Vision Decks", "Complex Data Viz"], metrics: ["Board Alignment", "Sales Velocity", "Brand Equity"] },
-    { id: "AR / VR", group: 3, val: 30, color: "#FF0055", title: "XR COMPUTING", role: "Spatial", desc: "YouTube 'Try-On' modules for e-commerce.", bullets: ["ARCore Implementation", "WebXR Standards", "Virtual Try-On"], metrics: ["Conversion Lift", "Immersive UX", "Future Tech"] },
+    { id: "ARVR", group: 3, val: 30, color: "#FF0055", title: "XR COMPUTING", role: "Spatial", desc: "YouTube 'Try-On' modules for e-commerce.", bullets: ["ARCore Implementation", "WebXR Standards", "Virtual Try-On"], metrics: ["Conversion Lift", "Immersive UX", "Future Tech"] },
 
     // OPS ORBIT
-    { id: "Global Ops", group: 4, val: 30, color: "#0070F3", title: "GLOBAL OPS", role: "Scale & Efficiency", desc: "Standardizing vendor ops across APAC/EMEA.", bullets: ["Vendor Consolidation", "SOP Standardization", "24/7 Workflow"], metrics: ["Cost Reduction", "Quality Control", "Global Reach"] },
+    { id: "GlobalOps", group: 4, val: 30, color: "#0070F3", title: "GLOBAL OPS", role: "Scale & Efficiency", desc: "Standardizing vendor ops across APAC/EMEA.", bullets: ["Vendor Consolidation", "SOP Standardization", "24/7 Workflow"], metrics: ["Cost Reduction", "Quality Control", "Global Reach"] },
     { id: "GSAP", group: 4, val: 20, color: "#FF0055", title: "GSAP ANIMATION", role: "Motion Dev", desc: "Complex timeline orchestration for web UI.", bullets: ["ScrollTrigger", "Flip Layouts", "Canvas Integration"], metrics: ["Award Winning", "Smooth UX", "Interaction"] },
-    { id: "Viral History", group: 4, val: 20, color: "#FFCC00", title: "VIRAL HISTORY", role: "Legacy", desc: "Architect of 'Monk-e-Mail' (50M+ users).", bullets: ["Flash Era Viral Hits", "Social Engineering", "Mass Scale"], metrics: ["50M+ Users", "Cultural Icon", "Early Web 2.0"] },
+    { id: "ViralHistory", group: 4, val: 20, color: "#FFCC00", title: "VIRAL HISTORY", role: "Legacy", desc: "Architect of 'Monk-e-Mail' (50M+ users).", bullets: ["Flash Era Viral Hits", "Social Engineering", "Mass Scale"], metrics: ["50M+ Users", "Cultural Icon", "Early Web 2.0"] },
   ],
   links: [
-    // Core Connections
     { source: "JONATHAN", target: "Strategy" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
-    // Strategy Cluster
-    { source: "Strategy", target: "Geopolitics" }, { source: "Strategy", target: "Governance" }, { source: "Strategy", target: "Global Ops" },
-    // Engineering Cluster
-    { source: "Engineering", target: "GenAI" }, { source: "Engineering", target: "Cloud" }, { source: "Engineering", target: "Next.js" }, { source: "Engineering", target: "Analytics" },
-    { source: "GenAI", target: "Audio AI" }, { source: "GenAI", target: "Governance" },
-    // Creative Cluster
-    { source: "Creative", target: "Motion" }, { source: "Creative", target: "WebGL" }, { source: "Creative", target: "Storytelling" }, { source: "Creative", target: "AR / VR" },
-    { source: "Motion", target: "GSAP" }, { source: "Motion", target: "Viral History" },
-    // Cross
-    { source: "Gemini API", target: "Audio AI" }, { source: "Global Ops", target: "Strategy" }
+    { source: "Strategy", target: "Geopolitics" }, { source: "Strategy", target: "Governance" }, { source: "Strategy", target: "GlobalOps" },
+    { source: "Engineering", target: "GenAI" }, { source: "Engineering", target: "Cloud" }, { source: "Engineering", target: "NextJS" }, { source: "Engineering", target: "Analytics" },
+    { source: "GenAI", target: "AudioAI" }, { source: "GenAI", target: "Governance" }, { source: "GenAI", target: "GeminiAPI" },
+    { source: "Creative", target: "Motion" }, { source: "Creative", target: "WebGL" }, { source: "Creative", target: "Storytelling" }, { source: "Creative", target: "ARVR" },
+    { source: "Motion", target: "GSAP" }, { source: "Motion", target: "ViralHistory" },
+    { source: "GeminiAPI", target: "AudioAI" }, { source: "GlobalOps", target: "Strategy" }
   ]
 };
 
-const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
+const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "GeminiAPI"];
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
   
-  // FIX: Clone data on mount to prevent mutation crashes
+  // CRITICAL FIX: useMemo creates a stable clone. 
+  // The physics engine mutates this clone, leaving MASTER_DATA pure.
   const graphData = useMemo(() => JSON.parse(JSON.stringify(MASTER_DATA)), []);
 
   const [activeNode, setActiveNode] = useState<any>(graphData.nodes[0]); 
@@ -100,11 +97,10 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // PHYSICS CONFIG
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-200); 
+        graph.d3Force('charge')?.strength(-250); 
         graph.d3Force('link')?.distance(100);
         graph.d3Force('center')?.x(STAGE_X); 
         graph.d3Force('center')?.y(STAGE_Y);
@@ -113,7 +109,6 @@ export default function TechConstellation() {
     }
   }, [isClient]);
 
-  // INTELLIGENCE ENGINE
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,7 +126,6 @@ export default function TechConstellation() {
     }
   }, [activeNode, isTransitioning]);
 
-  // ANIMATION SEQUENCE
   const transitionToNode = (node: any) => {
     if (!fgRef.current) return;
 
@@ -160,7 +154,6 @@ export default function TechConstellation() {
     }, 800); 
   };
 
-  // AUTO-PILOT LOOP
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoPilotRef.current) return;
@@ -168,7 +161,6 @@ export default function TechConstellation() {
       const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
       indexRef.current = nextIndex;
       
-      // USE CLONED DATA
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const graphNodes = (graphData.nodes as any[]);
       const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
@@ -179,15 +171,11 @@ export default function TechConstellation() {
     return () => clearInterval(interval);
   }, [graphData]);
 
-  // INTERACTION
   const handleInteraction = useCallback((nodeId: string) => {
     autoPilotRef.current = false;
-    
-    // USE CLONED DATA
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const graphNodes = (graphData.nodes as any[]); 
     const node = graphNodes.find(n => n.id === nodeId);
-    
     if (node) transitionToNode(node);
 
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -196,7 +184,7 @@ export default function TechConstellation() {
     }, 5000); 
   }, [graphData]);
 
-  // --- SCROLL HANDLER ---
+  // Deep Linking
   const handleDeepLink = () => {
     const targetMap: Record<string, string> = {
         "SlideSense": "slide-sense",
@@ -205,14 +193,10 @@ export default function TechConstellation() {
         "Global Ops": "exp-google",
         "Monk-e-Mail": "monk-e-mail"
     };
-    
     const targetId = targetMap[activeNode.title] || targetMap[activeNode.id] || "content-start";
     const element = document.getElementById(targetId);
-    if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "center" });
-    } else {
-        document.getElementById('content-start')?.scrollIntoView({ behavior: "smooth" });
-    }
+    if (element) element.scrollIntoView({ behavior: "smooth", block: "center" });
+    else document.getElementById('content-start')?.scrollIntoView({ behavior: "smooth" });
   };
 
   if (!isClient) return null;
@@ -231,7 +215,7 @@ export default function TechConstellation() {
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
-              {/* LIVE FEED HEADER */}
+              {/* LIVE FEED */}
               <div className="mb-8 border-b border-white/10 pb-6 bg-white/5 -mx-10 -mt-10 p-10">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -244,7 +228,6 @@ export default function TechConstellation() {
                 </p>
               </div>
 
-              {/* IDENTITY */}
               <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest font-bold" 
                   style={{ color: activeNode?.color }}>
                 {activeNode?.role}
@@ -253,12 +236,10 @@ export default function TechConstellation() {
                 {activeNode?.title || activeNode?.id}
               </h1>
 
-              {/* DESCRIPTION */}
               <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl border-l-4 border-white/10 pl-6">
                 {activeNode?.desc}
               </p>
 
-              {/* BULLETS */}
               {activeNode?.bullets && (
                 <div className="grid gap-3 mb-8">
                   {activeNode.bullets.map((b: string, i: number) => (
@@ -270,7 +251,6 @@ export default function TechConstellation() {
                 </div>
               )}
 
-              {/* METRICS */}
               {activeNode?.metrics && (
                 <div className="grid grid-cols-3 gap-4 mb-8 pt-8 border-t border-white/10">
                   {activeNode.metrics.map((m: string) => (
@@ -303,7 +283,6 @@ export default function TechConstellation() {
         graphData={graphData} // USING CLONED DATA
         backgroundColor="#050505"
         
-        // FIX: Cast ID to string
         onNodeClick={(node) => handleInteraction(node.id as string)}
         onNodeDrag={() => { if (activeNode) handleInteraction(activeNode.id as string); }} 
         onBackgroundClick={() => { if (activeNode) handleInteraction(activeNode.id as string); }}
