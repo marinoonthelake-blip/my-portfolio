@@ -4,7 +4,17 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
-// --- 1. LIVE INTELLIGENCE DATA ---
+// --- 1. CONFIGURATION ---
+// The "Stage" is shifted 450px to the right of the screen center.
+// This keeps the brain out of the way of the Left Card.
+const STAGE_X = 450;
+const STAGE_Y = 0;
+
+// Zoom Levels
+const ZOOM_WIDE = 2.5;  // Seeing the whole network
+const ZOOM_TIGHT = 4.5; // Focused on the active node
+
+// --- 2. LIVE INTELLIGENCE DATA ---
 const LIVE_TRENDS = {
   "Strategy": [
     "SIGNAL: EU AI Act enforcement beginning.",
@@ -21,17 +31,10 @@ const LIVE_TRENDS = {
     "DESIGN: Glassmorphism & Bento Grids.",
     "METRIC: Interactive story = -40% bounce."
   ],
-  "Global Ops": [
-    "LIVE: Vendor consolidation in EMEA.",
-    "OPS: AI-driven SOP generation."
-  ],
-  "Gemini API": [
-    "UPDATE: Gemini 1.5 Pro context expansion.",
-    "USE CASE: Multimodal accessibility."
-  ]
+  "Global Ops": ["LIVE: Vendor consolidation in EMEA.", "OPS: AI-driven SOP generation."],
+  "Gemini API": ["UPDATE: Gemini 1.5 Pro context expansion.", "USE CASE: Multimodal accessibility."]
 };
 
-// --- 2. RICH DATA ---
 const initialData = {
   nodes: [
     { 
@@ -75,8 +78,6 @@ const initialData = {
 };
 
 const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
-const FOCUS_X = 400; 
-const FOCUS_Y = 0;
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
@@ -98,17 +99,30 @@ export default function TechConstellation() {
     }
   }, []);
 
+  // 1. INITIALIZATION: Set Physics Center and Camera
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
+        
+        // PHYSICS: Nodes naturally float around the Stage (Right Side)
         graph.d3Force('charge')?.strength(-200); 
         graph.d3Force('link')?.distance(100);
-        graph.d3Force('center')?.strength(0.02);
-        graph.centerAt(FOCUS_X, FOCUS_Y, 0);
-        graph.zoom(3.5, 0);
+        graph.d3Force('center')?.x(STAGE_X); 
+        graph.d3Force('center')?.y(STAGE_Y);
+
+        // CAMERA: Start looking exactly at the Stage
+        // Start ZOOMED OUT (0.1) for the "Big Bang" effect
+        graph.centerAt(STAGE_X, STAGE_Y, 0); 
+        graph.zoom(0.1, 0);
+
+        // ANIMATE IN: Zoom to Wide View
+        setTimeout(() => {
+          graph.zoom(ZOOM_WIDE, 2000);
+        }, 500);
     }
   }, []);
 
+  // 2. TYPING EFFECT
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,39 +140,50 @@ export default function TechConstellation() {
     }
   }, [activeNode, isTransitioning]);
 
-  // --- ANIMATION SEQUENCE ---
+  // --- 3. CINEMATIC TRANSITION ENGINE ---
   const transitionToNode = (node: any) => {
     if (!fgRef.current) return;
 
+    // A. CARD FADE OUT
     setIsTransitioning(true);
 
+    // B. CAMERA BREATH (Zoom Out)
+    // Pull back to see the movement
+    fgRef.current.zoom(ZOOM_WIDE, 1000);
+
+    // C. RELEASE OLD NODE
     if (currentNodeRef.current && currentNodeRef.current !== node) {
       currentNodeRef.current.fx = undefined;
       currentNodeRef.current.fy = undefined;
     }
     currentNodeRef.current = node;
 
+    // D. DRAG NEW NODE TO CENTER STAGE
+    // Lock starting position to prevent teleporting
     node.fx = node.x;
     node.fy = node.y;
     
     gsap.to(node, {
-      fx: FOCUS_X,
-      fy: FOCUS_Y,
-      duration: 2.5,
-      ease: "power3.inOut",
+      fx: STAGE_X, // Drag to Right-Side Center
+      fy: STAGE_Y,
+      duration: 2.0,
+      ease: "power4.inOut",
       onUpdate: () => {
-        // FIX: Wrap in braces to return void
-        fgRef.current?.d3ReheatSimulation();
+        fgRef.current?.d3ReheatSimulation(); // Keep lines elastic
+      },
+      onComplete: () => {
+        // E. CAMERA FOCUS (Zoom In)
+        // Once arrived, zoom in tight on the subject
+        fgRef.current?.zoom(ZOOM_TIGHT, 1500);
+        
+        // F. CARD FADE IN
+        setActiveNode(node);
+        setIsTransitioning(false);
       }
     });
-
-    setTimeout(() => {
-      setActiveNode(node);
-      setIsTransitioning(false);
-    }, 600); 
   };
 
-  // --- GAME LOOP ---
+  // --- 4. AUTO-PILOT LOOP ---
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoPilotRef.current) return;
@@ -173,7 +198,7 @@ export default function TechConstellation() {
       if (node) {
         transitionToNode(node);
       }
-    }, 10000); 
+    }, 8000); // 8 Seconds per beat
 
     return () => clearInterval(interval);
   }, []);
@@ -185,6 +210,8 @@ export default function TechConstellation() {
 
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
+      
+      {/* --- LEFT CARD --- */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[750px] flex items-center p-8 md:p-16 z-20 pointer-events-none">
         <div 
           className={`pointer-events-auto w-full transition-all duration-700 transform 
@@ -192,6 +219,8 @@ export default function TechConstellation() {
         >
            <div className="bg-black/70 backdrop-blur-3xl border border-white/10 p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" style={{ backgroundColor: activeNode?.color || '#fff' }} />
+              
+              {/* HEADER */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex flex-col">
                   <span className="font-mono text-xs tracking-[0.3em] uppercase text-gray-500 mb-1">System Node</span>
@@ -202,9 +231,13 @@ export default function TechConstellation() {
                   <span className="text-[10px] font-mono text-white uppercase tracking-wider">Live Feed</span>
                 </div>
               </div>
+
+              {/* CONTENT */}
               <h3 className="font-mono text-[#0070F3] text-sm mb-3 uppercase tracking-widest" style={{ color: activeNode?.color }}>{activeNode?.role}</h3>
               <h1 className="text-5xl md:text-6xl font-sans font-bold text-white mb-8 leading-[0.9] tracking-tight">{activeNode?.title || activeNode?.id}</h1>
               <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 border-l-2 border-gray-800 pl-6">{activeNode?.desc}</p>
+
+              {/* METRICS */}
               {activeNode?.metrics && (
                 <div className="grid grid-cols-3 gap-4 mb-8">
                   {activeNode.metrics.map((m: string) => (
@@ -214,49 +247,72 @@ export default function TechConstellation() {
                   ))}
                 </div>
               )}
+
               <div className="mb-8 border-t border-gray-800 pt-6">
                 <p className="text-[10px] font-mono text-gray-500 mb-2 uppercase">// LIVE INTELLIGENCE</p>
                 <p className="text-sm font-mono text-[#00FF94] h-6 leading-relaxed">{currentTrend}<span className="animate-pulse text-white">_</span></p>
               </div>
+
               {activeNode?.id === "JONATHAN" && (
-                 <button onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})} className="w-full border border-white/20 bg-white/5 px-8 py-5 text-sm font-mono text-white hover:bg-white hover:text-black transition-all">INITIATE SEQUENCE &darr;</button>
+                 <button 
+                   onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})}
+                   className="w-full border border-white/20 bg-white/5 px-8 py-5 text-sm font-mono text-white hover:bg-white hover:text-black transition-all"
+                 >
+                   INITIATE SEQUENCE &darr;
+                 </button>
               )}
            </div>
         </div>
       </div>
+
+      {/* --- RIGHT BRAIN --- */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
         height={dimensions.h}
         graphData={initialData}
         backgroundColor="#050505"
+        
+        // INTERACTION
         onNodeClick={handleInteraction}
         onNodeDrag={() => { autoPilotRef.current = false; }}
         onBackgroundClick={() => { autoPilotRef.current = false; }}
+        
+        // PHYSICS
         cooldownTicks={100}
         d3AlphaDecay={0.01} 
         d3VelocityDecay={0.4}
+        
+        // VISUALS
         nodeRelSize={8}
         linkColor={() => "#ffffff15"}
         linkWidth={1.5}
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
+        
         nodeCanvasObject={(node, ctx, globalScale) => {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
+
           const isTarget = node.id === activeNode?.id;
           const isCore = node.group === 1;
           const color = (node.color as string) || "#fff";
+          
           const pulse = Math.sin(Date.now() / 800) * 3; 
           const baseRadius = isCore ? 15 : 6;
           const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
+
+          // GRADIENT GLOW
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
           gradient.addColorStop(0.4, color + '44');
           gradient.addColorStop(1, 'transparent');
+
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 3, 0, 2 * Math.PI, false);
           ctx.fillStyle = gradient;
           ctx.fill();
+
+          // SOLID CORE
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
           ctx.fillStyle = "#000";
@@ -264,6 +320,17 @@ export default function TechConstellation() {
           ctx.strokeStyle = color;
           ctx.lineWidth = 2;
           ctx.stroke();
+
+          // DATA RINGS (Active only)
+          if (isTarget) {
+             ctx.beginPath();
+             ctx.arc(node.x!, node.y!, radius * 1.8, 0, 2 * Math.PI, false);
+             ctx.strokeStyle = color + '33';
+             ctx.lineWidth = 1;
+             ctx.stroke();
+          }
+
+          // LABELS
           if (!isTarget && (isCore || node.group === 2)) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;
