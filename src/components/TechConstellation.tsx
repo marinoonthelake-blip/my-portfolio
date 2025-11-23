@@ -91,11 +91,15 @@ export default function TechConstellation() {
     if (!isAutoPilot || !fgRef.current) return;
 
     const targetId = TOUR_STEPS[tourIndex];
-    const node = initialData.nodes.find(n => n.id === targetId) as any;
+    
+    // Safe cast to access internal graph data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const liveNodes = (fgRef.current as any).graphData().nodes;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const node = liveNodes.find((n: any) => n.id === targetId);
 
     if (node && node.x) {
-      // Panning Logic: We center the camera slightly to the LEFT of the node (node.x - offset)
-      // This pushes the node to the RIGHT of the screen.
+      // Panning Logic: Center camera to LEFT of node to push node RIGHT
       fgRef.current.centerAt(node.x - 150, node.y, 2000);
       fgRef.current.zoom(2.5, 2000);
       setActiveNode(node);
@@ -111,7 +115,7 @@ export default function TechConstellation() {
   const handleInteraction = useCallback((node: any) => {
     setIsAutoPilot(false);
     setActiveNode(node);
-    fgRef.current?.centerAt(node.x - 100, node.y, 1000); // Keep it on the right
+    fgRef.current?.centerAt(node.x - 100, node.y, 1000); 
     fgRef.current?.zoom(3, 1000);
   }, []);
 
@@ -123,17 +127,14 @@ export default function TechConstellation() {
       {/* --- LEFT COLUMN: THE ACTIVE CARD --- */}
       <div className="absolute left-0 top-0 h-full w-full md:w-1/2 flex items-center justify-center p-8 z-20 pointer-events-none">
         
-        {/* The Card (Pointer events auto allows text selection) */}
         <div className={`pointer-events-auto transition-all duration-700 transform ${activeNode ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
            
-           {/* Glassmorphism Card Style */}
+           {/* Glassmorphism Card */}
            <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-10 rounded-none shadow-2xl max-w-xl relative overflow-hidden group">
               
-              {/* Glowing Accent Border */}
               <div className="absolute top-0 left-0 w-1 h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
-              {/* Content */}
               <h3 className="font-mono text-sm mb-4 tracking-[0.2em] uppercase" 
                   style={{ color: activeNode?.color }}>
                 {activeNode?.role || "System Node"}
@@ -147,7 +148,6 @@ export default function TechConstellation() {
                 {activeNode?.desc || "Operational competency node detected."}
               </p>
 
-              {/* Interactive Button if Core Node */}
               {activeNode?.id === "JONATHAN" && (
                  <button 
                    onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})}
@@ -182,21 +182,23 @@ export default function TechConstellation() {
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
         
-        // HOLOGRAPHIC NODE RENDERER
+        // HOLOGRAPHIC NODE RENDERER (With Crash Fix)
         nodeCanvasObject={(node, ctx, globalScale) => {
+          // CRITICAL FIX: Check for valid coordinates before drawing
+          if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
+
           const isTarget = node.id === activeNode?.id;
           const isCore = node.group === 1;
           const color = (node.color as string) || "#fff";
           
-          // Pulse Math
           const pulse = Math.sin(Date.now() / 800) * 3; 
           const baseRadius = isCore ? 15 : 6;
           const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
 
-          // 1. Gradient Glow (The "Hologram" Look)
+          // 1. Gradient Glow
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
-          gradient.addColorStop(0.4, color + '44'); // Fade out
+          gradient.addColorStop(0.4, color + '44');
           gradient.addColorStop(1, 'transparent');
 
           ctx.beginPath();
@@ -207,13 +209,13 @@ export default function TechConstellation() {
           // 2. Solid Core
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
-          ctx.fillStyle = "#000"; // Hollow center look
+          ctx.fillStyle = "#000";
           ctx.fill();
           ctx.strokeStyle = color;
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // 3. Label (Only for non-active nodes, since active is on the card)
+          // 3. Label (Only for non-active nodes)
           if (!isTarget && (isCore || node.group === 2)) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;
