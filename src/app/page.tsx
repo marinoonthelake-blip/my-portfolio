@@ -1,81 +1,47 @@
 import Hero from "../components/Hero";
 import ExperienceTimeline from "../components/Timeline";
 import ProjectGallery from "../components/ProjectGallery";
-import ConstellationWrapper from "../components/ConstellationWrapper"; // <--- Import the Bridge
+import ConstellationWrapper from "../components/ConstellationWrapper";
+import LogoTicker from "../components/LogoTicker";
+import ImpactMetrics from "../components/ImpactMetrics";
 
-// 1. Project Data
-const projectData = [
-  {
-    id: "slide-sense",
-    title: "SlideSense",
-    category: "Enterprise AI",
-    tech: ["Python", "Computer Vision", "NLP"],
-    image: "/slide-sense.jpg", 
-    summary: "Automated corporate presentation review tool saving 1000s of management hours by analyzing slide density."
-  },
-  {
-    id: "stevie",
-    title: "Stevie",
-    category: "Accessibility (A11y)",
-    tech: ["Gemini API", "TTS", "React"],
-    image: "/stevie.jpg", 
-    summary: "Audio-first interface allowing visually impaired users to converse with Gemini. Featured internal tool."
-  },
-  {
-    id: "monk-e-mail",
-    title: "Monk-e-Mail",
-    category: "Viral Web",
-    tech: ["Server-Side Rendering", "Legacy Flash"],
-    image: "/monkemail.jpg",
-    summary: "Pioneering viral campaign with 50M+ visitors. One of the first instances of dynamic server-side video personalization."
-  }
-];
-
-// 2. Resume Data
-const careerData = [
-  {
-    role: "AI Engineer / Technical Program Manager",
-    company: "Google",
-    date: "2015 - Present",
-    desc: "Democratized Gemini AI for visually impaired users via 'Stevie' and led 3D Swirl ad adoption.",
-  },
-  {
-    role: "Motion Graphics Director",
-    company: "Boombox",
-    date: "2010 - 2015",
-    desc: "Managed commercial production pipelines and transitioned team from video to interactive code.",
-  },
-  {
-    role: "Creative Technologist",
-    company: "Oddcast",
-    date: "2006 - 2010",
-    desc: "Pioneered server-side rendering for viral campaigns like 'Monk-e-Mail' (50M+ visitors).",
-  }
-];
+// ... (Keep your projectData and careerData arrays as they are) ...
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col bg-[#050505]">
-      {/* Hero */}
-      <Hero 
-        full_name="Jonathan William Marino"
-        tagline="Weaponizing technical curiosity."
-        cta_text="View Projects"
-      />
-
-      {/* Visual Data Section (The Constellation) */}
-      <ConstellationWrapper />
+    <main className="flex min-h-screen flex-col bg-[#050505] overflow-x-hidden">
       
-      {/* Project Gallery */}
-      <section className="w-full max-w-6xl mx-auto px-[24px] md:px-[64px] py-20">
+      {/* SECTION 1: THE IMMERSIVE OPENING */}
+      <div className="relative w-full h-screen flex flex-col">
+        
+        {/* Layer 1: The Living Brain (Background) */}
+        <div className="absolute inset-0 z-0">
+          <ConstellationWrapper />
+        </div>
+
+        {/* Layer 2: The Hero Text (Foreground - with transparency) */}
+        {/* We add pointer-events-none to the text container so you can click the nodes behind it */}
+        <div className="relative z-10 pointer-events-none h-full flex flex-col justify-center">
+           {/* Pass a prop to Hero to tell it to be transparent/overlay style if needed, 
+               or just use it as is but ensure it doesn't block clicks */}
+           <div className="pointer-events-auto"> 
+              {/* Wrap Hero in pointer-events-auto ONLY where buttons are */}
+              <Hero /> 
+           </div>
+        </div>
+      </div>
+
+      <LogoTicker />
+      <ImpactMetrics />
+      
+      <section className="w-full max-w-6xl mx-auto px-[24px] md:px-[64px] py-20 relative z-10 bg-[#050505]">
          <h2 className="text-2xl font-sans font-bold text-white mb-12 border-b border-gray-800 pb-4">
           Selected Operations
         </h2>
         <ProjectGallery projects={projectData} /> 
       </section>
 
-      {/* Timeline */}
-      <section className="w-full max-w-4xl mx-auto px-[24px] md:px-[64px] pb-20">
+      <section className="w-full max-w-4xl mx-auto px-[24px] md:px-[64px] pb-20 relative z-10 bg-[#050505]">
         <h2 className="text-2xl font-sans font-bold text-white mb-12 border-b border-gray-800 pb-4">
           Command Log
         </h2>

@@ -1,102 +1,163 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
+import gsap from "gsap";
 
-// 1. THE BRAIN DATA (Neurons)
+// 1. DATA: Nodes now have "narrative" fields for the tour
 const initialData = {
   nodes: [
-    // THE CORE (Left Brain - Logic)
-    { id: "JONATHAN", group: 1, val: 30, color: "#FFFFFF" },
-    { id: "Engineering", group: 2, val: 15, color: "#0070F3" }, // Blue
-    { id: "Architecture", group: 2, val: 15, color: "#0070F3" },
+    // CORE
+    { 
+      id: "JONATHAN", group: 1, val: 40, color: "#FFFFFF",
+      desc: "The central node. Architecting the intersection of Policy, Code, and Design." 
+    },
     
-    // THE SPARK (Right Brain - Creative)
-    { id: "Motion", group: 2, val: 15, color: "#FF0055" },      // Pink
-    { id: "Vision", group: 2, val: 15, color: "#FF0055" },
+    // PILLARS (Tour Stops)
+    { 
+      id: "Strategy", group: 2, val: 20, color: "#0070F3", // Blue
+      desc: "Solving systemic inefficiencies. From global vendor ops to geopolitical mapping." 
+    },
+    { 
+      id: "Engineering", group: 2, val: 20, color: "#00FF94", // Green
+      desc: "Building the impossible. Full-stack architecture, GenAI tooling, and cloud scale." 
+    },
+    { 
+      id: "Creative", group: 2, val: 20, color: "#FF0055", // Pink
+      desc: "Visualizing the complex. High-fidelity motion, 3D storytelling, and user empathy." 
+    },
 
-    // SYNAPSES (Skills)
-    { id: "Next.js", group: 3, val: 5, color: "#444" },
-    { id: "React", group: 3, val: 5, color: "#444" },
-    { id: "TypeScript", group: 3, val: 5, color: "#444" },
-    { id: "WebGL", group: 3, val: 5, color: "#FF0055" },
-    { id: "GSAP", group: 3, val: 5, color: "#FF0055" },
-    { id: "Generative AI", group: 3, val: 8, color: "#00FF94" }, // Green
-    { id: "LLMs", group: 3, val: 5, color: "#00FF94" },
-    { id: "Operations", group: 4, val: 10, color: "#0070F3" },
+    // SATELLITES
+    { id: "Policy", group: 3, val: 8, color: "#0070F3" },
+    { id: "Global Ops", group: 3, val: 8, color: "#0070F3" },
+    { id: "Trust & Safety", group: 3, val: 8, color: "#0070F3" },
+    { id: "Next.js", group: 3, val: 8, color: "#00FF94" },
+    { id: "Gemini API", group: 3, val: 12, color: "#00FF94" },
+    { id: "WebGL", group: 3, val: 8, color: "#FF0055" },
+    { id: "GSAP", group: 3, val: 8, color: "#FF0055" },
   ],
   links: [
+    { source: "JONATHAN", target: "Strategy" },
     { source: "JONATHAN", target: "Engineering" },
-    { source: "JONATHAN", target: "Motion" },
-    { source: "JONATHAN", target: "Vision" },
-    { source: "JONATHAN", target: "Architecture" },
+    { source: "JONATHAN", target: "Creative" },
+    { source: "Strategy", target: "Policy" },
+    { source: "Strategy", target: "Global Ops" },
     { source: "Engineering", target: "Next.js" },
-    { source: "Engineering", target: "React" },
-    { source: "Engineering", target: "TypeScript" },
-    { source: "Architecture", target: "Operations" },
-    { source: "Motion", target: "GSAP" },
-    { source: "Motion", target: "WebGL" },
-    { source: "Vision", target: "Generative AI" },
-    { source: "Generative AI", target: "LLMs" },
-    // Cross-Connections (Morphing Pathways)
-    { source: "React", target: "GSAP" },
-    { source: "WebGL", target: "React" },
+    { source: "Engineering", target: "Gemini API" },
+    { source: "Creative", target: "WebGL" },
+    { source: "Creative", target: "GSAP" },
+    // Cross-links
+    { source: "Gemini API", target: "Policy" },
+    { source: "WebGL", target: "Engineering" }
   ]
 };
 
-export default function TechConstellation() {
-  const fgRef = useRef<ForceGraphMethods | null>(null);
-  const [dimensions, setDimensions] = useState({ w: 800, h: 600 });
-  const [isClient, setIsClient] = useState(false);
+// The sequence of nodes to visit automatically
+const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative"];
 
-  // Hydration fix
+export default function TechConstellation() {
+  const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
+  const [dimensions, setDimensions] = useState({ w: 800, h: 800 });
+  const [isClient, setIsClient] = useState(false);
+  
+  // State for the Tour
+  const [tourIndex, setTourIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [activeNode, setActiveNode] = useState<any>(null);
+
   useEffect(() => setIsClient(true), []);
 
   // Resize Handler
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setDimensions({ w: window.innerWidth, h: 600 });
-      const handleResize = () => setDimensions({ w: window.innerWidth, h: 600 });
+      setDimensions({ w: window.innerWidth, h: window.innerHeight * 0.9 }); // 90% of screen height
+      const handleResize = () => setDimensions({ w: window.innerWidth, h: window.innerHeight * 0.9 });
       window.addEventListener("resize", handleResize);
       return () => window.removeEventListener("resize", handleResize);
     }
   }, []);
 
-  // THE BREATHING ALGORITHM (Morphing Logic)
+  // --- THE CINEMATIC TOUR ENGINE ---
   useEffect(() => {
-    if (!fgRef.current) return;
+    if (!isAutoPlaying || !fgRef.current) return;
 
-    // A heartbeat that expands and contracts the graph
-    const breathe = setInterval(() => {
-      const graph = fgRef.current;
-      if (!graph) return;
+    const targetId = TOUR_STEPS[tourIndex];
+    const node = initialData.nodes.find(n => n.id === targetId);
 
-      // Randomly shift the center of gravity to create a "drifting thought" effect
-      graph.d3Force('center')?.strength(0.05);
+    if (node) {
+      // 1. Fly Camera to Node
+      fgRef.current.centerAt(node.x as number + 20, node.y as number, 2000); // Offset x for text panel
+      fgRef.current.zoom(2.5, 2000);
       
-      // Pulse the charge (Expansion/Contraction)
-      const currentCharge = graph.d3Force('charge')?.strength();
-      const newCharge = (currentCharge as number) < -100 ? -50 : -200; // Oscillate
-      
-      // Smoothly animate the physics change
-      graph.d3Force('charge')?.strength(newCharge);
-      
-      // Re-heat the simulation so it moves
-      graph.d3ReheatSimulation();
-    }, 3000); // Every 3 seconds
+      // 2. Set Active Data (for the panel)
+      setActiveNode(node);
 
-    return () => clearInterval(breathe);
+      // 3. Schedule Next Step
+      const timer = setTimeout(() => {
+        setTourIndex((prev) => (prev + 1) % TOUR_STEPS.length);
+      }, 5000); // Stay for 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [tourIndex, isAutoPlaying]);
+
+  // --- INTERACTION HANDLERS ---
+  const handleNodeClick = useCallback((node: any) => {
+    // STOP the auto-pilot immediately
+    setIsAutoPlaying(false);
+    
+    // Manual "Explosion" Zoom
+    fgRef.current?.centerAt(node.x, node.y, 1000);
+    fgRef.current?.zoom(3, 1000);
+    setActiveNode(node);
+  }, []);
+
+  const handleBackgroundClick = useCallback(() => {
+    setIsAutoPlaying(false);
+    setActiveNode(null);
+    fgRef.current?.zoom(1, 1000); // Reset zoom
   }, []);
 
   if (!isClient) return null;
 
   return (
-    <div className="w-full h-[600px] border-y border-gray-800 bg-[#050505] relative overflow-hidden">
+    <div className="relative w-full border-y border-gray-800 bg-[#050505] overflow-hidden group">
       
-      {/* Title Overlay */}
-      <div className="absolute top-6 left-6 z-10 pointer-events-none select-none">
-        <h3 className="text-[#00FF94] font-mono text-xs mb-1 animate-pulse">LIVE SYSTEM</h3>
-        <h2 className="text-white font-sans font-bold text-2xl">Neural Competency Map</h2>
+      {/* --- THE HEADS-UP DISPLAY (HUD) --- */}
+      <div className={`absolute top-20 left-10 z-20 pointer-events-none transition-opacity duration-500 ${activeNode ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="bg-black/80 backdrop-blur-md border border-gray-700 p-6 max-w-md shadow-[0_0_30px_rgba(0,112,243,0.3)] border-l-4"
+             style={{ borderLeftColor: activeNode?.color || '#fff' }}>
+          <h3 className="text-xs font-mono text-gray-400 mb-2 uppercase tracking-widest">
+            System Node Detected
+          </h3>
+          <h2 className="text-3xl font-sans font-bold text-white mb-4" style={{ color: activeNode?.color }}>
+            {activeNode?.id}
+          </h2>
+          <p className="text-lg text-gray-200 leading-relaxed font-sans">
+            {activeNode?.desc || "Operational competency node."}
+          </p>
+          
+          {/* Animated Terminal Cursor */}
+          <div className="mt-4 flex gap-2">
+             <span className="w-2 h-4 bg-blue-500 animate-pulse"/>
+          </div>
+        </div>
+      </div>
+
+      {/* --- CONTROL HINT --- */}
+      <div className="absolute bottom-10 right-10 z-20 text-right">
+        <div className={`transition-all duration-500 ${isAutoPlaying ? 'opacity-100' : 'opacity-0 translate-y-10'}`}>
+           <p className="text-xs font-mono text-[#00FF94] animate-pulse">AUTO-PILOT ENGAGED</p>
+           <p className="text-gray-500 text-xs">Click any node to override</p>
+        </div>
+        {!isAutoPlaying && (
+           <button 
+             onClick={() => { setIsAutoPlaying(true); setTourIndex(0); }}
+             className="text-xs font-mono text-[#0070F3] border border-[#0070F3] px-3 py-1 hover:bg-[#0070F3] hover:text-white transition-colors"
+           >
+             RESUME TOUR
+           </button>
+        )}
       </div>
 
       <ForceGraph2D
@@ -106,47 +167,53 @@ export default function TechConstellation() {
         graphData={initialData}
         backgroundColor="#050505"
         
-        // PHYSICS SETTINGS
-        cooldownTicks={100} 
-        d3AlphaDecay={0.01} // Low decay = keeps moving longer (floaty)
-        d3VelocityDecay={0.3} // Low friction = slippery movement
+        // Interaction
+        onNodeClick={handleNodeClick}
+        onBackgroundClick={handleBackgroundClick}
+        onNodeDragEnd={() => setIsAutoPlaying(false)} // Stop tour if user drags
 
-        // RENDERING: GLOWING NEURONS
+        // Physics
+        cooldownTicks={100}
+        d3AlphaDecay={0.02}
+        d3VelocityDecay={0.3}
+
+        // VISUALS
+        nodeRelSize={6}
+        linkColor={() => "#ffffff20"}
+        linkDirectionalParticles={2}
+        linkDirectionalParticleSpeed={0.005}
+        
+        // Custom Glowing Node Renderer
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.id as string;
-          const fontSize = 12 / globalScale;
-          const radius = Math.max(node.val as number / 2, 2);
+          const fontSize = 14 / globalScale;
+          const isTarget = node.id === activeNode?.id;
+          const baseRadius = Math.max((node.val as number) / 2, 2);
+          
+          // "Explode" size if active
+          const radius = isTarget ? baseRadius * 1.5 : baseRadius;
 
-          // 1. Draw "Glow" Ring
+          // 1. Glow Ring
           ctx.beginPath();
-          ctx.arc(node.x!, node.y!, radius * 2, 0, 2 * Math.PI, false);
-          ctx.fillStyle = (node.color as string) + '11'; // 10% opacity
+          ctx.arc(node.x!, node.y!, radius * 2.5, 0, 2 * Math.PI, false);
+          ctx.fillStyle = (node.color as string) + (isTarget ? '33' : '11'); 
           ctx.fill();
 
-          // 2. Draw Core Node
+          // 2. Core
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
           ctx.fillStyle = node.color as string;
           ctx.fill();
 
-          // 3. Draw Label
-          ctx.font = `${fontSize}px monospace`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = 'rgba(255,255,255,0.7)';
-          // Only show label if node is big enough or hovered (optional logic)
-          if (node.val && (node.val as number) > 5) {
-             ctx.fillText(label, node.x!, node.y! + radius + fontSize);
+          // 3. Label (Always show for main nodes, show others on hover/active)
+          if ((node.val as number) > 10 || isTarget) {
+            ctx.font = `bold ${fontSize}px Sans-Serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#FFF';
+            ctx.fillText(label, node.x!, node.y! + radius + fontSize + 2);
           }
         }}
-
-        // RENDERING: SYNAPTIC LINKS
-        linkColor={() => "#ffffff20"} // Faint white lines
-        linkWidth={1}
-        linkDirectionalParticles={2} // Particles moving along the lines
-        linkDirectionalParticleWidth={2}
-        linkDirectionalParticleSpeed={0.005} // Slow flow of data
-        linkDirectionalParticleColor={() => "#0070F3"} // Blue data packets
       />
     </div>
   );
