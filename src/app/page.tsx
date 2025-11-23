@@ -4,7 +4,7 @@ import ConstellationWrapper from "../components/ConstellationWrapper";
 import LogoTicker from "../components/LogoTicker";
 import ImpactMetrics from "../components/ImpactMetrics";
 
-// ... (Keep projectData and careerData arrays as they are) ...
+// ... (Keep Data Arrays) ...
 const projectData = [
   {
     id: "slide-sense",
@@ -57,19 +57,13 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-[#050505] overflow-x-hidden">
       
-      {/* SECTION 1: THE NEURAL HERO */}
+      {/* SECTION 1: The Command Center (Full Height) */}
       <div className="relative w-full h-screen overflow-hidden">
         <ConstellationWrapper />
-        
-        {/* Subtle scroll indicator */}
-        <div className="absolute bottom-10 left-0 right-0 flex justify-center pointer-events-none">
-           <span className="text-xs font-mono text-gray-500 animate-bounce">
-             SCROLL TO EXPLORE ↓
-           </span>
-        </div>
       </div>
 
-      <div className="relative z-20 bg-[#050505] border-t border-gray-900">
+      {/* SECTION 2: The Content */}
+      <div id="content-start" className="relative z-20 bg-[#050505] border-t border-gray-900">
         <LogoTicker />
         <ImpactMetrics />
         
