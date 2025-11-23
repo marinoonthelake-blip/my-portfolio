@@ -4,94 +4,121 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
-// --- 1. LIVE INTELLIGENCE DATA ---
+// --- 1. CONFIGURATION ---
+// Shift 400px Right. This places the node in the visual center of the empty right-hand space.
+const STAGE_X = 400; 
+const STAGE_Y = 0;
+
 const LIVE_TRENDS = {
-  "Strategy": ["SIGNAL: EU AI Act enforcement.", "RISK: Model Governance > Cloud Sec.", "ANALYSIS: Data sovereignty fragmentation."],
-  "Engineering": ["TRENDING: DeepSeek-V3 inference.", "STACK: Next.js 15 PPR production.", "SHIFT: Agentic Workflows."],
-  "Creative": ["SIGNAL: WebGPU adoption +40%.", "DESIGN: Glassmorphism & Bento Grids.", "METRIC: Interactive story = -40% bounce."],
-  "Global Ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
-  "Gemini API": ["UPDATE: Gemini 1.5 Pro context.", "USE CASE: Multimodal accessibility."],
-  "Geopolitics": ["SIGNAL: Digital Borders tightening.", "RISK: Splinternet compliance."],
-  "Audio AI": ["TREND: Neural Voice Synthesis.", "TECH: Real-time latency < 200ms."],
-  "Accessibility": ["LAW: WCAG 2.2 enforcement.", "UX: AI Screen Readers."],
-  "AR / VR": ["TECH: WebXR Standards.", "MARKET: Apple Vision Pro adoption."],
-  "Cloud": ["INFRA: Serverless Edge Compute.", "COST: FinOps automation."],
-  "Governance": ["POLICY: Automated Compliance Guardrails.", "RISK: Zero-Trust Architecture."],
-  "WebGL": ["PERF: 60fps on Mobile Devices.", "TECH: GLSL Shaders."],
-  "Storytelling": ["UX: Narrative-driven User Journeys.", "METRIC: Time-on-site increase."]
+  "Strategy": [
+    "DETECTING: EU AI Act regulatory shifts...",
+    "ANALYSIS: Enterprise risk moving from Cloud Sec to Model Gov.",
+    "SIGNAL: Geopolitical data sovereignty fragmentation in APAC."
+  ],
+  "Engineering": [
+    "BENCHMARK: DeepSeek-V3 vs Gemini 1.5 Pro inference costs.",
+    "DEPLOY: Next.js 15 PPR moving to production.",
+    "PATTERN: Shift from RAG pipelines to Agentic Workflows."
+  ],
+  "Creative": [
+    "TREND: WebGPU adoption +40% in e-commerce.",
+    "UX: Glassmorphism & Bento Grids dominating SaaS.",
+    "METRIC: 3D Storytelling reduces bounce rates by 40%."
+  ],
+  "Global Ops": ["LIVE: Vendor consolidation trends in EMEA...", "OPS: AI-driven SOP generation active."],
+  "Gemini API": ["UPDATE: Context window expansion.", "USE CASE: Multimodal accessibility latency < 200ms."],
+  "JONATHAN": ["SYSTEM: CONNECTED.", "STATUS: READY FOR INTERROGATION.", "MODE: EXECUTIVE OVERVIEW."]
 };
 
-// --- 2. RESUME DATA (20 Nodes) ---
+// --- 2. DEEP RESUME DATA ---
 const initialData = {
   nodes: [
     // CORE
-    { id: "JONATHAN", group: 1, val: 100, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "Digital Polymath", desc: "Architecting the intersection of Policy, Code, and Design." },
+    { 
+      id: "JONATHAN", group: 1, val: 120, color: "#FFFFFF",
+      title: "JONATHAN W. MARINO", 
+      role: "STRATEGIC TECHNOLOGY EXECUTIVE",
+      desc: "A hybrid executive architecting the intersection of Geopolitics, Data, and Design. I don't just manage technology; I weaponize technical curiosity to solve systemic organizational challenges.",
+      bullets: [
+        "15+ Years Experience (Google, Agency, Startup)",
+        "Bridging the gap between Boardroom Strategy & Backend Code",
+        "Architect of 'Digital Enfranchisement' for 1.4M Citizens"
+      ],
+      metrics: ["Global Scale", "Polymathic", "Impact-Driven"]
+    },
     
-    // STRATEGIC
-    { id: "Strategy", group: 2, val: 40, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk via policy/code bridges.", metrics: ["1.4M Citizens Mapped", "Privacy Compliance", "Cross-Border Policy"] },
-    { id: "Engineering", group: 2, val: 40, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Deploying AI agents to reclaim executive hours.", metrics: ["$300k+ Annual Savings", "Automated Governance", "Gemini API Integration"] },
-    { id: "Creative", group: 2, val: 40, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives.", metrics: ["50M+ User Engagement", "Super Bowl Campaigns", "Interactive Storytelling"] },
+    // STRATEGIC PILLAR
+    { 
+      id: "Strategy", group: 2, val: 60, color: "#0070F3", 
+      title: "STRATEGIC RISK & POLICY", 
+      role: "Geopolitical Architect", 
+      desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement. Specializing in data sovereignty and compliance across fractured geopolitical landscapes.",
+      bullets: [
+        "Orchestrated 'Beyond the Map' to provide digital addresses to 1.4M favela residents.",
+        "Navigated multi-stakeholder diplomacy between Google, NGOs, and local gov.",
+        "Established privacy frameworks for mapping vulnerable populations."
+      ],
+      metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border Policy"]
+    },
 
-    // ORBIT
-    { id: "Global Ops", group: 3, val: 20, color: "#0070F3", title: "GLOBAL OPERATIONS", role: "Scale", desc: "Standardizing vendor ops across APAC/EMEA." },
-    { id: "Governance", group: 3, val: 20, color: "#0070F3", title: "GOVERNANCE", role: "Policy", desc: "Automated policy enforcement via code." },
-    { id: "Geopolitics", group: 3, val: 20, color: "#0070F3", title: "GEOPOLITICS", role: "Sovereignty", desc: "Mapping unmapped territories to establish civic identity." },
-    
-    { id: "Next.js", group: 3, val: 20, color: "#00FF94", title: "NEXT.JS", role: "Architecture", desc: "Server Components and PPR for high-performance UI." },
-    { id: "Gemini API", group: 3, val: 25, color: "#00FF94", title: "GEMINI API", role: "LLM Integration", desc: "Building 'SlideSense' and 'Stevie' on Google's AI." },
-    { id: "Audio AI", group: 3, val: 20, color: "#00FF94", title: "AUDIO AI", role: "Synthesis", desc: "Neural voice synthesis for accessibility tools." },
-    { id: "Cloud", group: 3, val: 20, color: "#00FF94", title: "CLOUD INFRA", role: "GCP", desc: "Scalable architecture for global tool deployment." },
-    
-    { id: "WebGL", group: 3, val: 20, color: "#FF0055", title: "WEBGL", role: "Immersive", desc: "3D Swirl Ads and browser-based VR experiences." },
-    { id: "GSAP", group: 3, val: 20, color: "#FF0055", title: "GSAP ANIMATION", role: "Motion", desc: "Complex timeline orchestration for web UI." },
-    { id: "AR / VR", group: 3, val: 20, color: "#FF0055", title: "XR COMPUTING", role: "Spatial", desc: "YouTube 'Try-On' modules for e-commerce." },
-    { id: "Storytelling", group: 3, val: 20, color: "#FF0055", title: "STORYTELLING", role: "Narrative", desc: "Aligning stakeholders through visual persuasion." },
+    // ENGINEERING PILLAR
+    { 
+      id: "Engineering", group: 2, val: 60, color: "#00FF94", 
+      title: "ENGINEERING VELOCITY", 
+      role: "Full-Stack & GenAI Lead", 
+      desc: "Deploying AI agents to automate workflows and reclaim executive hours. I build internal tools that turn operational bottlenecks into automated efficiencies.",
+      bullets: [
+        "Built 'SlideSense' (GenAI) to automate executive presentation review.",
+        "Developed 'Stevie' (Audio AI) to democratize access for visually impaired staff.",
+        "Architected global keyword theming tools adopted by 100% of non-English markets."
+      ],
+      metrics: ["$300k+ Savings", "Automated Ops", "Gemini API Integration"]
+    },
+
+    // CREATIVE PILLAR
+    { 
+      id: "Creative", group: 2, val: 60, color: "#FF0055", 
+      title: "CREATIVE INTELLIGENCE", 
+      role: "High-Fidelity Motion", 
+      desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in. Leveraging motion psychology to drive adoption of new technologies.",
+      bullets: [
+        "Directed 'Monk-e-Mail' viral campaign (50M+ Visitors).",
+        "Led 3D Design/Animation for the iconic E-Trade Baby Super Bowl ads.",
+        "Pioneered '3D Swirl' display formats for Google's global clients."
+      ],
+      metrics: ["50M+ Engagement", "Super Bowl Ads", "Interactive Storytelling"]
+    },
+
+    // TACTICAL ORBIT (The "How")
+    { id: "Global Ops", group: 3, val: 20, color: "#0070F3", title: "GLOBAL OPERATIONS", role: "Scale", desc: "Standardizing vendor ops across APAC/EMEA to ensure 24/7 delivery continuity." },
+    { id: "Governance", group: 3, val: 20, color: "#0070F3", title: "GOVERNANCE", role: "Policy", desc: "Automated policy enforcement via code guardrails." },
+    { id: "Next.js 15", group: 3, val: 20, color: "#00FF94", title: "NEXT.JS 15", role: "Architecture", desc: "Server Components, PPR, and Edge Middleware for sub-second latency." },
+    { id: "Gemini API", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "LLM Integration", desc: "Deep integration of Multimodal AI for enterprise tooling." },
+    { id: "Audio AI", group: 3, val: 20, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Accessibility", desc: "Neural Text-to-Speech pipelines for inclusive interfaces." },
+    { id: "WebGL", group: 3, val: 20, color: "#FF0055", title: "WEBGL / THREE.JS", role: "Immersive", desc: "Browser-based 3D rendering for high-impact product demos." },
+    { id: "GSAP", group: 3, val: 20, color: "#FF0055", title: "GSAP ANIMATION", role: "Motion", desc: "Complex timeline orchestration for fluid UI transitions." },
   ],
   links: [
     { source: "JONATHAN", target: "Strategy" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
-    { source: "Strategy", target: "Global Ops" }, { source: "Strategy", target: "Governance" }, { source: "Strategy", target: "Geopolitics" },
-    { source: "Engineering", target: "Next.js" }, { source: "Engineering", target: "Gemini API" }, { source: "Engineering", target: "Audio AI" }, { source: "Engineering", target: "Cloud" },
-    { source: "Creative", target: "WebGL" }, { source: "Creative", target: "GSAP" }, { source: "Creative", target: "AR / VR" }, { source: "Creative", target: "Storytelling" },
-    { source: "Gemini API", target: "Governance" }, // Cross-link
-    { source: "Geopolitics", target: "Global Ops" },
+    { source: "Strategy", target: "Global Ops" }, { source: "Strategy", target: "Governance" },
+    { source: "Engineering", target: "Next.js 15" }, { source: "Engineering", target: "Gemini API" }, { source: "Engineering", target: "Audio AI" },
+    { source: "Creative", target: "WebGL" }, { source: "Creative", target: "GSAP" },
+    { source: "Gemini API", target: "Governance" }, 
   ]
 };
 
-// ALL VISITABLE NODES (Excluding Core)
-const ALL_STEPS = [
-  "Strategy", "Engineering", "Creative", 
-  "Global Ops", "Governance", "Geopolitics",
-  "Next.js", "Gemini API", "Audio AI", "Cloud",
-  "WebGL", "GSAP", "AR / VR", "Storytelling"
-];
-
-const STAGE_X = 350; // Center of the "Right Side" empty space
-const STAGE_Y = 0;
+const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
-  
   const [activeNode, setActiveNode] = useState<any>(initialData.nodes[0]); 
-  const [isIntro, setIsIntro] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false); 
   const [currentTrend, setCurrentTrend] = useState("");
   
-  // "Deck of Cards" Logic Refs
-  const deckRef = useRef<string[]>([]); 
+  const tourIndexRef = useRef(0);
   const autoPilotRef = useRef(true);
   const currentNodeRef = useRef<any>(null);
-  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Helper: Shuffle Array (Fisher-Yates)
-  const shuffleDeck = () => {
-    const deck = [...ALL_STEPS];
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-    return deck;
-  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -106,24 +133,24 @@ export default function TechConstellation() {
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-150); 
-        graph.d3Force('link')?.distance(100);
+        graph.d3Force('charge')?.strength(-250); 
+        graph.d3Force('link')?.distance(120);
+        
+        // CENTER PHYSICS ON THE RIGHT SIDE (400px offset)
         graph.d3Force('center')?.x(STAGE_X); 
         graph.d3Force('center')?.y(STAGE_Y);
 
+        // CENTER CAMERA ON THE RIGHT SIDE
         graph.centerAt(STAGE_X, STAGE_Y, 0);
         graph.zoom(3.5, 0);
-        
-        // Initialize Deck
-        deckRef.current = shuffleDeck();
     }
   }, []);
 
-  // --- TYPING EFFECT ---
+  // --- LIVE SCANNER EFFECT ---
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING DATA...", "CONNECTING..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["SCANNING NETWORK...", "ACQUIRING TARGET..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -132,161 +159,171 @@ export default function TechConstellation() {
         setCurrentTrend(randomTrend.substring(0, i + 1));
         i++;
         if (i > randomTrend.length) clearInterval(typeInterval);
-      }, 20);
+      }, 30); // Fast typing
       return () => clearInterval(typeInterval);
     }
   }, [activeNode, isTransitioning]);
 
-  // --- ANIMATION SEQUENCE ---
-  const transitionToNode = (node: any) => {
+  // --- MAGNETIC DRAG ANIMATION ---
+  const magnetizeNode = (nodeId: string) => {
     if (!fgRef.current) return;
-
-    setIsTransitioning(true);
-
-    if (currentNodeRef.current && currentNodeRef.current !== node) {
-      currentNodeRef.current.fx = undefined;
-      currentNodeRef.current.fy = undefined;
-    }
-    currentNodeRef.current = node;
-
-    node.fx = node.x;
-    node.fy = node.y;
-    
-    gsap.to(node, {
-      fx: STAGE_X,
-      fy: STAGE_Y,
-      duration: 2.0,
-      ease: "power3.inOut",
-      onUpdate: () => { fgRef.current?.d3ReheatSimulation(); }
-    });
-
-    setTimeout(() => {
-      if (node.id !== "JONATHAN") setIsIntro(false);
-      setActiveNode(node);
-      setIsTransitioning(false);
-    }, 800); 
-  };
-
-  // --- AUTO-PILOT (DECK LOGIC) ---
-  const playNextCard = useCallback(() => {
-    if (!autoPilotRef.current) return;
-
-    // 1. If deck is empty, reshuffle
-    if (deckRef.current.length === 0) {
-      deckRef.current = shuffleDeck();
-    }
-
-    // 2. Draw Card
-    const nextId = deckRef.current.pop();
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const graphNodes = (initialData.nodes as any[]);
-    const node = graphNodes.find(n => n.id === nextId);
+    const graphNodes = (initialData.nodes as any[]); 
+    const node = graphNodes.find(n => n.id === nodeId);
 
-    if (node) transitionToNode(node);
-  }, []);
+    if (node) {
+      setIsTransitioning(true);
 
+      // Release old node to float back
+      if (currentNodeRef.current && currentNodeRef.current !== node) {
+        currentNodeRef.current.fx = undefined;
+        currentNodeRef.current.fy = undefined;
+      }
+      currentNodeRef.current = node;
+
+      // Lock start position
+      node.fx = node.x;
+      node.fy = node.y;
+
+      // Drag to STAGE_X (Right Side)
+      gsap.to(node, {
+        fx: STAGE_X,
+        fy: STAGE_Y,
+        duration: 2.5,
+        ease: "power3.inOut",
+        onUpdate: () => { fgRef.current?.d3ReheatSimulation(); }
+      });
+
+      // Delay UI update for drama
+      setTimeout(() => {
+        setActiveNode(node);
+        setIsTransitioning(false);
+      }, 800); 
+    }
+  };
+
+  // --- AUTO-PILOT LOOP ---
   useEffect(() => {
-    // Initial Delay for Intro Reading
-    const firstTimer = setTimeout(() => {
-       playNextCard();
-    }, 5000);
+    // Initial kick to center JONATHAN
+    magnetizeNode("JONATHAN");
 
-    // Game Loop
     const interval = setInterval(() => {
-       playNextCard();
-    }, 10000); 
+      if (!autoPilotRef.current) return;
 
-    return () => {
-        clearTimeout(firstTimer);
-        clearInterval(interval);
-    };
-  }, [playNextCard]);
+      const nextIndex = (tourIndexRef.current + 1) % TOUR_STEPS.length;
+      tourIndexRef.current = nextIndex;
+      
+      magnetizeNode(TOUR_STEPS[nextIndex]);
+
+    }, 12000); // 12 Seconds per node (More time to read)
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleInteraction = useCallback((node: any) => {
     autoPilotRef.current = false;
-    transitionToNode(node);
-    
-    // Restart logic
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-      autoPilotRef.current = true;
-    }, 15000);
+    magnetizeNode(node.id);
   }, []);
 
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* HEADER */}
-      <div className={`absolute top-0 left-0 p-8 md:p-12 z-50 pointer-events-auto transition-all duration-1000 transform ${!isIntro ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
-        <div className="flex flex-col items-start">
-          <span className="font-mono text-[#0070F3] text-xs mb-2 tracking-[0.3em] uppercase">Strategic Technology Executive</span>
-          <h1 className="text-3xl font-sans font-bold text-white mb-4 leading-none">JONATHAN<br/>W. MARINO</h1>
-          <button onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})} className="flex items-center gap-2 text-xs font-mono text-gray-400 hover:text-white transition-colors border-b border-transparent hover:border-white pb-1">
-             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
-             INITIATE SEQUENCE &darr;
-          </button>
-        </div>
-      </div>
-
-      {/* LEFT CARD */}
-      <div className="absolute left-0 bottom-0 h-[70%] w-full md:w-[650px] flex items-end p-8 md:p-12 z-20 pointer-events-none">
-        <div className={`pointer-events-auto w-full transition-all duration-700 transform ${isTransitioning ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}>
-           {activeNode && (
-             <div className="bg-black/60 backdrop-blur-2xl border border-white/10 p-8 md:p-10 shadow-2xl relative overflow-hidden rounded-tr-2xl">
-                <div className="absolute top-0 left-0 w-1 h-full transition-colors duration-500" style={{ backgroundColor: activeNode?.color || '#fff' }} />
-                
-                <div className="flex items-center justify-between mb-6">
-                  <span className="font-mono text-xs tracking-[0.2em] uppercase text-gray-500">{activeNode.id === "JONATHAN" ? "SYSTEM IDENTITY" : "ACTIVE NODE"}</span>
-                  {activeNode.id !== "JONATHAN" && (
-                    <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/10">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[9px] font-mono text-white uppercase tracking-wider">Live</span>
-                    </div>
-                  )}
+      {/* --- LEFT CARD: THE COMMAND DECK --- */}
+      <div className="absolute left-0 top-0 h-full w-full md:w-[900px] flex items-center p-8 md:p-16 z-20 pointer-events-none">
+        <div 
+          className={`pointer-events-auto w-full transition-all duration-700 transform 
+            ${isTransitioning ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}
+        >
+           <div className="bg-black/80 backdrop-blur-3xl border border-white/10 p-10 md:p-14 shadow-[0_0_150px_rgba(0,0,0,1)] relative overflow-hidden rounded-xl">
+              
+              {/* Sidebar Accent */}
+              <div className="absolute top-0 left-0 w-3 h-full transition-colors duration-500" 
+                   style={{ backgroundColor: activeNode?.color || '#fff' }} />
+              
+              {/* LIVE SCANNER HEADER */}
+              <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
+                <div className="flex flex-col">
+                  <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-gray-500 mb-2">
+                    Current System Focus
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-xs font-mono text-[#00FF94] h-4">
+                      {currentTrend}<span className="animate-pulse text-white">_</span>
+                    </span>
+                  </div>
                 </div>
+              </div>
 
-                <h3 className="font-mono text-[#0070F3] text-xs mb-2 uppercase tracking-widest" style={{ color: activeNode?.color }}>{activeNode?.role}</h3>
-                <h2 className="text-4xl md:text-5xl font-sans font-bold text-white mb-6 leading-tight">{activeNode?.title || activeNode?.id}</h2>
-                
-                {activeNode.metrics && (
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                        {activeNode.metrics.map((m: string) => (
-                            <div key={m} className="bg-white/5 border border-white/10 p-2 rounded text-center">
-                                <span className="text-[10px] font-mono text-gray-300">{m}</span>
-                            </div>
-                        ))}
+              {/* IDENTITY BLOCK */}
+              <h3 className="font-mono text-[#0070F3] text-sm mb-4 uppercase tracking-widest font-bold" 
+                  style={{ color: activeNode?.color }}>
+                {activeNode?.role}
+              </h3>
+              <h1 className="text-5xl md:text-7xl font-sans font-bold text-white mb-8 leading-[0.9] tracking-tight">
+                {activeNode?.title || activeNode?.id}
+              </h1>
+
+              {/* DEEP DIVE CONTENT */}
+              <p className="text-xl text-gray-300 font-sans leading-relaxed mb-10 max-w-3xl">
+                {activeNode?.desc}
+              </p>
+
+              {/* RESUME BULLETS */}
+              {activeNode?.bullets && (
+                <div className="grid gap-3 mb-10">
+                  {activeNode.bullets.map((b: string, i: number) => (
+                    <div key={i} className="flex items-start gap-3 text-gray-400">
+                      <span className="text-[#0070F3] mt-1">▸</span>
+                      <span className="font-mono text-sm leading-relaxed">{b}</span>
                     </div>
-                )}
+                  ))}
+                </div>
+              )}
 
-                <p className="text-md text-gray-300 font-sans leading-relaxed">{activeNode?.desc}</p>
-
-                {activeNode.id === "JONATHAN" && (
-                    <div className="mt-8 pt-6 border-t border-gray-800">
-                        <button onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})} className="w-full border border-white/20 bg-white/5 px-6 py-4 text-xs font-mono text-white hover:bg-white hover:text-black transition-all">INITIATE SEQUENCE &darr;</button>
+              {/* METRICS GRID */}
+              {activeNode?.metrics && (
+                <div className="grid grid-cols-3 gap-4 mb-8 pt-8 border-t border-white/10">
+                  {activeNode.metrics.map((m: string) => (
+                    <div key={m} className="text-center">
+                      <span className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wider">Key Metric</span>
+                      <span className="block text-sm font-bold text-white">{m}</span>
                     </div>
-                )}
-             </div>
-           )}
+                  ))}
+                </div>
+              )}
+
+              {/* CTA (Only on Jonathan) */}
+              {activeNode?.id === "JONATHAN" && (
+                 <button 
+                   onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})}
+                   className="w-full border border-white/20 bg-white/5 px-8 py-6 text-sm font-mono text-white hover:bg-white hover:text-black transition-all tracking-widest uppercase"
+                 >
+                   INITIATE RESUME SEQUENCE &darr;
+                 </button>
+              )}
+           </div>
         </div>
       </div>
 
-      {/* RIGHT BRAIN */}
+      {/* --- RIGHT BRAIN CANVAS --- */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
         height={dimensions.h}
         graphData={initialData}
         backgroundColor="#050505"
+        
         onNodeClick={handleInteraction}
         onNodeDrag={() => { autoPilotRef.current = false; }}
         onBackgroundClick={() => { autoPilotRef.current = false; }}
         
         cooldownTicks={100}
         d3AlphaDecay={0.05} 
-        d3VelocityDecay={0.6}
+        d3VelocityDecay={0.6} // High friction for stability
         
-        nodeRelSize={8}
+        nodeRelSize={9}
         linkColor={() => "#ffffff15"}
         linkWidth={1.5}
         linkDirectionalParticles={2}
@@ -296,15 +333,14 @@ export default function TechConstellation() {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
 
           const isTarget = node.id === activeNode?.id;
-          const isCore = node.id === "JONATHAN";
           const color = (node.color as string) || "#fff";
           
-          if (isCore) return; 
-
+          // Pulse Math
           const pulse = Math.sin(Date.now() / 800) * 3; 
           const baseRadius = 6;
           const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
 
+          // Glow
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
           gradient.addColorStop(0.4, color + '44');
@@ -315,6 +351,7 @@ export default function TechConstellation() {
           ctx.fillStyle = gradient;
           ctx.fill();
 
+          // Core
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
           ctx.fillStyle = "#000";
@@ -323,7 +360,8 @@ export default function TechConstellation() {
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          if ((!isTarget || node.group <= 2) && !isCore) {
+          // Label
+          if (!isTarget && node.group <= 2) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;
              ctx.font = `bold ${fontSize}px Sans-Serif`;
