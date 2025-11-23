@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
+import gsap from "gsap";
 
 // --- 1. LIVE INTELLIGENCE DATA ---
 const LIVE_TRENDS = {
@@ -32,18 +33,14 @@ const LIVE_TRENDS = {
 
 const initialData = {
   nodes: [
-    // CORE
     { 
       id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF",
-      title: "JONATHAN W. MARINO",
-      role: "Strategic Technology Executive",
+      title: "JONATHAN W. MARINO", role: "Strategic Technology Executive",
       desc: "The central node. Architecting the intersection of Policy, Code, and Design." 
     },
-    // STRATEGIC PILLARS
     { id: "Strategy", group: 2, val: 30, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk by bridging the gap between policy mandates and code enforcement." },
     { id: "Engineering", group: 2, val: 30, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Deploying AI agents (SlideSense) to automate workflows and reclaim $300k+ in executive hours." },
     { id: "Creative", group: 2, val: 30, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in." },
-    // TACTICAL ORBIT
     { id: "Global Ops", group: 3, val: 10, color: "#0070F3" },
     { id: "Governance", group: 3, val: 10, color: "#0070F3" },
     { id: "Next.js 15", group: 3, val: 10, color: "#00FF94" },
@@ -52,20 +49,18 @@ const initialData = {
     { id: "GSAP", group: 3, val: 10, color: "#FF0055" },
   ],
   links: [
-    { source: "JONATHAN", target: "Strategy" },
-    { source: "JONATHAN", target: "Engineering" },
-    { source: "JONATHAN", target: "Creative" },
-    { source: "Strategy", target: "Global Ops" },
-    { source: "Strategy", target: "Governance" },
-    { source: "Engineering", target: "Next.js 15" },
-    { source: "Engineering", target: "Gemini API" },
-    { source: "Creative", target: "WebGL" },
-    { source: "Creative", target: "GSAP" },
+    { source: "JONATHAN", target: "Strategy" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
+    { source: "Strategy", target: "Global Ops" }, { source: "Strategy", target: "Governance" },
+    { source: "Engineering", target: "Next.js 15" }, { source: "Engineering", target: "Gemini API" },
+    { source: "Creative", target: "WebGL" }, { source: "Creative", target: "GSAP" },
     { source: "Gemini API", target: "Governance" }, 
   ]
 };
 
 const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
+
+// The "Stage" coordinates where nodes will be pulled to (Right side of screen)
+const FOCUS_POINT = { x: 250, y: 0 };
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
@@ -76,9 +71,10 @@ export default function TechConstellation() {
   const [isClient, setIsClient] = useState(false);
   const [currentTrend, setCurrentTrend] = useState("");
   
-  // Refs for logic
+  // Refs
   const indexRef = useRef(0);
   const autoPilotRef = useRef(true);
+  const currentNodeRef = useRef<any>(null); // Track which node is currently "Held"
 
   useEffect(() => {
     setIsClient(true);
@@ -94,17 +90,22 @@ export default function TechConstellation() {
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-400); 
-        // Push physics center to the RIGHT (+300px)
-        graph.d3Force('center')?.x(300); 
+        graph.d3Force('charge')?.strength(-150); 
+        // Soft center pull so they don't fly away, but we override this with manual movement
+        graph.d3Force('center')?.strength(0.05); 
+        
+        // LOCK CAMERA: Set the viewport once and never move it again
+        // We look at (250, 0) which is where we will drag the nodes to
+        graph.centerAt(FOCUS_POINT.x, FOCUS_POINT.y, 0);
+        graph.zoom(2.5, 0);
     }
   }, [isClient]);
 
-  // TYPING EFFECT
+  // TYPING ENGINE
   useEffect(() => {
     if (activeNode) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING LIVE FEED...", "CONNECTING..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING LIVE DATA STREAM...", "CONNECTING..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -118,47 +119,71 @@ export default function TechConstellation() {
     }
   }, [activeNode]);
 
-  // --- THE GAME LOOP (Fixed) ---
+  // --- HELPER: PHYSICS DRAG ---
+  const pullNodeToFocus = (node: any) => {
+    if (!fgRef.current) return;
+
+    // 1. Release the OLD node (if any) so it floats back
+    if (currentNodeRef.current && currentNodeRef.current !== node) {
+      currentNodeRef.current.fx = undefined;
+      currentNodeRef.current.fy = undefined;
+    }
+
+    // 2. Update Reference
+    currentNodeRef.current = node;
+    setActiveNode(node);
+
+    // 3. Animate the NEW node to the Focus Point
+    // We use GSAP to interpolate the 'x' and 'y', and lock 'fx'/'fy' on every frame
+    gsap.to(node, {
+      x: FOCUS_POINT.x,
+      y: FOCUS_POINT.y,
+      duration: 2,
+      ease: "power3.inOut",
+      onUpdate: () => {
+        node.fx = node.x; // Lock X position
+        node.fy = node.y; // Lock Y position
+      },
+      onComplete: () => {
+        // Keep it locked at the center
+        node.fx = FOCUS_POINT.x;
+        node.fy = FOCUS_POINT.y;
+      }
+    });
+
+    // 4. Wake up physics so neighbors react to the drag
+    fgRef.current.d3ReheatSimulation();
+  };
+
+  // --- THE GAME LOOP ---
   useEffect(() => {
     const interval = setInterval(() => {
-      // 1. Check if we should act
-      if (!autoPilotRef.current || !fgRef.current) {
-        return; // Skip tick
-      }
+      if (!autoPilotRef.current || !fgRef.current) return;
 
-      // 2. Calculate Target
       const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
       const targetId = TOUR_STEPS[nextIndex];
       
-      // FIX: Read from initialData directly. The library mutates this object by reference.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const node = initialData.nodes.find(n => n.id === targetId) as any;
+      const graphNodes = (fgRef.current as any).graphData().nodes;
+      const node = graphNodes.find((n: any) => n.id === targetId);
 
-      // 3. Execute Move
-      if (node && Number.isFinite(node.x)) {
-        console.log(`Moving to: ${targetId}`);
+      if (node) {
+        // EXECUTE THE PULL
+        pullNodeToFocus(node);
         
-        // Move camera to LEFT of node (x - 300) to keep node on RIGHT
-        fgRef.current?.centerAt(node.x - 300, node.y, 2500); 
-        fgRef.current?.zoom(2.8, 2500);
-        
-        setActiveNode(node);
-        indexRef.current = nextIndex; // Update ref
-        setTourIndex(nextIndex);      // Update state
+        indexRef.current = nextIndex;
+        setTourIndex(nextIndex);
       }
 
-    }, 5000); // Tick every 5 seconds
+    }, 5000); // Every 5 seconds
 
     return () => clearInterval(interval);
   }, []);
 
   const handleInteraction = useCallback((node: any) => {
     setIsAutoPilot(false);
-    autoPilotRef.current = false; 
-    
-    setActiveNode(node);
-    fgRef.current?.centerAt(node.x - 300, node.y, 1000);
-    fgRef.current?.zoom(3, 1000);
+    autoPilotRef.current = false;
+    pullNodeToFocus(node);
   }, []);
 
   if (!isClient) return null;
@@ -166,7 +191,7 @@ export default function TechConstellation() {
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* --- LEFT CARD (EXPANSIVE) --- */}
+      {/* --- LEFT CARD --- */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[800px] flex items-center p-8 md:p-16 z-20 pointer-events-none">
         <div className={`pointer-events-auto w-full transition-all duration-1000 transform ${activeNode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
            <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
