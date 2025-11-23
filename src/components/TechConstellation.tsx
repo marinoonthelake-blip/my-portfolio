@@ -4,17 +4,52 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
-// --- 1. LIVE INTELLIGENCE DATA ---
-const LIVE_TRENDS = {
-  "Strategy": ["DETECTING: EU AI Act enforcement shifts...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
-  "Engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini inference delta.", "DEPLOY: Next.js 15 PPR production pipelines.", "PATTERN: Agentic Workflow adoption rates."],
-  "Creative": ["TREND: WebGPU adoption +40% in e-commerce.", "UX: Glassmorphism & Bento Grids dominating SaaS.", "METRIC: 3D Storytelling reduces bounce rates."],
-  "Global Ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
-  "Gemini API": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
-  "JONATHAN": ["SYSTEM: CONNECTED.", "STATUS: READY.", "MODE: EXECUTIVE OVERVIEW."]
+// --- 1. CONTEXTUAL DATA (For Hero Card) ---
+// Specific "Why this matters now" signals linked to nodes
+const CONTEXTUAL_SIGNALS = {
+  "Strategy": [
+    "DETECTING MARKET SHIFT: EU AI Act enforcement phase initiating...",
+    "ANALYSIS: Enterprise risk migrating from Cloud Sec to Model Governance.",
+    "SIGNAL: Data sovereignty fragmentation in APAC region."
+  ],
+  "Engineering": [
+    "BENCHMARK ALERT: DeepSeek-V3 vs Gemini inference delta widening.",
+    "DEPLOYMENT PATTERN: Next.js 15 PPR moving to production standard.",
+    "ARCHITECTURAL SHIFT: Agentic Workflows replacing RAG pipelines."
+  ],
+  "Creative": [
+    "VISUAL TREND: WebGPU adoption +40% in e-commerce sectors.",
+    "UX SIGNAL: Glassmorphism & Bento Grids dominating SaaS interfaces.",
+    "METRIC: 3D Storytelling correlates with -40% bounce rate."
+  ],
+  "Global Ops": [
+    "MARKET WATCH: Vendor consolidation accelerating in EMEA.",
+    "OPS SIGNAL: AI-driven SOP generation reducing ramp time."
+  ],
+  "Gemini API": [
+    "MODEL UPDATE: Gemini 1.5 Pro context window expansion.",
+    "USE CASE: Multimodal latency dropping below 200ms."
+  ],
+  "JONATHAN": [
+    "SYSTEM STATUS: ONLINE.", 
+    "PROTOCOL: EXECUTIVE BRIEFING MODE.", 
+    "WAITING FOR INPUT..."
+  ]
 };
 
-// --- 2. DEEP RESUME DATA ---
+// --- 2. GLOBAL NEWS DATA (For Bottom-Right Feed) ---
+// General background noise to make the system feel alive
+const GLOBAL_NEWS = [
+  "r/LocalLLaMA: 70B model quantization breakthroughs...",
+  "TechCrunch: Sovereign AI clouds seeing 200% spend increase...",
+  "HuggingFace: New multimodal embeddings top leaderboard...",
+  "Bloomberg: Supply chain digitization entering Phase 2...",
+  "Wired: The death of prompt engineering and rise of context architecture...",
+  "GitHub: Auto-GPT-Pro repository trending #1...",
+  "Vercel: Server Actions now default for data mutations..."
+];
+
+// --- 3. RESUME DATA ---
 const initialData = {
   nodes: [
     // CORE
@@ -69,8 +104,6 @@ const initialData = {
 };
 
 const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
-
-// THE STAGE: Pulled back to 250 to ensure visibility on all screens
 const STAGE_X = 250; 
 const STAGE_Y = 0;
 
@@ -79,7 +112,8 @@ export default function TechConstellation() {
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
   const [activeNode, setActiveNode] = useState<any>(initialData.nodes[0]); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
-  const [currentTrend, setCurrentTrend] = useState("");
+  const [contextualSignal, setContextualSignal] = useState("");
+  const [globalTicker, setGlobalTicker] = useState(GLOBAL_NEWS[0]);
   
   const indexRef = useRef(0);
   const autoPilotRef = useRef(true);
@@ -87,7 +121,6 @@ export default function TechConstellation() {
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isClient, setIsClient] = useState(false);
 
-  // --- CLIENT INIT ---
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
@@ -98,42 +131,45 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // --- PHYSICS CONFIG ---
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
         graph.d3Force('charge')?.strength(-200); 
         graph.d3Force('link')?.distance(100);
-        
-        // Center Physics
         graph.d3Force('center')?.x(STAGE_X); 
         graph.d3Force('center')?.y(STAGE_Y);
-
-        // Center Camera
         graph.centerAt(STAGE_X, STAGE_Y, 0);
-        graph.zoom(3.2, 0);
+        graph.zoom(3.5, 0);
     }
   }, [isClient]);
 
-  // --- INTELLIGENCE ENGINE ---
+  // --- 1. CONTEXTUAL SIGNAL ENGINE (Hero Card) ---
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["SCANNING NETWORK...", "ACQUIRING TARGET..."];
-      const randomTrend = trends[Math.floor(Math.random() * trends.length)];
+      const signals = CONTEXTUAL_SIGNALS[activeNode.id as keyof typeof CONTEXTUAL_SIGNALS] || ["SCANNING FOR RELEVANCE...", "ACQUIRING TARGET..."];
+      const randomSignal = signals[Math.floor(Math.random() * signals.length)];
       
       let i = 0;
-      setCurrentTrend("");
+      setContextualSignal("");
       const typeInterval = setInterval(() => {
-        setCurrentTrend(randomTrend.substring(0, i + 1));
+        setContextualSignal(randomSignal.substring(0, i + 1));
         i++;
-        if (i > randomTrend.length) clearInterval(typeInterval);
-      }, 20);
+        if (i > randomSignal.length) clearInterval(typeInterval);
+      }, 25);
       return () => clearInterval(typeInterval);
     }
   }, [activeNode, isTransitioning]);
 
-  // --- ANIMATION SEQUENCE ---
+  // --- 2. GLOBAL TICKER ENGINE (Bottom Right) ---
+  useEffect(() => {
+    const tickerInterval = setInterval(() => {
+      const nextNews = GLOBAL_NEWS[Math.floor(Math.random() * GLOBAL_NEWS.length)];
+      setGlobalTicker(nextNews);
+    }, 5000); // Rotate every 5s
+    return () => clearInterval(tickerInterval);
+  }, []);
+
   const transitionToNode = (node: any) => {
     if (!fgRef.current) return;
 
@@ -162,7 +198,6 @@ export default function TechConstellation() {
     }, 800); 
   };
 
-  // --- AUTO-PILOT ---
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoPilotRef.current) return;
@@ -175,19 +210,16 @@ export default function TechConstellation() {
       const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
 
       if (node) transitionToNode(node);
-    }, 12000);
+    }, 12000); 
 
     return () => clearInterval(interval);
   }, []);
 
-  // --- INTERACTION ---
-  const triggerInteraction = useCallback((nodeId: string) => {
+  const handleInteraction = useCallback((nodeId: string) => {
     autoPilotRef.current = false;
-    
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const graphNodes = (initialData.nodes as any[]); 
     const node = graphNodes.find(n => n.id === nodeId);
-    
     if (node) transitionToNode(node);
 
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -201,7 +233,7 @@ export default function TechConstellation() {
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* --- LEFT CARD: RESUME DATA --- */}
+      {/* --- LEFT CARD: HERO CONTEXT --- */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[650px] flex items-center p-8 md:p-12 z-20 pointer-events-none">
         <div 
           className={`pointer-events-auto w-full transition-all duration-700 transform 
@@ -212,6 +244,19 @@ export default function TechConstellation() {
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
+              {/* CONTEXTUAL SIGNAL HEADER */}
+              <div className="mb-8 border-b border-white/10 pb-6 bg-white/5 -mx-10 -mt-10 p-10">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Relevant Context</span>
+                    </div>
+                </div>
+                <p className="text-sm font-mono text-[#00FF94] leading-relaxed min-h-[3rem]">
+                  {contextualSignal}<span className="animate-pulse text-white">_</span>
+                </p>
+              </div>
+
               {/* IDENTITY */}
               <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest font-bold" 
                   style={{ color: activeNode?.color }}>
@@ -222,7 +267,7 @@ export default function TechConstellation() {
               </h1>
 
               {/* DESCRIPTION */}
-              <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl border-l-2 border-white/10 pl-6">
+              <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl border-l-4 border-white/10 pl-6">
                 {activeNode?.desc}
               </p>
 
@@ -250,7 +295,6 @@ export default function TechConstellation() {
                 </div>
               )}
 
-              {/* CTA */}
               <div className="mt-4 pt-6 border-t border-gray-800">
                   <button 
                     onClick={() => document.getElementById('content-start')?.scrollIntoView({behavior:'smooth'})}
@@ -263,23 +307,23 @@ export default function TechConstellation() {
         </div>
       </div>
 
-      {/* --- BOTTOM RIGHT: LIVE FEED HUD --- */}
-      <div className="absolute bottom-8 right-8 z-30 pointer-events-none">
-        <div className="bg-black/80 backdrop-blur-md border border-white/20 p-6 rounded-lg shadow-2xl max-w-sm pointer-events-auto">
+      {/* --- BOTTOM RIGHT: GLOBAL INTELLIGENCE FEED --- */}
+      <div className="absolute bottom-8 right-8 z-30 w-[350px] pointer-events-none">
+        <div className="bg-black/80 backdrop-blur-md border border-white/20 p-6 rounded-lg shadow-2xl pointer-events-auto">
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
                 <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Live Intelligence</span>
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                    <span className="text-[9px] font-mono text-blue-400 uppercase tracking-wider font-bold">Global Data Stream</span>
                 </div>
-                <span className="text-[10px] font-mono text-gray-500">{new Date().toLocaleTimeString()}</span>
+                <span className="text-[9px] font-mono text-gray-500">LIVE</span>
             </div>
-            <p className="text-xs font-mono text-[#00FF94] h-12 leading-relaxed">
-                &gt; {currentTrend}<span className="animate-pulse text-white">_</span>
+            <p className="text-xs font-mono text-gray-300 leading-relaxed animate-pulse">
+                {globalTicker}
             </p>
         </div>
       </div>
 
-      {/* --- RIGHT BRAIN CANVAS --- */}
+      {/* RIGHT BRAIN CANVAS */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
@@ -287,9 +331,9 @@ export default function TechConstellation() {
         graphData={initialData}
         backgroundColor="#050505"
         
-        onNodeClick={(node) => triggerInteraction(node.id as string)}
-        onNodeDrag={() => { autoPilotRef.current = false; }}
-        onBackgroundClick={() => { autoPilotRef.current = false; }}
+        onNodeClick={(node) => handleInteraction(node.id as string)}
+        onNodeDrag={() => { if (activeNode) handleInteraction(activeNode.id as string); }} 
+        onBackgroundClick={() => { if (activeNode) handleInteraction(activeNode.id as string); }}
         
         cooldownTicks={100}
         d3AlphaDecay={0.05} 
