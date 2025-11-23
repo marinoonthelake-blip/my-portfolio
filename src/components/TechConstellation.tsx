@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
+import gsap from "gsap";
 
 // --- 1. LIVE INTELLIGENCE DATA ---
 const LIVE_TRENDS = {
@@ -32,18 +33,10 @@ const LIVE_TRENDS = {
 
 const initialData = {
   nodes: [
-    // CORE
-    { 
-      id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF",
-      title: "JONATHAN W. MARINO",
-      role: "Strategic Technology Executive",
-      desc: "The central node. Architecting the intersection of Policy, Code, and Design." 
-    },
-    // STRATEGIC PILLARS
+    { id: "JONATHAN", group: 1, val: 60, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "Strategic Tech Exec", desc: "Architecting the intersection of Policy, Code, and Design." },
     { id: "Strategy", group: 2, val: 30, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk via policy/code bridges." },
     { id: "Engineering", group: 2, val: 30, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Automating workflows to reclaim executive hours." },
     { id: "Creative", group: 2, val: 30, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives." },
-    // TACTICAL ORBIT
     { id: "Global Ops", group: 3, val: 10, color: "#0070F3" },
     { id: "Governance", group: 3, val: 10, color: "#0070F3" },
     { id: "Next.js 15", group: 3, val: 10, color: "#00FF94" },
@@ -62,17 +55,21 @@ const initialData = {
 
 const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini API"];
 
+// THE STAGE: Where we drag the nodes to (Right side of screen)
+const FOCUS_X = 250;
+const FOCUS_Y = 0;
+
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
   const [activeNode, setActiveNode] = useState<any>(initialData.nodes[0]); 
-  const [tourIndex, setTourIndex] = useState(0);
   const [isAutoPilot, setIsAutoPilot] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const [currentTrend, setCurrentTrend] = useState("");
   
-  const indexRef = useRef(0);
-  const autoPilotRef = useRef(true);
+  // Internal Refs for Animation Loop
+  const tourIndexRef = useRef(0);
+  const draggingNodeRef = useRef<any>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -84,22 +81,28 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // PHYSICS CONFIG
+  // 1. INITIAL SETUP: Lock Camera, Start Physics
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-500); // Massive spread to support high zoom
-        // Shift center X by +250px so the focused node sits in the open space on the right
-        graph.d3Force('center')?.x(250); 
-        graph.d3Force('center')?.y(0); 
+        
+        // Set Physics: Loose and floaty
+        graph.d3Force('charge')?.strength(-150); 
+        graph.d3Force('link')?.distance(80);
+        graph.d3Force('center')?.strength(0.01); // Very weak center pull so we can drag easily
+
+        // CAMERA: Lock it once. We never move the camera again.
+        // We zoom into the "Stage" area at (250, 0)
+        graph.centerAt(FOCUS_X, FOCUS_Y, 0);
+        graph.zoom(3.5, 0);
     }
   }, [isClient]);
 
-  // TYPING EFFECT
+  // 2. TYPING EFFECT (Updates Left Card)
   useEffect(() => {
     if (activeNode) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING LIVE FEED...", "CONNECTING..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING DATA STREAM...", "CONNECTING..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -113,39 +116,68 @@ export default function TechConstellation() {
     }
   }, [activeNode]);
 
-  // --- THE GAME LOOP ---
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!autoPilotRef.current || !fgRef.current) return;
+  // 3. THE "MAGNETIC DRAG" FUNCTION
+  const magnetizeNode = (nodeId: string) => {
+    if (!fgRef.current) return;
+    
+    // Find node in LIVE data (d3 mutates it)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const graphNodes = (initialData.nodes as any[]); 
+    const node = graphNodes.find(n => n.id === nodeId);
 
-      const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
-      const targetId = TOUR_STEPS[nextIndex];
-      
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const node = initialData.nodes.find(n => n.id === targetId) as any;
-
-      if (node && Number.isFinite(node.x)) {
-        // EXTREME ZOOM: Zoom level 6.0 creates the "Microscope" effect
-        fgRef.current?.centerAt(node.x - 100, node.y, 2500); 
-        fgRef.current?.zoom(6.0, 2500);
-        
-        setActiveNode(node);
-        indexRef.current = nextIndex;
-        setTourIndex(nextIndex);
+    if (node) {
+      // A. Release previous node
+      if (draggingNodeRef.current && draggingNodeRef.current !== node) {
+        draggingNodeRef.current.fx = undefined; // Let it float free
+        draggingNodeRef.current.fy = undefined;
       }
 
-    }, 5000); 
+      // B. Update State (Left Card) immediately
+      setActiveNode(node);
+      draggingNodeRef.current = node;
+
+      // C. ANIMATE PHYSICS PROPERTIES (The Seamless Move)
+      // Instead of moving camera, we animate the node's "Fixed Position" (fx, fy)
+      // to the center of our stage. The physics engine handles the rest.
+      
+      // Lock current position to start drag
+      node.fx = node.x;
+      node.fy = node.y;
+
+      gsap.to(node, {
+        fx: FOCUS_X, // Drag to Target X
+        fy: FOCUS_Y, // Drag to Target Y
+        duration: 2.5,
+        ease: "power3.inOut",
+        onUpdate: () => {
+          // Keep physics hot during animation so lines stretch smoothly
+          fgRef.current?.d3ReheatSimulation(); 
+        }
+      });
+    }
+  };
+
+  // 4. THE GAME LOOP (Auto-Pilot)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isAutoPilot) return;
+
+      // Advance Index
+      const nextIndex = (tourIndexRef.current + 1) % TOUR_STEPS.length;
+      tourIndexRef.current = nextIndex;
+      
+      const targetId = TOUR_STEPS[nextIndex];
+      magnetizeNode(targetId);
+
+    }, 5000); // Every 5 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isAutoPilot]);
 
+  // 5. MANUAL INTERACTION
   const handleInteraction = useCallback((node: any) => {
-    setIsAutoPilot(false);
-    autoPilotRef.current = false; 
-    
-    setActiveNode(node);
-    fgRef.current?.centerAt(node.x - 100, node.y, 1000);
-    fgRef.current?.zoom(6.0, 1000);
+    setIsAutoPilot(false); // Stop loop
+    magnetizeNode(node.id); // Drag clicked node to center
   }, []);
 
   if (!isClient) return null;
@@ -153,9 +185,9 @@ export default function TechConstellation() {
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* --- LEFT CARD --- */}
+      {/* LEFT CARD (Fixed UI) */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[750px] flex items-center p-8 md:p-16 z-20 pointer-events-none">
-        <div className={`pointer-events-auto w-full transition-all duration-1000 transform ${activeNode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+        <div className={`pointer-events-auto w-full transition-all duration-700 transform ${activeNode ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
            <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
@@ -195,41 +227,46 @@ export default function TechConstellation() {
         </div>
       </div>
 
-      {/* --- RIGHT BRAIN --- */}
+      {/* RIGHT BRAIN (Canvas) */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
         height={dimensions.h}
         graphData={initialData}
         backgroundColor="#050505"
+        
+        // Interaction Handlers
         onNodeClick={handleInteraction}
-        onNodeDrag={() => { setIsAutoPilot(false); autoPilotRef.current = false; }}
-        onBackgroundClick={() => { setIsAutoPilot(false); autoPilotRef.current = false; }}
+        onNodeDrag={() => setIsAutoPilot(false)}
+        onBackgroundClick={() => setIsAutoPilot(false)}
+
+        // Physics Settings
         cooldownTicks={100}
         d3AlphaDecay={0.01} 
-        d3VelocityDecay={0.4}
+        d3VelocityDecay={0.3}
+
+        // Visuals
         nodeRelSize={8}
         linkColor={() => "#ffffff15"}
         linkWidth={1.5}
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
         
-        // THE MICROSCOPE RENDERER
+        // Node Renderer
         nodeCanvasObject={(node, ctx, globalScale) => {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
 
           const isTarget = node.id === activeNode?.id;
+          const isCore = node.group === 1;
           const color = (node.color as string) || "#fff";
           
-          // Calculate Size based on "Active" state
-          // If active, it becomes MASSIVE (Microscope effect)
-          const baseRadius = 10;
-          const radius = isTarget ? 40 : baseRadius; // Target is 4x larger
+          const pulse = Math.sin(Date.now() / 800) * 3; 
+          const baseRadius = isCore ? 15 : 6;
+          const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
 
-          // 1. Draw Glow
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
-          gradient.addColorStop(0.4, color + '22'); // Fade
+          gradient.addColorStop(0.4, color + '44');
           gradient.addColorStop(1, 'transparent');
 
           ctx.beginPath();
@@ -237,54 +274,23 @@ export default function TechConstellation() {
           ctx.fillStyle = gradient;
           ctx.fill();
 
-          // 2. Draw Core
           ctx.beginPath();
-          ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
-          ctx.fillStyle = isTarget ? "#000" : color; // Active nodes are hollow
+          ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
+          ctx.fillStyle = "#000";
           ctx.fill();
           ctx.strokeStyle = color;
-          ctx.lineWidth = isTarget ? 4 : 0;
+          ctx.lineWidth = 2;
           ctx.stroke();
 
-          // 3. Draw "Data Rings" (Only on Active Node)
-          if (isTarget) {
-             // Inner Ring
-             ctx.beginPath();
-             ctx.arc(node.x!, node.y!, radius * 1.4, 0, 2 * Math.PI, false);
-             ctx.strokeStyle = color + '66';
-             ctx.lineWidth = 1;
-             ctx.setLineDash([5, 15]); // Dashed line
-             ctx.stroke();
-             ctx.setLineDash([]); // Reset
-
-             // Outer Ring
-             ctx.beginPath();
-             ctx.arc(node.x!, node.y!, radius * 1.8, 0, 2 * Math.PI, false);
-             ctx.strokeStyle = color + '33';
-             ctx.stroke();
-          }
-
-          // 4. Draw Text (Attached Information)
-          const label = node.id as string;
-          const fontSize = 16 / globalScale; // Keep text size reasonable
-          
-          // Main Label
-          ctx.font = `bold ${fontSize * 3}px Sans-Serif`; // Scaled up text
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = isTarget ? '#FFF' : 'rgba(255,255,255,0.6)';
-          
-          // If active, draw text INSIDE the node
-          if (isTarget) {
-             ctx.fillText(label, node.x!, node.y!);
-             
-             // Sub-label below
-             ctx.font = `${fontSize * 1.5}px Monospace`;
-             ctx.fillStyle = color;
-             ctx.fillText("ACTIVE", node.x!, node.y! + (radius * 0.6));
-          } else {
-             // If inactive, draw text BELOW
-             ctx.fillText(label, node.x!, node.y! + radius + fontSize + 2);
+          // Only show labels for non-active nodes (Active is on the card)
+          if (!isTarget && (isCore || node.group === 2)) {
+             const label = node.id as string;
+             const fontSize = 12 / globalScale;
+             ctx.font = `bold ${fontSize}px Sans-Serif`;
+             ctx.textAlign = 'center';
+             ctx.textBaseline = 'middle';
+             ctx.fillStyle = 'rgba(255,255,255,0.5)';
+             ctx.fillText(label, node.x!, node.y! + radius + fontSize + 4);
           }
         }}
       />
