@@ -1,53 +1,46 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 
-// 1. THE STRATEGIC DATA (Your Neural Network)
+// 1. DATA: The Core Node is now your full Hero Identity
 const initialData = {
   nodes: [
-    // CORE NUCLEUS
-    { id: "JONATHAN", group: 1, val: 50, color: "#FFFFFF", 
-      title: "The Digital Polymath", 
-      desc: "A hybrid executive blending high-fidelity creative direction with rigorous engineering architecture." 
+    // CORE (Your Name)
+    { 
+      id: "JONATHAN", group: 1, val: 80, color: "#FFFFFF", 
+      label: "JONATHAN WILLIAM MARINO",
+      sub: "Strategic Technology Executive"
     },
     
-    // STRATEGIC ORBIT (The "Why")
-    { id: "Risk Mitigation", group: 2, val: 25, color: "#00FF94", 
-      title: "Geopolitical & Tech Risk", 
-      desc: "De-risking enterprise operations by bridging the gap between policy mandates and code enforcement." 
-    },
-    { id: "Efficiency", group: 2, val: 25, color: "#0070F3", 
-      title: "Operational Velocity", 
-      desc: "Deploying AI agents (SlideSense) to reclaim $300k+ in executive hours annually." 
-    },
-    { id: "Persuasion", group: 2, val: 25, color: "#FF0055", 
-      title: "High-Fidelity Storytelling", 
-      desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in." 
-    },
+    // PILLARS (The Story)
+    { id: "Strategy", group: 2, val: 30, color: "#0070F3", desc: "Geopolitical Risk & Tech Policy" },
+    { id: "Engineering", group: 2, val: 30, color: "#00FF94", desc: "Full-Stack Architecture & GenAI" },
+    { id: "Creative", group: 2, val: 30, color: "#FF0055", desc: "High-Fidelity Motion Storytelling" },
 
-    // TACTICAL ORBIT (The "How")
-    { id: "Global Ops", group: 3, val: 10, color: "#0070F3", desc: "Scaling vendor ops across APAC/EMEA." },
-    { id: "Governance", group: 3, val: 10, color: "#00FF94", desc: "Automated policy enforcement." },
-    { id: "GenAI", group: 3, val: 15, color: "#00FF94", desc: "LLM integration for enterprise tools." },
-    { id: "WebGL", group: 3, val: 10, color: "#FF0055", desc: "Immersive browser-based experiences." },
-    { id: "Accessibility", group: 3, val: 10, color: "#00FF94", desc: "WCAG 2.1 AA Compliance via AI." },
+    // ORBIT
+    { id: "Global Ops", group: 3, val: 10, color: "#0070F3" },
+    { id: "Compliance", group: 3, val: 10, color: "#0070F3" },
+    { id: "Next.js 15", group: 3, val: 10, color: "#00FF94" },
+    { id: "Gemini API", group: 3, val: 15, color: "#00FF94" },
+    { id: "WebGL", group: 3, val: 10, color: "#FF0055" },
+    { id: "GSAP", group: 3, val: 10, color: "#FF0055" },
   ],
   links: [
-    { source: "JONATHAN", target: "Risk Mitigation" },
-    { source: "JONATHAN", target: "Efficiency" },
-    { source: "JONATHAN", target: "Persuasion" },
-    { source: "Risk Mitigation", target: "Governance" },
-    { source: "Risk Mitigation", target: "Global Ops" },
-    { source: "Efficiency", target: "GenAI" },
-    { source: "Efficiency", target: "Accessibility" },
-    { source: "Persuasion", target: "WebGL" },
-    { source: "GenAI", target: "Governance" }, // Cross-link
+    { source: "JONATHAN", target: "Strategy" },
+    { source: "JONATHAN", target: "Engineering" },
+    { source: "JONATHAN", target: "Creative" },
+    { source: "Strategy", target: "Global Ops" },
+    { source: "Strategy", target: "Compliance" },
+    { source: "Engineering", target: "Next.js 15" },
+    { source: "Engineering", target: "Gemini API" },
+    { source: "Creative", target: "WebGL" },
+    { source: "Creative", target: "GSAP" },
+    { source: "Gemini API", target: "Compliance" }, 
   ]
 };
 
-// The Patrol Route (Order of auto-visit)
-const PATROL_ROUTE = ["JONATHAN", "Risk Mitigation", "Efficiency", "Persuasion", "GenAI"];
+const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative"];
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
@@ -57,7 +50,6 @@ export default function TechConstellation() {
   const [isAutoPilot, setIsAutoPilot] = useState(true);
   const [isClient, setIsClient] = useState(false);
 
-  // Init
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
@@ -68,106 +60,68 @@ export default function TechConstellation() {
     }
   }, []);
 
-  // --- THE BIG BANG (Intro Zoom) ---
+  // PHYSICS SETUP
   useEffect(() => {
     if (fgRef.current) {
-      // Start far away
-      fgRef.current.zoom(0.1, 0);
-      // Zoom in dramatically
-      setTimeout(() => {
-        fgRef.current?.zoom(2.5, 2500);
-      }, 500);
+        const graph = fgRef.current;
+        // Strong repulsion to spread them out
+        graph.d3Force('charge')?.strength(-300);
+        graph.d3Force('link')?.distance(100);
     }
   }, [isClient]);
 
-  // --- THE PATROL LOGIC (Auto-Pilot) ---
+  // THE TOUR LOGIC
   useEffect(() => {
     if (!isAutoPilot || !fgRef.current) return;
 
-    const targetId = PATROL_ROUTE[tourIndex];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const targetId = TOUR_STEPS[tourIndex];
     const node = initialData.nodes.find(n => n.id === targetId) as any;
 
-    if (node && node.x) {
-      // Cinematic Pan
-      fgRef.current.centerAt(node.x + 15, node.y, 3000); // Offset X to leave room for sidebar
-      fgRef.current.zoom(3.5, 3000);
+    if (node && typeof node.x === 'number') {
+      // Zoom logic depends on if it's the Core or a Satellite
+      const isCore = node.group === 1;
+      const zoomLevel = isCore ? 1.5 : 3.5; // Zoom closer for small nodes, back for the big core
       
-      // "Open" the node
+      fgRef.current.centerAt(node.x, node.y, 2500);
+      fgRef.current.zoom(zoomLevel, 2500);
+      
+      // "Open" the node (triggering expansion in the renderer)
       setActiveNode(node);
 
-      // Move to next node after delay
       const timer = setTimeout(() => {
-        setActiveNode(null); // Close node briefly
+        setActiveNode(null); // "Close" node
         setTimeout(() => {
-          setTourIndex((prev) => (prev + 1) % PATROL_ROUTE.length);
-        }, 1000); // Wait for fade out
-      }, 6000); // Read time
+          setTourIndex((prev) => (prev + 1) % TOUR_STEPS.length);
+        }, 1000);
+      }, 6000); // Stay for 6s
 
       return () => clearTimeout(timer);
-    }
+    } 
   }, [tourIndex, isAutoPilot]);
 
-  // --- MANUAL OVERRIDE ---
-  const handleInteraction = useCallback(() => {
-    setIsAutoPilot(false); // User took control
-  }, []);
-
-  const handleNodeClick = useCallback((node: any) => {
-    handleInteraction();
-    fgRef.current?.centerAt(node.x, node.y, 1000);
-    fgRef.current?.zoom(4, 1000);
+  const handleInteraction = useCallback((node: any) => {
+    setIsAutoPilot(false);
     setActiveNode(node);
-  }, [handleInteraction]);
+    fgRef.current?.centerAt(node.x, node.y, 1000);
+    fgRef.current?.zoom(3, 1000);
+  }, []);
 
   if (!isClient) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#050505] overflow-hidden">
+    <div className="absolute inset-0 z-0 bg-[#050505]">
       
-      {/* --- THE SIDEBAR HUD (Fades In/Out) --- */}
-      <div className={`absolute top-0 right-0 h-full w-full md:w-[450px] pointer-events-none flex items-center justify-end p-8 md:p-12 z-20`}>
-        <div 
-          className={`
-            bg-black/80 backdrop-blur-xl border-l border-t border-b border-gray-800 p-8 md:p-12 rounded-l-2xl shadow-2xl 
-            transition-all duration-1000 transform 
-            ${activeNode ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}
-          `}
-          style={{ borderLeftColor: activeNode?.color || '#333', borderWidth: '0 0 0 4px' }}
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <span className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: activeNode?.color }} />
-            <span className="text-xs font-mono text-gray-500 tracking-[0.2em] uppercase">
-              System Node: {activeNode?.group === 1 ? 'CORE' : 'MODULE'}
-            </span>
-          </div>
-
-          <h2 className="text-4xl md:text-5xl font-sans font-bold text-white mb-6 leading-tight">
-            {activeNode?.title || activeNode?.id}
-          </h2>
-          
-          <p className="text-lg text-gray-300 font-sans leading-relaxed border-l-2 border-gray-800 pl-6">
-            {activeNode?.desc}
-          </p>
-
-          {/* Decorative Data Stream */}
-          <div className="mt-12 font-mono text-[10px] text-gray-700 space-y-1">
-            <p>HASH: 0x{Math.random().toString(16).substr(2, 8)}</p>
-            <p>LINK_STATUS: VERIFIED</p>
-            <p>LATENCY: 12ms</p>
-          </div>
+      {/* MANUAL OVERRIDE INDICATOR */}
+      {!isAutoPilot && (
+        <div className="absolute top-10 right-10 z-20">
+           <button 
+             onClick={() => setIsAutoPilot(true)}
+             className="text-xs font-mono text-[#0070F3] border border-[#0070F3] px-4 py-2 hover:bg-[#0070F3] hover:text-white transition-colors"
+           >
+             RE-ENGAGE AUTO-PILOT
+           </button>
         </div>
-      </div>
-
-      {/* --- STATUS INDICATOR --- */}
-      <div className="absolute bottom-10 left-10 z-20">
-        <div className={`flex items-center gap-3 transition-opacity duration-500 ${isAutoPilot ? 'opacity-100' : 'opacity-30'}`}>
-          <span className="w-2 h-2 bg-[#00FF94] rounded-full animate-ping" />
-          <span className="text-xs font-mono text-[#00FF94] tracking-widest">
-            {isAutoPilot ? "NEURAL AUTO-PILOT ENGAGED" : "MANUAL OVERRIDE"}
-          </span>
-        </div>
-      </div>
+      )}
 
       <ForceGraph2D
         ref={fgRef}
@@ -176,55 +130,78 @@ export default function TechConstellation() {
         graphData={initialData}
         backgroundColor="#050505"
         
-        // Interactions
-        onNodeClick={handleNodeClick}
-        onNodeDrag={handleInteraction}
-        onBackgroundClick={() => { handleInteraction(); setActiveNode(null); }}
-        
-        // Physics (Breathing)
+        onNodeClick={handleInteraction}
+        onNodeDrag={() => setIsAutoPilot(false)}
+        onBackgroundClick={() => { setIsAutoPilot(false); setActiveNode(null); }}
+
         cooldownTicks={100}
-        d3AlphaDecay={0.01}
+        d3AlphaDecay={0.02}
         d3VelocityDecay={0.3}
 
-        // Render
-        nodeRelSize={8}
+        nodeRelSize={10}
         linkColor={() => "#ffffff15"}
-        linkWidth={1.5}
+        linkWidth={1}
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
         
         nodeCanvasObject={(node, ctx, globalScale) => {
-          const label = node.id as string;
-          const fontSize = 12 / globalScale;
-          const isTarget = node.id === activeNode?.id;
           const isCore = node.group === 1;
+          const isTarget = node.id === activeNode?.id;
           
-          // Breathing Calculation
-          const pulse = Math.sin(Date.now() / 1000) * 2; 
-          const baseRadius = isCore ? 8 : 4;
-          const radius = isTarget ? (baseRadius * 2) + pulse : baseRadius;
-
-          const color = (node.color as string) || "#fff";
-
-          // Glow
-          ctx.beginPath();
-          ctx.arc(node.x!, node.y!, radius * 4, 0, 2 * Math.PI, false);
-          ctx.fillStyle = isTarget ? color + '44' : color + '05';
-          ctx.fill();
-
-          // Core
+          // THE EXPANSION: If active, radius grows
+          const baseRadius = isCore ? 30 : 6;
+          const radius = isTarget ? baseRadius * 1.3 : baseRadius;
+          
+          // Draw Node
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
-          ctx.fillStyle = color;
+          ctx.fillStyle = node.color as string;
           ctx.fill();
 
-          // Label (Only show important ones or active)
-          if (isTarget || isCore || node.group === 2) {
+          // Glow for active
+          if (isTarget) {
+            ctx.beginPath();
+            ctx.arc(node.x!, node.y!, radius * 1.5, 0, 2 * Math.PI, false);
+            ctx.fillStyle = (node.color as string) + '33';
+            ctx.fill();
+          }
+
+          // TEXT RENDERING
+          const label = (node as any).label || node.id;
+          const sub = (node as any).sub || (node as any).desc;
+          
+          // 1. Core Node Text (Always visible, Huge)
+          if (isCore) {
+             const fontSize = 32 / globalScale; // Scales with zoom
              ctx.font = `bold ${fontSize}px Sans-Serif`;
              ctx.textAlign = 'center';
              ctx.textBaseline = 'middle';
-             ctx.fillStyle = isTarget ? '#FFF' : 'rgba(255,255,255,0.6)';
-             ctx.fillText(label, node.x!, node.y! + radius + fontSize + 2);
+             ctx.fillStyle = '#000'; // Black text inside white core? Or inverted?
+             // Let's do White text on Black background? No, Core is White.
+             // Black text on White Core
+             ctx.fillStyle = '#000';
+             ctx.fillText("JW MARINO", node.x!, node.y!);
+             
+             // Subtitle below core
+             ctx.font = `${fontSize * 0.4}px Monospace`;
+             ctx.fillStyle = '#0070F3';
+             ctx.fillText("STRATEGIC TECH EXEC", node.x!, node.y! + (radius * 0.5));
+          } 
+          // 2. Other Nodes (Show text when Active or Large)
+          else if (isTarget || globalScale > 2) {
+             const fontSize = 14 / globalScale;
+             ctx.font = `bold ${fontSize}px Sans-Serif`;
+             ctx.textAlign = 'center';
+             ctx.textBaseline = 'middle';
+             ctx.fillStyle = '#FFF';
+             ctx.fillText(label as string, node.x!, node.y! + radius + fontSize + 2);
+             
+             // Description (The "Opening Up" effect)
+             if (isTarget && sub) {
+                ctx.font = `${fontSize * 0.8}px Monospace`;
+                ctx.fillStyle = '#aaa';
+                ctx.fillText(sub, node.x!, node.y! + radius + (fontSize * 2.5));
+             }
           }
         }}
       />
