@@ -2,14 +2,14 @@ import Hero from "../components/Hero";
 import ExperienceTimeline from "../components/Timeline";
 import ProjectGallery from "../components/ProjectGallery";
 
-// 1. Project Data (Narrator Output)
+// 1. Project Data (Updated with visual placeholders)
 const projectData = [
   {
     id: "slide-sense",
     title: "SlideSense",
     category: "Enterprise AI",
     tech: ["Python", "Computer Vision", "NLP"],
-    image: "", // Placeholder
+    image: "/slide-sense.jpg", 
     summary: "Automated corporate presentation review tool saving 1000s of management hours by analyzing slide density."
   },
   {
@@ -17,7 +17,7 @@ const projectData = [
     title: "Stevie",
     category: "Accessibility (A11y)",
     tech: ["Gemini API", "TTS", "React"],
-    image: "", // Placeholder
+    image: "/stevie.jpg", 
     summary: "Audio-first interface allowing visually impaired users to converse with Gemini. Featured internal tool."
   },
   {
@@ -25,7 +25,7 @@ const projectData = [
     title: "Monk-e-Mail",
     category: "Viral Web",
     tech: ["Server-Side Rendering", "Legacy Flash"],
-    image: "", // Placeholder
+    image: "/monkemail.jpg",
     summary: "Pioneering viral campaign with 50M+ visitors. One of the first instances of dynamic server-side video personalization."
   }
 ];
