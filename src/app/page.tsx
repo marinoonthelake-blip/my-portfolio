@@ -1,7 +1,36 @@
 import Hero from "../components/Hero";
 import ExperienceTimeline from "../components/Timeline";
+import ProjectGallery from "../components/ProjectGallery";
 
-// This is your resume data
+// 1. Project Data (Narrator Output)
+const projectData = [
+  {
+    id: "slide-sense",
+    title: "SlideSense",
+    category: "Enterprise AI",
+    tech: ["Python", "Computer Vision", "NLP"],
+    image: "", // Placeholder
+    summary: "Automated corporate presentation review tool saving 1000s of management hours by analyzing slide density."
+  },
+  {
+    id: "stevie",
+    title: "Stevie",
+    category: "Accessibility (A11y)",
+    tech: ["Gemini API", "TTS", "React"],
+    image: "", // Placeholder
+    summary: "Audio-first interface allowing visually impaired users to converse with Gemini. Featured internal tool."
+  },
+  {
+    id: "monk-e-mail",
+    title: "Monk-e-Mail",
+    category: "Viral Web",
+    tech: ["Server-Side Rendering", "Legacy Flash"],
+    image: "", // Placeholder
+    summary: "Pioneering viral campaign with 50M+ visitors. One of the first instances of dynamic server-side video personalization."
+  }
+];
+
+// 2. Resume Data
 const careerData = [
   {
     role: "AI Engineer / Technical Program Manager",
@@ -26,14 +55,22 @@ const careerData = [
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-[#050505]">
-      {/* The Hero Section */}
+      {/* Hero */}
       <Hero 
         full_name="Jonathan William Marino"
         tagline="Weaponizing technical curiosity."
         cta_text="View Projects"
       />
       
-      {/* The Timeline Section */}
+      {/* Project Gallery */}
+      <section className="w-full max-w-6xl mx-auto px-[64px] py-20">
+         <h2 className="text-2xl font-sans font-bold text-white mb-12 border-b border-gray-800 pb-4">
+          Selected Operations
+        </h2>
+        <ProjectGallery projects={projectData} /> 
+      </section>
+
+      {/* Timeline */}
       <section className="w-full max-w-4xl mx-auto px-[64px] pb-20">
         <h2 className="text-2xl font-sans font-bold text-white mb-12 border-b border-gray-800 pb-4">
           Command Log
