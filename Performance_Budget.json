@@ -1,0 +1,14 @@
+{
+  "budget_limit_ms": 16.6,
+  "fps_target": 60,
+  "tiers": {
+    "s_tier_allowed": ["transform", "opacity", "filter"],
+    "b_tier_warning": ["color", "background-color"],
+    "f_tier_banned": ["width", "height", "top", "left", "margin", "padding", "box-shadow"]
+  },
+  "rules": {
+    "layout_thrashing": "STRICT_FORBIDDEN",
+    "animation_engine": "GSAP (via useGSAP hook)",
+    "prefers_reduced_motion": "MUST_HANDLE"
+  }
+}

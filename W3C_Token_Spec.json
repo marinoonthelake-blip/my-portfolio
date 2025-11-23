@@ -1,0 +1,28 @@
+{
+  "spec_version": "W3C-DTCG-Draft-2025",
+  "description": "Strict definition for Design Token taxonomy. All outputs must follow this schema.",
+  "definitions": {
+    "tiers": {
+      "tier_1_primitive": {
+        "description": "Raw values. DO NOT use directly in components.",
+        "naming_convention": "ref.color.{hue}.{value}",
+        "example": "ref.color.blue.500"
+      },
+      "tier_2_semantic": {
+        "description": "Contextual usage. Maps to Primitives.",
+        "naming_convention": "sys.color.{intent}.{variant}",
+        "example": "sys.color.action.primary"
+      },
+      "tier_3_component": {
+        "description": "Component specific. Maps to Semantics.",
+        "naming_convention": "comp.{component}.{element}.{property}",
+        "example": "comp.button.primary.bg"
+      }
+    },
+    "required_structure": {
+      "value": "Must be a string (hex) or reference ({ref.x})",
+      "type": "Must be one of: color, dimension, fontFamily, fontWeight, duration",
+      "$description": "Optional explanation of usage"
+    }
+  }
+}

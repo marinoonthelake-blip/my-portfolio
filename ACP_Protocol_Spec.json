@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Agent Communication Protocol (ACP)",
+  "description": "Strict schema for inter-agent message passing as defined in The Agentic Web 2025 manifesto.",
+  "type": "object",
+  "properties": {
+    "message_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for tracing the decision chain."
+    },
+    "source_agent": {
+      "type": "string",
+      "enum": ["agent.architect", "agent.systematizer", "agent.choreographer", "agent.narrator", "agent.builder"],
+      "description": "Identity of the sender."
+    },
+    "target_agent": {
+      "type": "string",
+      "description": "Identity of the receiver."
+    },
+    "intent": {
+      "type": "string",
+      "enum": ["COMMAND", "QUERY", "RESPONSE", "ERROR"],
+      "description": "The purpose of the message."
+    },
+    "payload": {
+      "type": "object",
+      "description": "The strictly typed data (Token JSON, React Prop Interface, Motion Manifest).",
+      "additionalProperties": true
+    }
+  },
+  "required": ["message_id", "source_agent", "target_agent", "intent", "payload"]
+}

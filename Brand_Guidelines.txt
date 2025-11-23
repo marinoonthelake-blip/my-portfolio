@@ -1,0 +1,27 @@
+# Brand Identity: The Digital Engineer
+
+## Core Philosophy
+"Utilitarian Elegance." The design should feel like a high-performance code editor: dark, clean, and data-dense.
+
+## Visual Language
+1. **Base Theme:** Dark Mode by default.
+   - Background: Deep Void (#050505) - Not pure black.
+   - Surface: Panel Grey (#111111) - For cards and sidebars.
+
+2. **Accent Strategy:** "Electric Signal"
+   - Primary Action: Electric Blue (#0070F3) - Used for buttons and active states.
+   - Success: Terminal Green (#00FF94) - Used for data verification.
+   - Error: Debug Red (#FF0055) - Used for alerts.
+
+3. **Typography:**
+   - Headings: Sans-Serif (Inter or Geist) - Tight tracking, bold weights.
+   - Body: Sans-Serif (Inter or Geist) - High legibility.
+   - Code/Data: Monospace (JetBrains Mono or Fira Code) - Used for the "Experience Timeline" and data metrics.
+
+4. **Layout & Spacing:**
+   - 4px Grid System (4, 8, 16, 24, 32, 64).
+   - Sharp corners (0px radius) or minimal rounding (4px) to emphasize technical precision. No pill shapes.
+
+5. **Motion Guidelines (For Choreographer Reference):**
+   - Transitions should be "Snappy" (0.2s ease-out-quart).
+   - No bouncy springs. Movement should feel mechanical and precise.
