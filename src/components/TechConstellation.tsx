@@ -4,89 +4,25 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
-// --- 1. CONTEXTUAL DATA (For Hero Card) ---
-// Specific "Why this matters now" signals linked to nodes
-const CONTEXTUAL_SIGNALS = {
-  "Strategy": [
-    "DETECTING MARKET SHIFT: EU AI Act enforcement phase initiating...",
-    "ANALYSIS: Enterprise risk migrating from Cloud Sec to Model Governance.",
-    "SIGNAL: Data sovereignty fragmentation in APAC region."
-  ],
-  "Engineering": [
-    "BENCHMARK ALERT: DeepSeek-V3 vs Gemini inference delta widening.",
-    "DEPLOYMENT PATTERN: Next.js 15 PPR moving to production standard.",
-    "ARCHITECTURAL SHIFT: Agentic Workflows replacing RAG pipelines."
-  ],
-  "Creative": [
-    "VISUAL TREND: WebGPU adoption +40% in e-commerce sectors.",
-    "UX SIGNAL: Glassmorphism & Bento Grids dominating SaaS interfaces.",
-    "METRIC: 3D Storytelling correlates with -40% bounce rate."
-  ],
-  "Global Ops": [
-    "MARKET WATCH: Vendor consolidation accelerating in EMEA.",
-    "OPS SIGNAL: AI-driven SOP generation reducing ramp time."
-  ],
-  "Gemini API": [
-    "MODEL UPDATE: Gemini 1.5 Pro context window expansion.",
-    "USE CASE: Multimodal latency dropping below 200ms."
-  ],
-  "JONATHAN": [
-    "SYSTEM STATUS: ONLINE.", 
-    "PROTOCOL: EXECUTIVE BRIEFING MODE.", 
-    "WAITING FOR INPUT..."
-  ]
+// --- 1. LIVE INTELLIGENCE (Hero Card Only) ---
+const LIVE_TRENDS = {
+  "Strategy": ["DETECTING: EU AI Act enforcement shifts...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
+  "Engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini.", "DEPLOY: Next.js 15 PPR.", "PATTERN: Agentic Workflows."],
+  "Creative": ["TREND: WebGPU adoption +40%.", "UX: Glassmorphism & Bento Grids.", "METRIC: 3D Storytelling -40% bounce."],
+  "Global Ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
+  "Gemini API": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
+  "JONATHAN": ["SYSTEM: CONNECTED.", "STATUS: READY.", "MODE: EXECUTIVE OVERVIEW."]
 };
 
-// --- 2. GLOBAL NEWS DATA (For Bottom-Right Feed) ---
-// General background noise to make the system feel alive
-const GLOBAL_NEWS = [
-  "r/LocalLLaMA: 70B model quantization breakthroughs...",
-  "TechCrunch: Sovereign AI clouds seeing 200% spend increase...",
-  "HuggingFace: New multimodal embeddings top leaderboard...",
-  "Bloomberg: Supply chain digitization entering Phase 2...",
-  "Wired: The death of prompt engineering and rise of context architecture...",
-  "GitHub: Auto-GPT-Pro repository trending #1...",
-  "Vercel: Server Actions now default for data mutations..."
-];
-
-// --- 3. RESUME DATA ---
+// --- 2. RESUME DATA ---
 const initialData = {
   nodes: [
-    // CORE
-    { 
-      id: "JONATHAN", group: 1, val: 120, color: "#FFFFFF",
-      title: "JONATHAN W. MARINO", 
-      role: "STRATEGIC TECHNOLOGY EXECUTIVE",
-      desc: "A hybrid executive architecting the intersection of Geopolitics, Data, and Design. Weaponizing technical curiosity to solve systemic organizational challenges.",
-      bullets: ["15+ Years Experience", "Boardroom to Backend Bridge", "1.4M Citizens Mapped"],
-      metrics: ["Global Scale", "Polymathic", "Impact-Driven"]
-    },
-    // STRATEGIC
-    { 
-      id: "Strategy", group: 2, val: 60, color: "#0070F3", 
-      title: "STRATEGIC RISK & POLICY", role: "Geopolitical Architect", 
-      desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement. Specializing in data sovereignty and compliance.",
-      bullets: ["Orchestrated 'Beyond the Map' (1.4M Citizens)", "Navigated multi-stakeholder diplomacy", "Established privacy frameworks"],
-      metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"]
-    },
-    // ENGINEERING
-    { 
-      id: "Engineering", group: 2, val: 60, color: "#00FF94", 
-      title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI Lead", 
-      desc: "Deploying AI agents to automate workflows and reclaim executive hours. Building internal tools that turn operational bottlenecks into efficiencies.",
-      bullets: ["Built 'SlideSense' (GenAI Automation)", "Developed 'Stevie' (Audio AI)", "Architected global keyword tools"],
-      metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"]
-    },
-    // CREATIVE
-    { 
-      id: "Creative", group: 2, val: 60, color: "#FF0055", 
-      title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", 
-      desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in. Leveraging motion psychology to drive adoption.",
-      bullets: ["Directed 'Monk-e-Mail' (50M+ Visitors)", "Led 3D Design for E-Trade Baby", "Pioneered '3D Swirl' formats"],
-      metrics: ["50M+ Engagement", "Super Bowl Ads", "Interactive Story"]
-    },
-    // ORBIT
-    { id: "Global Ops", group: 3, val: 20, color: "#0070F3", title: "GLOBAL OPERATIONS", role: "Scale", desc: "Standardizing vendor ops across APAC/EMEA." },
+    { id: "JONATHAN", group: 1, val: 120, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "STRATEGIC TECHNOLOGY EXECUTIVE", desc: "A hybrid executive architecting the intersection of Geopolitics, Data, and Design.", bullets: ["15+ Years Experience", "Boardroom to Backend Bridge", "1.4M Citizens Mapped"], metrics: ["Global Scale", "Polymathic", "Impact-Driven"] },
+    { id: "Strategy", group: 2, val: 60, color: "#0070F3", title: "STRATEGIC RISK & POLICY", role: "Geopolitical Architect", desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement.", bullets: ["Orchestrated 'Beyond the Map'", "Navigated multi-stakeholder diplomacy", "Established privacy frameworks"], metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"] },
+    { id: "Engineering", group: 2, val: 60, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI Lead", desc: "Deploying AI agents to automate workflows and reclaim executive hours.", bullets: ["Built 'SlideSense' (GenAI)", "Developed 'Stevie' (Audio AI)", "Architected global keyword tools"], metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"] },
+    { id: "Creative", group: 2, val: 60, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in.", bullets: ["Directed 'Monk-e-Mail'", "Led 3D Design for E-Trade Baby", "Pioneered '3D Swirl' formats"], metrics: ["50M+ Engagement", "Super Bowl Ads", "Interactive Story"] },
+    
+    { id: "Global Ops", group: 3, val: 20, color: "#0070F3", title: "GLOBAL OPS", role: "Scale", desc: "Standardizing vendor ops across APAC/EMEA." },
     { id: "Governance", group: 3, val: 20, color: "#0070F3", title: "GOVERNANCE", role: "Policy", desc: "Automated policy enforcement via code." },
     { id: "Next.js 15", group: 3, val: 20, color: "#00FF94", title: "NEXT.JS 15", role: "Architecture", desc: "Server Components & PPR." },
     { id: "Gemini API", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "LLM Integration", desc: "Deep integration of Multimodal AI." },
@@ -112,8 +48,7 @@ export default function TechConstellation() {
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
   const [activeNode, setActiveNode] = useState<any>(initialData.nodes[0]); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
-  const [contextualSignal, setContextualSignal] = useState("");
-  const [globalTicker, setGlobalTicker] = useState(GLOBAL_NEWS[0]);
+  const [currentTrend, setCurrentTrend] = useState("");
   
   const indexRef = useRef(0);
   const autoPilotRef = useRef(true);
@@ -131,6 +66,7 @@ export default function TechConstellation() {
     }
   }, []);
 
+  // PHYSICS
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
@@ -143,36 +79,26 @@ export default function TechConstellation() {
     }
   }, [isClient]);
 
-  // --- 1. CONTEXTUAL SIGNAL ENGINE (Hero Card) ---
+  // CARD INTELLIGENCE
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const signals = CONTEXTUAL_SIGNALS[activeNode.id as keyof typeof CONTEXTUAL_SIGNALS] || ["SCANNING FOR RELEVANCE...", "ACQUIRING TARGET..."];
-      const randomSignal = signals[Math.floor(Math.random() * signals.length)];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["SCANNING...", "CONNECTING..."];
+      const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
-      setContextualSignal("");
+      setCurrentTrend("");
       const typeInterval = setInterval(() => {
-        setContextualSignal(randomSignal.substring(0, i + 1));
+        setCurrentTrend(randomTrend.substring(0, i + 1));
         i++;
-        if (i > randomSignal.length) clearInterval(typeInterval);
-      }, 25);
+        if (i > randomTrend.length) clearInterval(typeInterval);
+      }, 20);
       return () => clearInterval(typeInterval);
     }
   }, [activeNode, isTransitioning]);
 
-  // --- 2. GLOBAL TICKER ENGINE (Bottom Right) ---
-  useEffect(() => {
-    const tickerInterval = setInterval(() => {
-      const nextNews = GLOBAL_NEWS[Math.floor(Math.random() * GLOBAL_NEWS.length)];
-      setGlobalTicker(nextNews);
-    }, 5000); // Rotate every 5s
-    return () => clearInterval(tickerInterval);
-  }, []);
-
   const transitionToNode = (node: any) => {
     if (!fgRef.current) return;
-
     setIsTransitioning(true);
 
     if (currentNodeRef.current && currentNodeRef.current !== node) {
@@ -185,10 +111,7 @@ export default function TechConstellation() {
     node.fy = node.y;
     
     gsap.to(node, {
-      fx: STAGE_X,
-      fy: STAGE_Y,
-      duration: 2.0,
-      ease: "power3.inOut",
+      fx: STAGE_X, fy: STAGE_Y, duration: 2.0, ease: "power3.inOut",
       onUpdate: () => { fgRef.current?.d3ReheatSimulation(); }
     });
 
@@ -201,17 +124,13 @@ export default function TechConstellation() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (!autoPilotRef.current) return;
-
       const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
       indexRef.current = nextIndex;
-      
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const graphNodes = (initialData.nodes as any[]);
       const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
-
       if (node) transitionToNode(node);
-    }, 12000); 
-
+    }, 12000);
     return () => clearInterval(interval);
   }, []);
 
@@ -223,9 +142,7 @@ export default function TechConstellation() {
     if (node) transitionToNode(node);
 
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-      autoPilotRef.current = true;
-    }, 5000); 
+    idleTimerRef.current = setTimeout(() => { autoPilotRef.current = true; }, 5000); 
   }, []);
 
   if (!isClient) return null;
@@ -233,45 +150,29 @@ export default function TechConstellation() {
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* --- LEFT CARD: HERO CONTEXT --- */}
+      {/* LEFT CARD - EXPANDED */}
       <div className="absolute left-0 top-0 h-full w-full md:w-[650px] flex items-center p-8 md:p-12 z-20 pointer-events-none">
-        <div 
-          className={`pointer-events-auto w-full transition-all duration-700 transform 
-            ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
-        >
+        <div className={`pointer-events-auto w-full transition-all duration-700 transform ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
            <div className="bg-black/70 backdrop-blur-3xl border border-white/10 p-10 md:p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-2xl">
+              <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
-              <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
-                   style={{ backgroundColor: activeNode?.color || '#fff' }} />
-              
-              {/* CONTEXTUAL SIGNAL HEADER */}
+              {/* LIVE FEED IN CARD */}
               <div className="mb-8 border-b border-white/10 pb-6 bg-white/5 -mx-10 -mt-10 p-10">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Relevant Context</span>
+                        <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Live Context</span>
                     </div>
                 </div>
-                <p className="text-sm font-mono text-[#00FF94] leading-relaxed min-h-[3rem]">
-                  {contextualSignal}<span className="animate-pulse text-white">_</span>
+                <p className="text-sm font-mono text-[#00FF94] h-8 leading-relaxed">
+                  {currentTrend}<span className="animate-pulse text-white">_</span>
                 </p>
               </div>
 
-              {/* IDENTITY */}
-              <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest font-bold" 
-                  style={{ color: activeNode?.color }}>
-                {activeNode?.role}
-              </h3>
-              <h1 className="text-5xl md:text-6xl font-sans font-bold text-white mb-8 leading-[0.9] tracking-tight">
-                {activeNode?.title || activeNode?.id}
-              </h1>
+              <h3 className="font-mono text-[#0070F3] text-xs mb-3 uppercase tracking-widest font-bold" style={{ color: activeNode?.color }}>{activeNode?.role}</h3>
+              <h1 className="text-5xl md:text-6xl font-sans font-bold text-white mb-8 leading-[0.9] tracking-tight">{activeNode?.title || activeNode?.id}</h1>
+              <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl border-l-4 border-white/10 pl-6">{activeNode?.desc}</p>
 
-              {/* DESCRIPTION */}
-              <p className="text-lg text-gray-300 font-sans leading-relaxed mb-8 max-w-xl border-l-4 border-white/10 pl-6">
-                {activeNode?.desc}
-              </p>
-
-              {/* BULLETS */}
               {activeNode?.bullets && (
                 <div className="grid gap-3 mb-8">
                   {activeNode.bullets.map((b: string, i: number) => (
@@ -283,7 +184,6 @@ export default function TechConstellation() {
                 </div>
               )}
 
-              {/* METRICS */}
               {activeNode?.metrics && (
                 <div className="grid grid-cols-3 gap-4 mb-8 pt-8 border-t border-white/10">
                   {activeNode.metrics.map((m: string) => (
@@ -307,64 +207,40 @@ export default function TechConstellation() {
         </div>
       </div>
 
-      {/* --- BOTTOM RIGHT: GLOBAL INTELLIGENCE FEED --- */}
-      <div className="absolute bottom-8 right-8 z-30 w-[350px] pointer-events-none">
-        <div className="bg-black/80 backdrop-blur-md border border-white/20 p-6 rounded-lg shadow-2xl pointer-events-auto">
-            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-                    <span className="text-[9px] font-mono text-blue-400 uppercase tracking-wider font-bold">Global Data Stream</span>
-                </div>
-                <span className="text-[9px] font-mono text-gray-500">LIVE</span>
-            </div>
-            <p className="text-xs font-mono text-gray-300 leading-relaxed animate-pulse">
-                {globalTicker}
-            </p>
-        </div>
-      </div>
+      {/* NOTE: Bottom-Right Feed is removed here to avoid duplication with LiveNewsFeed.tsx */}
 
-      {/* RIGHT BRAIN CANVAS */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
         height={dimensions.h}
         graphData={initialData}
         backgroundColor="#050505"
-        
-        onNodeClick={(node) => handleInteraction(node.id as string)}
-        onNodeDrag={() => { if (activeNode) handleInteraction(activeNode.id as string); }} 
-        onBackgroundClick={() => { if (activeNode) handleInteraction(activeNode.id as string); }}
-        
+        onNodeClick={(node) => triggerInteraction(node.id as string)}
+        onNodeDrag={() => { autoPilotRef.current = false; }}
+        onBackgroundClick={() => { autoPilotRef.current = false; }}
         cooldownTicks={100}
         d3AlphaDecay={0.05} 
         d3VelocityDecay={0.6}
-        
         nodeRelSize={9}
         linkColor={() => "#ffffff15"}
         linkWidth={1.5}
         linkDirectionalParticles={2}
         linkDirectionalParticleSpeed={0.005}
-        
         nodeCanvasObject={(node, ctx, globalScale) => {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
-
           const isTarget = node.id === activeNode?.id;
           const color = (node.color as string) || "#fff";
-          
           const pulse = Math.sin(Date.now() / 800) * 3; 
           const baseRadius = 6;
           const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
-
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
           gradient.addColorStop(0.4, color + '44');
           gradient.addColorStop(1, 'transparent');
-
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 3, 0, 2 * Math.PI, false);
           ctx.fillStyle = gradient;
           ctx.fill();
-
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
           ctx.fillStyle = "#000";
@@ -372,7 +248,6 @@ export default function TechConstellation() {
           ctx.strokeStyle = color;
           ctx.lineWidth = 2;
           ctx.stroke();
-
           if (node.group <= 2) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;

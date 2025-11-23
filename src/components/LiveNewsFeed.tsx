@@ -12,12 +12,6 @@ const NEWS_ITEMS = [
   { source: "VERCEL", category: "DEV", text: "Next.js 15.2 release notes: Partial Prerendering now stable." },
   { source: "HUGGINGFACE", category: "OPEN SOURCE", text: "New multimodal embeddings model tops leaderboard." },
   { source: "BLOOMBERG", category: "OPS", text: "Global supply chain consolidation trends in EMEA region accelerating." },
-  { source: "WIRED", category: "CULTURE", text: "Why 'Prompt Engineering' is dead and 'Context Architecture' is the new skill." },
-  { source: "REDDIT", category: "WEBGL", text: "r/threejs: 'Showcase: Fluid simulation running at 120fps on mobile.'" },
-  { source: "FT", category: "GEO", text: "Data Sovereignty: Brazil mandates local storage for AI training data." },
-  { source: "GITHUB", category: "CODE", text: "Trending: 'Auto-GPT-Pro' repo hits 50k stars." },
-  { source: "SUBSTACK", category: "DESIGN", text: "The end of Flat Design? Why 2025 is the year of Spatial UI." },
-  { source: "LINKEDIN", category: "CAREER", text: "Job Market: 'Chief AI Officer' roles up 300% YoY." },
 ];
 
 export default function LiveNewsFeed() {
@@ -27,60 +21,43 @@ export default function LiveNewsFeed() {
     const el = scrollRef.current;
     if (!el) return;
 
-    // Infinite Vertical Scroll Animation
-    // We duplicate the content to make it seamless
+    // Infinite Vertical Scroll
     const totalHeight = el.scrollHeight / 2;
     
     gsap.to(el, {
       y: -totalHeight,
-      duration: 40, // Speed (seconds)
+      duration: 30, // Slower scroll for readability
       ease: "none",
       repeat: -1,
     });
   }, []);
 
+  // CHANGED: Fixed to Bottom-Right, Small dimensions (w-80 h-64), Rounded corners
   return (
-    <div className="fixed top-0 right-0 h-full w-80 bg-black/80 backdrop-blur-md border-l border-white/10 z-40 hidden md:flex flex-col">
+    <div className="fixed bottom-8 right-8 w-80 h-64 bg-black/80 backdrop-blur-md border border-white/10 z-50 hidden md:flex flex-col rounded-xl shadow-2xl overflow-hidden">
       
       {/* HEADER */}
-      <div className="p-4 border-b border-white/10 bg-black/90 z-10">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-mono text-gray-500 tracking-widest uppercase">Global Intelligence</span>
-          <div className="flex items-center gap-2">
+      <div className="p-3 border-b border-white/10 bg-black/90 z-10 flex justify-between items-center">
+        <h3 className="text-[10px] font-mono text-white font-bold tracking-widest">GLOBAL INTELLIGENCE</h3>
+        <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[9px] font-mono text-green-500">ONLINE</span>
-          </div>
+            <span className="text-[9px] font-mono text-green-500">LIVE</span>
         </div>
-        <h3 className="text-xs font-mono text-white font-bold">LIVE DATA STREAM</h3>
       </div>
 
       {/* SCROLL AREA */}
       <div className="flex-1 overflow-hidden relative mask-gradient-y">
         <div ref={scrollRef} className="absolute top-0 left-0 w-full">
-          {/* Render List Twice for Seamless Loop */}
-          {[...NEWS_ITEMS, ...NEWS_ITEMS, ...NEWS_ITEMS].map((item, i) => (
-            <div key={i} className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-default group">
+          {[...NEWS_ITEMS, ...NEWS_ITEMS].map((item, i) => (
+            <div key={i} className="p-3 border-b border-white/5 hover:bg-white/5 transition-colors cursor-default group">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[9px] font-mono text-[#0070F3] group-hover:text-[#00FF94] transition-colors">
-                  [{item.source}]
-                </span>
-                <span className="text-[9px] font-mono text-gray-600 uppercase">
-                  {item.category}
-                </span>
+                <span className="text-[9px] font-mono text-[#0070F3]">[{item.source}]</span>
               </div>
-              <p className="text-xs font-sans text-gray-300 leading-relaxed group-hover:text-white transition-colors">
+              <p className="text-[10px] font-sans text-gray-300 leading-relaxed">
                 {item.text}
               </p>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <div className="p-3 border-t border-white/10 bg-black/90 z-10">
-        <div className="flex justify-between text-[9px] font-mono text-gray-600">
-          <span>LATENCY: 14ms</span>
-          <span>ENCRYPTION: AES-256</span>
         </div>
       </div>
     </div>
