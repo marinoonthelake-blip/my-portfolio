@@ -17,7 +17,7 @@ export default function Hero() {
   }, { scope: containerRef });
 
   return (
-    <section ref={containerRef} className="relative z-10 flex min-h-[80vh] w-full flex-col justify-center px-[24px] md:px-[64px] pt-32">
+    <section ref={containerRef} className="relative z-10 flex flex-col justify-center pt-10 md:pt-0">
       <div className="max-w-5xl">
         <span className="hero-label block font-mono text-[#0070F3] text-sm mb-4 tracking-widest uppercase">
           Strategic Technology Executive | Policy Architect
