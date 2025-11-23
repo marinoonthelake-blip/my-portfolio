@@ -4,90 +4,139 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
-// --- 1. CONFIGURATION ---
-// Pull the stage back to 250 so it's visible on standard screens
-const STAGE_X = 250; 
-const STAGE_Y = 0;
-
+// --- 1. LIVE INTELLIGENCE DATA ---
 const LIVE_TRENDS = {
-  "Strategy": ["SIGNAL: EU AI Act enforcement.", "RISK: Model Governance > Cloud Sec.", "ANALYSIS: Data sovereignty fragmentation."],
-  "Engineering": ["TRENDING: DeepSeek-V3 inference.", "STACK: Next.js 15 PPR production.", "SHIFT: Agentic Workflows."],
-  "Creative": ["SIGNAL: WebGPU adoption +40%.", "DESIGN: Glassmorphism & Bento Grids.", "METRIC: Interactive story = -40% bounce."],
-  "Global Ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
-  "Gemini API": ["UPDATE: Gemini 1.5 Pro context.", "USE CASE: Multimodal accessibility."]
+  "Strategy": [
+    "SIGNAL: EU AI Act enforcement beginning.",
+    "RISK SHIFT: Model Governance > Cloud Sec.",
+    "ANALYSIS: Data sovereignty fragmentation."
+  ],
+  "Engineering": [
+    "TRENDING: DeepSeek-V3 inference costs.",
+    "STACK: Next.js 15 PPR production readiness.",
+    "SHIFT: Agentic Workflows > RAG."
+  ],
+  "Creative": [
+    "SIGNAL: WebGPU adoption +40%.",
+    "DESIGN: Glassmorphism & Bento Grids.",
+    "METRIC: Interactive story = -40% bounce."
+  ],
+  "Global Ops": ["LIVE: Vendor consolidation in EMEA.", "OPS: AI-driven SOP generation."],
+  "Gemini API": ["UPDATE: Gemini 1.5 Pro context expansion.", "USE CASE: Multimodal accessibility."],
+  "Geopolitics": ["SIGNAL: Digital Borders tightening.", "RISK: Splinternet compliance."],
+  "Audio AI": ["TREND: Neural Voice Synthesis.", "TECH: Real-time latency < 200ms."],
+  "Accessibility": ["LAW: WCAG 2.2 enforcement.", "UX: AI Screen Readers."],
+  "AR / VR": ["TECH: WebXR Standards.", "MARKET: Apple Vision Pro adoption."],
+  "Cloud": ["INFRA: Serverless Edge Compute.", "COST: FinOps automation."]
 };
 
+// --- 2. RESUME DATA (20 Nodes) ---
 const initialData = {
   nodes: [
-    // CORE (Hidden anchor for physics, visual is in the Header)
-    { id: "JONATHAN", group: 1, val: 100, color: "rgba(0,0,0,0)", title: "", desc: "" },
+    // --- CORE ---
+    { id: "JONATHAN", group: 1, val: 100, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "Digital Polymath", desc: "Architecting the intersection of Policy, Code, and Design." },
     
-    // STRATEGIC PILLARS
-    { id: "Strategy", group: 2, val: 40, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk by bridging the gap between policy mandates and code enforcement." },
-    { id: "Engineering", group: 2, val: 40, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Deploying AI agents (SlideSense) to automate workflows and reclaim $300k+ in executive hours." },
-    { id: "Creative", group: 2, val: 40, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives that win stakeholder buy-in." },
+    // --- STRATEGIC ORBIT ---
+    { id: "Strategy", group: 2, val: 40, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical & Technical", desc: "Mitigating enterprise risk via policy/code bridges." },
+    { id: "Geopolitics", group: 3, val: 20, color: "#0070F3", title: "GEOPOLITICS", role: "Digital Sovereignty", desc: "Mapping unmapped territories (Rio Favelas) to establish civic identity." },
+    { id: "Governance", group: 3, val: 20, color: "#0070F3", title: "GOVERNANCE", role: "Policy as Code", desc: "Automating compliance for global data standards." },
+    
+    // --- ENGINEERING ORBIT ---
+    { id: "Engineering", group: 2, val: 40, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Deploying AI agents to reclaim executive hours." },
+    { id: "GenAI", group: 3, val: 30, color: "#00FF94", title: "GENERATIVE AI", role: "LLM Integration", desc: "Building 'SlideSense' and 'Stevie' on Gemini API." },
+    { id: "Audio AI", group: 3, val: 20, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Neural Speech", desc: "Pioneering text-to-speech accessibility tools." },
+    { id: "Cloud", group: 3, val: 20, color: "#00FF94", title: "CLOUD INFRA", role: "GCP & Edge", desc: "Scalable architecture for global tool deployment." },
+    { id: "Analytics", group: 3, val: 20, color: "#00FF94", title: "DATA ANALYTICS", role: "GA4 & SQL", desc: "Custom widgets (CARTA) for document tracking." },
+    { id: "Next.js", group: 3, val: 20, color: "#00FF94", title: "NEXT.JS", role: "Modern Web", desc: "Server Components and PPR for high-performance UI." },
 
-    // ORBIT
-    { id: "Global Ops", group: 3, val: 20, color: "#0070F3" },
-    { id: "Governance", group: 3, val: 20, color: "#0070F3" },
-    { id: "Next.js 15", group: 3, val: 20, color: "#00FF94" },
-    { id: "Gemini API", group: 3, val: 25, color: "#00FF94" },
-    { id: "WebGL", group: 3, val: 20, color: "#FF0055" },
-    { id: "GSAP", group: 3, val: 20, color: "#FF0055" },
+    // --- CREATIVE ORBIT ---
+    { id: "Creative", group: 2, val: 40, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives." },
+    { id: "Motion", group: 3, val: 20, color: "#FF0055", title: "MOTION DESIGN", role: "3D & Animation", desc: "Super Bowl campaigns (E-Trade Baby) and viral hits." },
+    { id: "WebGL", group: 3, val: 20, color: "#FF0055", title: "WEBGL", role: "Immersive Web", desc: "3D Swirl Ads and browser-based VR experiences." },
+    { id: "AR / VR", group: 3, val: 20, color: "#FF0055", title: "XR COMPUTING", role: "Augmented Reality", desc: "YouTube 'Try-On' modules for e-commerce." },
+    { id: "Storytelling", group: 3, val: 20, color: "#FF0055", title: "STORYTELLING", role: "Narrative Strategy", desc: "Aligning stakeholders through visual persuasion." },
+
+    // --- OPERATIONS ORBIT ---
+    { id: "Global Ops", group: 4, val: 30, color: "#FFCC00", title: "GLOBAL OPS", role: "Scale & Efficiency", desc: "Scaling vendor operations across APAC/EMEA/AMER." },
+    { id: "Process", group: 4, val: 20, color: "#FFCC00", title: "PROCESS ENG", role: "SOPs & BRDs", desc: "Codifying tacit knowledge into scalable systems." },
+    { id: "Vendor Mgmt", group: 4, val: 20, color: "#FFCC00", title: "VENDOR MGMT", role: "Supply Chain", desc: "Managing multi-million dollar creative pipelines." },
+    { id: "Accessibility", group: 4, val: 20, color: "#FFCC00", title: "ACCESSIBILITY", role: "A11y & WCAG", desc: "Democratizing AI access for visually impaired users." },
+    { id: "Viral History", group: 4, val: 20, color: "#FFCC00", title: "VIRAL HISTORY", role: "Legacy", desc: "Architect of 'Monk-e-Mail' (50M+ users)." },
   ],
   links: [
-    { source: "JONATHAN", target: "Strategy" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
-    { source: "Strategy", target: "Global Ops" }, { source: "Strategy", target: "Governance" },
-    { source: "Engineering", target: "Next.js 15" }, { source: "Engineering", target: "Gemini API" },
-    { source: "Creative", target: "WebGL" }, { source: "Creative", target: "GSAP" },
-    { source: "Gemini API", target: "Governance" }, 
+    { source: "JONATHAN", target: "Strategy" }, { source: "JONATHAN", target: "Engineering" }, 
+    { source: "JONATHAN", target: "Creative" }, { source: "JONATHAN", target: "Global Ops" },
+    
+    { source: "Strategy", target: "Geopolitics" }, { source: "Strategy", target: "Governance" },
+    { source: "Geopolitics", target: "Global Ops" },
+    
+    { source: "Engineering", target: "GenAI" }, { source: "Engineering", target: "Cloud" },
+    { source: "Engineering", target: "Analytics" }, { source: "Engineering", target: "Next.js" },
+    { source: "GenAI", target: "Audio AI" }, { source: "GenAI", target: "Governance" },
+    
+    { source: "Creative", target: "Motion" }, { source: "Creative", target: "WebGL" },
+    { source: "Creative", target: "AR / VR" }, { source: "Creative", target: "Storytelling" },
+    { source: "Motion", target: "Viral History" },
+    
+    { source: "Global Ops", target: "Process" }, { source: "Global Ops", target: "Vendor Mgmt" },
+    { source: "Global Ops", target: "Accessibility" }, { source: "Accessibility", target: "Audio AI" },
   ]
 };
 
-const TOUR_STEPS = ["Strategy", "Engineering", "Creative", "Gemini API"];
+const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Global Ops", "GenAI", "Geopolitics"];
+
+// STAGE COORDINATES (Shifted Right to avoid Card)
+const FOCUS_X = 350;
+const FOCUS_Y = 0;
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
-  const [activeNode, setActiveNode] = useState<any>(null);
+  const [activeNode, setActiveNode] = useState<any>(null); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
   const [currentTrend, setCurrentTrend] = useState("");
   
-  const indexRef = useRef(0);
+  // Refs
+  const tourIndexRef = useRef(0);
   const autoPilotRef = useRef(true);
   const currentNodeRef = useRef<any>(null);
+  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setDimensions({ w: window.innerWidth, h: window.innerHeight });
-      const resize = () => setDimensions({ w: window.innerWidth, h: window.innerHeight });
-      window.addEventListener("resize", resize);
-      return () => window.removeEventListener("resize", resize);
+      const updateSize = () => setDimensions({ w: window.innerWidth, h: window.innerHeight });
+      window.addEventListener("resize", updateSize);
+      updateSize();
+      return () => window.removeEventListener("resize", updateSize);
     }
   }, []);
 
-  // PHYSICS CONFIG
+  // --- PHYSICS INIT ---
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
+        // Push everything to the right side of screen
         graph.d3Force('charge')?.strength(-150); 
-        graph.d3Force('link')?.distance(100);
-        
-        // Pull everything slightly right
-        graph.d3Force('center')?.x(STAGE_X); 
-        graph.d3Force('center')?.y(STAGE_Y);
+        graph.d3Force('link')?.distance(80);
+        graph.d3Force('center')?.x(FOCUS_X); 
+        graph.d3Force('center')?.y(FOCUS_Y);
 
-        // Lock Camera to STAGE
-        graph.centerAt(STAGE_X, STAGE_Y, 0);
-        graph.zoom(3.5, 0);
+        // Camera looks at the stage
+        graph.centerAt(FOCUS_X, FOCUS_Y, 0);
+        graph.zoom(0.1, 0); // Start far out
+
+        // Big Bang Zoom In
+        setTimeout(() => {
+          graph.zoom(3.5, 2500);
+        }, 500);
     }
   }, []);
 
-  // INTELLIGENCE TICKER
+  // --- INTELLIGENCE ENGINE ---
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING DATA STREAM...", "CONNECTING..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING DATA STREAM...", "CONNECTING TO FEED...", "CALCULATING IMPACT..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -101,63 +150,86 @@ export default function TechConstellation() {
     }
   }, [activeNode, isTransitioning]);
 
-  // ANIMATION SEQUENCE
-  const transitionToNode = (node: any) => {
+  // --- MAGNETIC DRAG ANIMATION ---
+  const magnetizeNode = (nodeId: string) => {
     if (!fgRef.current) return;
-
-    setIsTransitioning(true);
-
-    if (currentNodeRef.current && currentNodeRef.current !== node) {
-      currentNodeRef.current.fx = undefined;
-      currentNodeRef.current.fy = undefined;
-    }
-    currentNodeRef.current = node;
-
-    node.fx = node.x;
-    node.fy = node.y;
     
-    gsap.to(node, {
-      fx: STAGE_X,
-      fy: STAGE_Y,
-      duration: 2.0,
-      ease: "power3.inOut",
-      onUpdate: () => fgRef.current?.d3ReheatSimulation()
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const graphNodes = (initialData.nodes as any[]); 
+    const node = graphNodes.find(n => n.id === nodeId);
 
-    setTimeout(() => {
-      setActiveNode(node);
-      setIsTransitioning(false);
-    }, 600); 
+    if (node) {
+      setIsTransitioning(true);
+
+      // Release old node
+      if (currentNodeRef.current && currentNodeRef.current !== node) {
+        currentNodeRef.current.fx = undefined;
+        currentNodeRef.current.fy = undefined;
+      }
+      currentNodeRef.current = node;
+
+      // Lock start position
+      node.fx = node.x;
+      node.fy = node.y;
+
+      // Animate to Stage
+      gsap.to(node, {
+        fx: FOCUS_X,
+        fy: FOCUS_Y,
+        duration: 2.5,
+        ease: "power3.inOut",
+        onUpdate: () => {
+          // FIX: Wrapped in braces to return void (TypeScript fix)
+          fgRef.current?.d3ReheatSimulation(); 
+        }
+      });
+
+      // UI Transition
+      setTimeout(() => {
+        setActiveNode(node);
+        setIsTransitioning(false);
+      }, 800); 
+    }
   };
 
-  // AUTO PILOT
+  // --- AUTO-PILOT LOOP ---
   useEffect(() => {
+    // Kickoff
+    magnetizeNode(TOUR_STEPS[0]);
+
     const interval = setInterval(() => {
       if (!autoPilotRef.current) return;
 
-      const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
-      indexRef.current = nextIndex;
+      const nextIndex = (tourIndexRef.current + 1) % TOUR_STEPS.length;
+      tourIndexRef.current = nextIndex;
       
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const graphNodes = (initialData.nodes as any[]);
-      const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
+      magnetizeNode(TOUR_STEPS[nextIndex]);
 
-      if (node) transitionToNode(node);
-    }, 8000); 
+    }, 10000); // 10s per node
 
     return () => clearInterval(interval);
   }, []);
 
-  const handleInteraction = useCallback((node: any) => {
-    if (node.id === "JONATHAN") return;
+  // --- INTERACTION ---
+  const handleNodeClick = useCallback((node: any) => {
+    // Stop Auto
     autoPilotRef.current = false;
-    transitionToNode(node);
+    
+    // Move Node
+    magnetizeNode(node.id);
+
+    // Restart Auto after 15s idle
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      autoPilotRef.current = true;
+    }, 15000);
+
   }, []);
 
   return (
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
-      {/* --- 1. PERSISTENT HEADER (Always Visible) --- */}
+      {/* --- PERSISTENT HEADER --- */}
       <div className="absolute top-0 left-0 p-8 md:p-12 z-50 pointer-events-auto">
         <div className="flex flex-col items-start">
           <span className="font-mono text-[#0070F3] text-xs mb-2 tracking-[0.3em] uppercase">
@@ -179,21 +251,16 @@ export default function TechConstellation() {
         </div>
       </div>
 
-      {/* --- 2. DYNAMIC INTELLIGENCE CARD (Bottom Left) --- */}
-      <div className="absolute left-0 bottom-0 h-[60%] w-full md:w-[600px] flex items-end p-8 md:p-12 z-20 pointer-events-none">
+      {/* --- LEFT CARD --- */}
+      <div className="absolute left-0 bottom-0 h-[65%] w-full md:w-[600px] flex items-end p-8 md:p-12 z-20 pointer-events-none">
         <div 
           className={`pointer-events-auto w-full transition-all duration-700 transform 
             ${isTransitioning ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}
         >
-           {/* Only show if we have an active node */}
            {activeNode && activeNode.id !== "JONATHAN" && (
              <div className="bg-black/60 backdrop-blur-2xl border border-white/10 p-8 md:p-10 shadow-2xl relative overflow-hidden rounded-tr-2xl">
+                <div className="absolute top-0 left-0 w-1 h-full transition-colors duration-500" style={{ backgroundColor: activeNode?.color || '#fff' }} />
                 
-                {/* Color Bar */}
-                <div className="absolute top-0 left-0 w-1 h-full transition-colors duration-500" 
-                     style={{ backgroundColor: activeNode?.color || '#fff' }} />
-                
-                {/* Live Trend */}
                 <div className="mb-6 border-b border-gray-800 pb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[9px] font-mono text-red-500 uppercase tracking-widest">Live Signal</span>
@@ -204,9 +271,7 @@ export default function TechConstellation() {
                   </p>
                 </div>
 
-                {/* Content */}
-                <h3 className="font-mono text-[#0070F3] text-xs mb-2 uppercase tracking-widest" 
-                    style={{ color: activeNode?.color }}>
+                <h3 className="font-mono text-[#0070F3] text-xs mb-2 uppercase tracking-widest" style={{ color: activeNode?.color }}>
                   {activeNode?.role}
                 </h3>
                 <h2 className="text-3xl md:text-4xl font-sans font-bold text-white mb-4 leading-tight">
@@ -220,7 +285,7 @@ export default function TechConstellation() {
         </div>
       </div>
 
-      {/* --- 3. RIGHT BRAIN --- */}
+      {/* --- RIGHT BRAIN --- */}
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.w}
@@ -228,16 +293,13 @@ export default function TechConstellation() {
         graphData={initialData}
         backgroundColor="#050505"
         
-        // Interactions
-        onNodeClick={handleInteraction}
+        onNodeClick={handleNodeClick}
         onNodeDrag={() => { autoPilotRef.current = false; }}
         onBackgroundClick={() => { autoPilotRef.current = false; }}
         
-        // Physics
         cooldownTicks={100}
-        d3AlphaDecay={0.02}
+        d3AlphaDecay={0.02} 
         d3VelocityDecay={0.4}
-        
         nodeRelSize={8}
         linkColor={() => "#ffffff15"}
         linkWidth={1.5}
@@ -248,11 +310,10 @@ export default function TechConstellation() {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
 
           const isTarget = node.id === activeNode?.id;
-          const color = (node.color as string) || "#fff";
           const isCore = node.id === "JONATHAN";
+          const color = (node.color as string) || "#fff";
           
-          // Hide Core Visual (Since Header is there)
-          if (isCore) return;
+          if (isCore) return; // Hide JONATHAN node visual (handled by HTML header)
 
           const pulse = Math.sin(Date.now() / 800) * 3; 
           const baseRadius = 6;
@@ -278,8 +339,8 @@ export default function TechConstellation() {
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Labels
-          if (!isTarget && node.group === 2) {
+          // Label
+          if (!isTarget && node.group <= 2) {
              const label = node.id as string;
              const fontSize = 12 / globalScale;
              ctx.font = `bold ${fontSize}px Sans-Serif`;
