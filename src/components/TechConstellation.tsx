@@ -5,19 +5,20 @@ import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
 // --- 1. CONFIGURATION ---
-const STAGE_X = 300; 
+const STAGE_X = 250; 
 const STAGE_Y = 0;
 
+// Toned down, professional "Tech Trends"
 const LIVE_TRENDS = {
-  "Strategy": ["DETECTING: EU AI Act enforcement...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
-  "Engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini.", "DEPLOY: Next.js 15 PPR.", "PATTERN: Agentic Workflows."],
-  "Creative": ["TREND: WebGPU adoption +40%.", "UX: Glassmorphism & Bento Grids.", "METRIC: 3D Storytelling -40% bounce."],
-  "GlobalOps": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
-  "GeminiAPI": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
-  "JONATHAN": ["SYSTEM: CONNECTED.", "STATUS: READY.", "MODE: EXECUTIVE OVERVIEW."]
+  "Trust & Safety": ["TREND: Content authenticity standards (C2PA).", "POLICY: AI labeling requirements in EU/US.", "SCALE: Automated enforcement pipelines."],
+  "Engineering": ["BENCHMARK: Optimizing inference costs at scale.", "STACK: Next.js 15 Server Actions adoption.", "SHIFT: From microservices to modular monoliths."],
+  "Creative": ["UX: 3D Product configurations driving conversion.", "DESIGN: Spatial computing interface standards.", "METRIC: Interaction time correlates with retention."],
+  "Global Ops": ["SCALE: 24/7 Vendor operations reliability.", "OPS: Human-in-the-Loop (HITL) optimization."],
+  "Gemini API": ["UPDATE: Multimodal reasoning capabilities.", "INTEGRATION: Enterprise context caching."],
+  "JONATHAN": ["STATUS: ONLINE.", "ROLE: TECHNICAL LEAD.", "FOCUS: USER SAFETY & SCALE."]
 };
 
-// --- 2. MASTER DATA (Sanitized IDs: No Spaces!) ---
+// --- 2. MASTER DATA (Professional Tone) ---
 const MASTER_DATA = {
   nodes: [
     // CORE
@@ -25,58 +26,47 @@ const MASTER_DATA = {
       id: "JONATHAN", group: 1, val: 120, color: "#FFFFFF",
       title: "JONATHAN W. MARINO", 
       role: "STRATEGIC TECHNOLOGY EXECUTIVE",
-      desc: "A hybrid executive architecting the intersection of Geopolitics, Data, and Design. Weaponizing technical curiosity to solve systemic organizational challenges.",
-      bullets: ["15+ Years Experience", "Boardroom to Backend Bridge", "1.4M Citizens Mapped"],
-      metrics: ["Global Scale", "Polymathic", "Impact-Driven"]
+      desc: "A Technical Lead and Policy Architect bridging the gap between Product Strategy and Engineering. Solving scale, safety, and efficiency challenges for global user bases.",
+      bullets: ["15+ Years Experience", "Tech Lead for Policy", "User-Centric Architecture"],
+      metrics: ["Global Scale", "Product Policy", "Operational Efficiency"]
     },
     
-    // STRATEGIC PILLAR
-    { id: "Strategy", group: 2, val: 60, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical Architect", desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement.", bullets: ["Orchestrated 'Beyond the Map'", "Navigated diplomacy", "Established privacy frameworks"], metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"] },
-    { id: "Geopolitics", group: 3, val: 30, color: "#0070F3", title: "GEOPOLITICS", role: "Digital Sovereignty", desc: "Mapping unmapped territories (Rio Favelas) to establish civic identity.", bullets: ["Partnered with AfroReggae NGO", "Mapped 1.4M Citizens", "Data Sovereignty Policy"], metrics: ["Civic Identity", "NGO Alliance", "Crisis Mapping"] },
-    { id: "Governance", group: 3, val: 30, color: "#0070F3", title: "GOVERNANCE", role: "Policy as Code", desc: "Automated compliance for global data standards via algorithmic guardrails.", bullets: ["GDPR/CCPA Automation", "Trust & Safety Architect", "Risk Radar Dashboard"], metrics: ["Zero Violations", "Automated Audit", "Policy <-> Code"] },
+    // PILLAR 1: TRUST & SAFETY (Replaces Strategy/Geopolitics)
+    { id: "Trust & Safety", group: 2, val: 60, color: "#0070F3", title: "TRUST & SAFETY", role: "Policy Architect", desc: "Protecting users and brand equity by translating complex policy mandates into rigorous technical enforcement.", bullets: ["Led 'Beyond the Map' Inclusion Initiative", "Policy Compliance Frameworks", "Risk Mitigation at Scale"], metrics: ["User Protection", "Regulatory Compliance", "Brand Safety"] },
+    { id: "Policy", group: 3, val: 30, color: "#0070F3", title: "PRODUCT POLICY", role: "Compliance", desc: "Defining and enforcing digital standards across global markets.", bullets: ["GDPR/CCPA Alignment", "Content Moderation Rules", "User Safety Guidelines"], metrics: ["Global Standards", "Risk Reduction", "User Trust"] },
+    { id: "Inclusion", group: 3, val: 30, color: "#0070F3", title: "DIGITAL INCLUSION", role: "Access", desc: "Ensuring technology serves under-represented populations.", bullets: ["Mapped 1.4M Citizens (Rio)", "Digital Identity Access", "Civic Tech Partnerships"], metrics: ["1.4M Users", "Social Impact", "Accessibility"] },
 
-    // ENGINEERING PILLAR
-    { id: "Engineering", group: 2, val: 60, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI Lead", desc: "Deploying AI agents to automate workflows and reclaim executive hours.", bullets: ["Built 'SlideSense' AI", "Developed 'Stevie' Audio Engine", "Global keyword tools"], metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"] },
-    { id: "GenAI", group: 3, val: 40, color: "#00FF94", title: "GENERATIVE AI", role: "LLM Integration", desc: "Building enterprise tools on Gemini API to solve internal friction.", bullets: ["RAG Pipeline Architecture", "Multimodal Reasoning", "Agentic Workflows"], metrics: ["Efficiency +400%", "Latency <200ms", "Context Aware"] },
-    { id: "AudioAI", group: 3, val: 30, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Neural Speech", desc: "Pioneering text-to-speech accessibility tools for inclusive workspaces.", bullets: ["'Stevie' Audio Engine", "Neural TTS Pipelines", "WCAG 2.1 AA Compliance"], metrics: ["Inclusive Design", "Real-time Audio", "Accessibility"] },
-    { id: "Cloud", group: 3, val: 30, color: "#00FF94", title: "CLOUD INFRA", role: "GCP & Edge", desc: "Scalable architecture for global tool deployment.", bullets: ["Serverless Edge Functions", "Global CDN Strategy", "FinOps Optimization"], metrics: ["99.99% Uptime", "Edge Latency", "Auto-Scale"] },
-    { id: "NextJS", group: 3, val: 30, color: "#00FF94", title: "NEXT.JS 15", role: "Modern Web", desc: "Server Components and PPR for high-performance UI.", bullets: ["React Server Components", "Partial Prerendering", "Streaming Suspense"], metrics: ["Core Web Vitals", "SEO/GEO Optimized", "Zero-Bundle"] },
-    { id: "Analytics", group: 3, val: 30, color: "#00FF94", title: "DATA ANALYTICS", role: "GA4 & SQL", desc: "Custom widgets (CARTA) for document tracking.", bullets: ["Custom GA4 Implementations", "SQL Data Warehousing", "Looker Studio Dashboards"], metrics: ["Real-time Data", "Custom KPIs", "Full Visibility"] },
-    { id: "GeminiAPI", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "LLM Integration", desc: "Deep integration of Multimodal AI.", bullets: ["Context Caching", "Multimodal Inputs", "Vertex AI"], metrics: ["Enterprise Scale", "Security", "Performance"] },
+    // PILLAR 2: ENGINEERING
+    { id: "Engineering", group: 2, val: 60, color: "#00FF94", title: "ENGINEERING LEADERSHIP", role: "Full-Stack & GenAI", desc: "Building scalable internal tools that automate workflows and reduce friction for policy and operations teams.", bullets: ["Built 'SlideSense' Automation", "Developed 'Stevie' Accessibility Tool", "Global Tooling Architecture"], metrics: ["$300k+ Savings", "Process Automation", "Gemini Integration"] },
+    { id: "GenAI", group: 3, val: 40, color: "#00FF94", title: "GENERATIVE AI", role: "LLM Integration", desc: "Leveraging Large Language Models to solve unstructured data problems.", bullets: ["RAG Pipelines", "Automated Review Systems", "Context-Aware Agents"], metrics: ["Efficiency +400%", "Latency <200ms", "Accuracy"] },
+    { id: "Audio AI", group: 3, val: 30, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Neural Speech", desc: "Creating inclusive audio interfaces for internal tools.", bullets: ["'Stevie' Audio Engine", "Text-to-Speech Pipelines", "WCAG Compliance"], metrics: ["Inclusive Design", "Accessibility", "Innovation"] },
+    { id: "Next.js", group: 3, val: 30, color: "#00FF94", title: "MODERN STACK", role: "Architecture", desc: "High-performance web architecture using React Server Components.", bullets: ["Next.js 15", "Edge Computing", "Real-time Data"], metrics: ["Performance", "Scalability", "Maintainability"] },
 
-    // CREATIVE PILLAR
-    { id: "Creative", group: 2, val: 60, color: "#FF0055", title: "CREATIVE INTELLIGENCE", role: "High-Fidelity Motion", desc: "Translating abstract strategy into visceral 3D narratives.", bullets: ["Directed 'Monk-e-Mail'", "E-Trade Baby Design", "3D Swirl formats"], metrics: ["50M+ Engagement", "Super Bowl Ads", "Interactive Story"] },
-    { id: "Motion", group: 3, val: 30, color: "#FF0055", title: "MOTION DESIGN", role: "3D & Animation", desc: "Leveraging motion psychology to drive adoption of new technologies.", bullets: ["After Effects / Cinema 4D", "Character Animation", "Physics Simulation"], metrics: ["Oscar-Level VFX", "Viral Mechanics", "User Delight"] },
-    { id: "WebGL", group: 3, val: 30, color: "#FF0055", title: "WEBGL", role: "Immersive Web", desc: "Browser-based 3D rendering for high-impact product demos.", bullets: ["Three.js / R3F", "GLSL Shaders", "Performance Optimization"], metrics: ["60FPS Mobile", "GPU Accelerated", "No Plugins"] },
-    { id: "Storytelling", group: 3, val: 30, color: "#FF0055", title: "STORYTELLING", role: "Narrative Strategy", desc: "Aligning stakeholders through visual persuasion and data visualization.", bullets: ["Executive Keynotes", "Vision Decks", "Complex Data Viz"], metrics: ["Board Alignment", "Sales Velocity", "Brand Equity"] },
-    { id: "ARVR", group: 3, val: 30, color: "#FF0055", title: "XR COMPUTING", role: "Spatial", desc: "YouTube 'Try-On' modules for e-commerce.", bullets: ["ARCore Implementation", "WebXR Standards", "Virtual Try-On"], metrics: ["Conversion Lift", "Immersive UX", "Future Tech"] },
+    // PILLAR 3: CREATIVE
+    { id: "Creative", group: 2, val: 60, color: "#FF0055", title: "CREATIVE TECHNOLOGY", role: "High-Fidelity UX", desc: "Translating complex technical concepts into intuitive, engaging user experiences.", bullets: ["Directed 'Monk-e-Mail' (50M+ Users)", "E-Trade Baby Campaign", "3D Swirl Ad Formats"], metrics: ["High Engagement", "User Retention", "Visual Storytelling"] },
+    { id: "Motion", group: 3, val: 30, color: "#FF0055", title: "MOTION DESIGN", role: "3D & Animation", desc: "Using motion to guide user attention and explain complex systems.", bullets: ["After Effects / C4D", "UI Animation", "Interactive Storytelling"], metrics: ["User Delight", "Clarity", "Adoption"] },
+    { id: "WebGL", group: 3, val: 30, color: "#FF0055", title: "WEBGL / 3D", role: "Immersive Web", desc: "Pushing the boundaries of browser-based rendering.", bullets: ["Three.js / R3F", "GLSL Shaders", "Performance Optimization"], metrics: ["60FPS", "No Plugins", "Cross-Platform"] },
 
-    // OPS ORBIT
-    { id: "GlobalOps", group: 4, val: 30, color: "#0070F3", title: "GLOBAL OPS", role: "Scale & Efficiency", desc: "Standardizing vendor ops across APAC/EMEA.", bullets: ["Vendor Consolidation", "SOP Standardization", "24/7 Workflow"], metrics: ["Cost Reduction", "Quality Control", "Global Reach"] },
-    { id: "GSAP", group: 4, val: 20, color: "#FF0055", title: "GSAP ANIMATION", role: "Motion Dev", desc: "Complex timeline orchestration for web UI.", bullets: ["ScrollTrigger", "Flip Layouts", "Canvas Integration"], metrics: ["Award Winning", "Smooth UX", "Interaction"] },
-    { id: "ViralHistory", group: 4, val: 20, color: "#FFCC00", title: "VIRAL HISTORY", role: "Legacy", desc: "Architect of 'Monk-e-Mail' (50M+ users).", bullets: ["Flash Era Viral Hits", "Social Engineering", "Mass Scale"], metrics: ["50M+ Users", "Cultural Icon", "Early Web 2.0"] },
+    // ORBIT
+    { id: "Global Ops", group: 4, val: 30, color: "#0070F3", title: "GLOBAL OPS", role: "Scale", desc: "Standardizing operations across APAC and EMEA regions.", bullets: ["Vendor Management", "SOP Standardization", "Operational Excellence"], metrics: ["Cost Reduction", "Reliability", "Global Reach"] },
+    { id: "Gemini API", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "Integration", desc: "Deep implementation of Google's multimodal models.", bullets: ["Multimodal Inputs", "Function Calling", "Enterprise Security"], metrics: ["Scale", "Security", "Intelligence"] },
   ],
   links: [
-    { source: "JONATHAN", target: "Strategy" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
-    { source: "Strategy", target: "Geopolitics" }, { source: "Strategy", target: "Governance" }, { source: "Strategy", target: "GlobalOps" },
-    { source: "Engineering", target: "GenAI" }, { source: "Engineering", target: "Cloud" }, { source: "Engineering", target: "NextJS" }, { source: "Engineering", target: "Analytics" },
-    { source: "GenAI", target: "AudioAI" }, { source: "GenAI", target: "Governance" }, { source: "GenAI", target: "GeminiAPI" },
-    { source: "Creative", target: "Motion" }, { source: "Creative", target: "WebGL" }, { source: "Creative", target: "Storytelling" }, { source: "Creative", target: "ARVR" },
-    { source: "Motion", target: "GSAP" }, { source: "Motion", target: "ViralHistory" },
-    { source: "GeminiAPI", target: "AudioAI" }, { source: "GlobalOps", target: "Strategy" }
+    { source: "JONATHAN", target: "Trust & Safety" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
+    { source: "Trust & Safety", target: "Policy" }, { source: "Trust & Safety", target: "Inclusion" }, { source: "Trust & Safety", target: "Global Ops" },
+    { source: "Engineering", target: "GenAI" }, { source: "Engineering", target: "Next.js" }, { source: "Engineering", target: "Audio AI" }, { source: "Engineering", target: "Gemini API" },
+    { source: "Creative", target: "Motion" }, { source: "Creative", target: "WebGL" },
+    { source: "GenAI", target: "Audio AI" }, { source: "Policy", target: "Inclusion" }, { source: "Global Ops", target: "Policy" }
   ]
 };
 
-const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "GeminiAPI"];
+const TOUR_STEPS = ["JONATHAN", "Trust & Safety", "Engineering", "Creative", "GenAI"];
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
   
-  // CRITICAL FIX: useMemo creates a stable clone. 
-  // The physics engine mutates this clone, leaving MASTER_DATA pure.
   const graphData = useMemo(() => JSON.parse(JSON.stringify(MASTER_DATA)), []);
-
   const [activeNode, setActiveNode] = useState<any>(graphData.nodes[0]); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
   const [currentTrend, setCurrentTrend] = useState("");
@@ -97,22 +87,34 @@ export default function TechConstellation() {
     }
   }, []);
 
+  // --- PHYSICS CONFIG ---
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(-250); 
-        graph.d3Force('link')?.distance(100);
+        graph.d3Force('charge')?.strength(-120); // Relaxed repulsion
+        graph.d3Force('link')?.distance(90);
+        
+        // Center Physics
         graph.d3Force('center')?.x(STAGE_X); 
         graph.d3Force('center')?.y(STAGE_Y);
+
+        // --- THE BIG REVEAL SEQUENCE ---
+        // 1. Start Wide (Show everything)
         graph.centerAt(STAGE_X, STAGE_Y, 0);
-        graph.zoom(3.5, 0);
+        graph.zoom(0.6, 0); 
+
+        // 2. Wait 2s, then Zoom In to Core
+        setTimeout(() => {
+          graph.zoom(3.0, 2500); // Slow, cinematic zoom in
+        }, 2000);
     }
   }, [isClient]);
 
+  // INTELLIGENCE ENGINE
   useEffect(() => {
     if (activeNode && !isTransitioning) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["SCANNING NETWORK...", "ACQUIRING TARGET..."];
+      const trends = LIVE_TRENDS[activeNode.id as keyof typeof LIVE_TRENDS] || ["ANALYZING...", "CONNECTING..."];
       const randomTrend = trends[Math.floor(Math.random() * trends.length)];
       
       let i = 0;
@@ -121,7 +123,7 @@ export default function TechConstellation() {
         setCurrentTrend(randomTrend.substring(0, i + 1));
         i++;
         if (i > randomTrend.length) clearInterval(typeInterval);
-      }, 20);
+      }, 25);
       return () => clearInterval(typeInterval);
     }
   }, [activeNode, isTransitioning]);
@@ -140,11 +142,12 @@ export default function TechConstellation() {
     node.fx = node.x;
     node.fy = node.y;
     
+    // Smoother easing
     gsap.to(node, {
       fx: STAGE_X,
       fy: STAGE_Y,
-      duration: 2.0,
-      ease: "power3.inOut",
+      duration: 2.5,
+      ease: "power2.inOut", // Less jerky than power3
       onUpdate: () => { fgRef.current?.d3ReheatSimulation(); }
     });
 
@@ -154,45 +157,57 @@ export default function TechConstellation() {
     }, 800); 
   };
 
+  // AUTO-PILOT
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!autoPilotRef.current) return;
+    // Initial Delay for the "Big Reveal"
+    const startDelay = setTimeout(() => {
+        // Start cycling
+        const interval = setInterval(() => {
+            if (!autoPilotRef.current) return;
 
-      const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
-      indexRef.current = nextIndex;
-      
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const graphNodes = (graphData.nodes as any[]);
-      const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
+            const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
+            indexRef.current = nextIndex;
+            
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const graphNodes = (graphData.nodes as any[]);
+            const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
 
-      if (node) transitionToNode(node);
-    }, 12000);
+            if (node) transitionToNode(node);
+        }, 8000);
+        
+        return () => clearInterval(interval);
+    }, 5000); // Wait 5s before moving
 
-    return () => clearInterval(interval);
+    return () => clearTimeout(startDelay);
   }, [graphData]);
 
+  // INTERACTION
   const handleInteraction = useCallback((nodeId: string) => {
     autoPilotRef.current = false;
+    
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const graphNodes = (graphData.nodes as any[]); 
     const node = graphNodes.find(n => n.id === nodeId);
+    
     if (node) transitionToNode(node);
 
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
       autoPilotRef.current = true;
-    }, 5000); 
+    }, 8000); 
   }, [graphData]);
 
-  // Deep Linking
   const handleDeepLink = () => {
     const targetMap: Record<string, string> = {
-        "SlideSense": "slide-sense",
-        "Stevie": "stevie",
-        "Beyond the Map": "beyond-the-map",
-        "Global Ops": "exp-google",
-        "Monk-e-Mail": "monk-e-mail"
+        "Engineering": "slide-sense",
+        "GenAI": "slide-sense",
+        "Audio AI": "stevie",
+        "Inclusion": "beyond-the-map",
+        "Trust & Safety": "beyond-the-map",
+        "Creative": "monk-e-mail",
+        "Global Ops": "exp-google"
     };
+    
     const targetId = targetMap[activeNode.title] || targetMap[activeNode.id] || "content-start";
     const element = document.getElementById(targetId);
     if (element) element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -215,12 +230,12 @@ export default function TechConstellation() {
               <div className="absolute top-0 left-0 w-2 h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
-              {/* LIVE FEED */}
+              {/* LIVE FEED HEADER (Cleaned Up) */}
               <div className="mb-8 border-b border-white/10 pb-6 bg-white/5 -mx-10 -mt-10 p-10">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Live Market Signal</span>
+                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-mono text-white uppercase tracking-wider font-bold">Current Relevance</span>
                     </div>
                 </div>
                 <p className="text-sm font-mono text-[#00FF94] h-8 leading-relaxed">
@@ -280,7 +295,7 @@ export default function TechConstellation() {
         ref={fgRef}
         width={dimensions.w}
         height={dimensions.h}
-        graphData={graphData} // USING CLONED DATA
+        graphData={graphData}
         backgroundColor="#050505"
         
         onNodeClick={(node) => handleInteraction(node.id as string)}
@@ -288,14 +303,14 @@ export default function TechConstellation() {
         onBackgroundClick={() => { if (activeNode) handleInteraction(activeNode.id as string); }}
         
         cooldownTicks={100}
-        d3AlphaDecay={0.05} 
-        d3VelocityDecay={0.6}
+        d3AlphaDecay={0.02}   // Lower decay = smoother float
+        d3VelocityDecay={0.4} // Lower friction = more drift
         
         nodeRelSize={9}
         linkColor={() => "#ffffff15"}
         linkWidth={1.5}
-        linkDirectionalParticles={2}
-        linkDirectionalParticleSpeed={0.005}
+        linkDirectionalParticles={4} // More particles = more "Flow"
+        linkDirectionalParticleSpeed={0.008} // Faster flow
         
         nodeCanvasObject={(node, ctx, globalScale) => {
           if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
@@ -303,10 +318,24 @@ export default function TechConstellation() {
           const isTarget = node.id === activeNode?.id;
           const color = (node.color as string) || "#fff";
           
-          const pulse = Math.sin(Date.now() / 800) * 3; 
+          // RIPPLE EFFECT
+          // We draw expanding rings based on time
+          const time = Date.now();
+          const pulse = Math.sin(time / 800) * 3; 
           const baseRadius = 6;
           const radius = isTarget ? (baseRadius * 1.5) + pulse : baseRadius;
 
+          // Ripple 1
+          if (isTarget) {
+             const rippleRadius = (time % 1000) / 1000 * 30 + radius;
+             ctx.beginPath();
+             ctx.arc(node.x!, node.y!, rippleRadius, 0, 2 * Math.PI, false);
+             ctx.strokeStyle = color + '33';
+             ctx.lineWidth = 1;
+             ctx.stroke();
+          }
+
+          // Glow
           const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
           gradient.addColorStop(0, color);
           gradient.addColorStop(0.4, color + '44');
@@ -317,6 +346,7 @@ export default function TechConstellation() {
           ctx.fillStyle = gradient;
           ctx.fill();
 
+          // Core
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
           ctx.fillStyle = "#000";
@@ -331,7 +361,7 @@ export default function TechConstellation() {
              ctx.font = `bold ${fontSize}px Sans-Serif`;
              ctx.textAlign = 'center';
              ctx.textBaseline = 'middle';
-             ctx.fillStyle = 'rgba(255,255,255,0.5)';
+             ctx.fillStyle = 'rgba(255,255,255,0.8)'; // Brighter text
              ctx.fillText(label, node.x!, node.y! + radius + fontSize + 4);
           }
         }}
