@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import gsap from "gsap";
 
-// --- 1. LIVE INTELLIGENCE DATA ---
+// --- 1. CONFIGURATION ---
+// No offsets. We rely on Canvas Dimensions now.
+const DESKTOP_OFFSET_X = 250; 
+
 const LIVE_TRENDS = {
   "Strategy": ["DETECTING: EU AI Act enforcement...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
   "Engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini.", "DEPLOY: Next.js 15 PPR.", "PATTERN: Agentic Workflows."],
@@ -52,6 +55,7 @@ const TOUR_STEPS = ["JONATHAN", "Strategy", "Engineering", "Creative", "Gemini A
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
+  
   const graphData = useMemo(() => JSON.parse(JSON.stringify(MASTER_DATA)), []);
   const [activeNode, setActiveNode] = useState<any>(graphData.nodes[0]); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
@@ -69,9 +73,16 @@ export default function TechConstellation() {
     setIsClient(true);
     if (typeof window !== "undefined") {
       const handleResize = () => {
-        setDimensions({ w: window.innerWidth, h: window.innerHeight });
-        setIsMobile(window.innerWidth < 768);
+        const mobile = window.innerWidth < 768;
+        setIsMobile(mobile);
+        setDimensions({ 
+          w: window.innerWidth, 
+          // CRITICAL FIX: On mobile, canvas is ONLY the top 45% of screen.
+          // On Desktop, it is 100% of screen.
+          h: mobile ? window.innerHeight * 0.45 : window.innerHeight 
+        });
       };
+      
       window.addEventListener("resize", handleResize);
       handleResize(); // Run once
       return () => window.removeEventListener("resize", handleResize);
@@ -82,21 +93,21 @@ export default function TechConstellation() {
   useEffect(() => {
     if (fgRef.current) {
         const graph = fgRef.current;
-        graph.d3Force('charge')?.strength(isMobile ? -80 : -200); // Weaker repel on mobile
-        graph.d3Force('link')?.distance(isMobile ? 50 : 100); // Shorter links on mobile
+        graph.d3Force('charge')?.strength(isMobile ? -60 : -150); 
+        graph.d3Force('link')?.distance(isMobile ? 40 : 90);
         
-        // TARGET COORDINATES (Adaptive)
-        const targetX = isMobile ? 0 : 300;  // Center on Mobile, Right on Desktop
-        const targetY = isMobile ? -150 : 0; // Shift Up on Mobile, Center on Desktop
+        // --- CENTER OF UNIVERSE ---
+        // On Mobile: (0,0) is center of top half.
+        // On Desktop: (250, 0) shifts it right to uncover left card.
+        const targetX = isMobile ? 0 : DESKTOP_OFFSET_X;
         
         graph.d3Force('center')?.x(targetX); 
-        graph.d3Force('center')?.y(targetY);
-        graph.centerAt(targetX, targetY, 0);
+        graph.d3Force('center')?.y(0);
         
-        // Zoom out more on mobile
-        graph.zoom(isMobile ? 2.5 : 3.5, 0);
+        graph.zoom(isMobile ? 3.5 : 3.0, 0); // Tighter zoom on mobile
+        graph.centerAt(targetX, 0, 1000);
     }
-  }, [isClient, isMobile]); // Re-run physics when mobile state changes
+  }, [isClient, isMobile, dimensions]); // Re-run if dimensions change!
 
   // --- INTELLIGENCE ENGINE ---
   useEffect(() => {
@@ -116,7 +127,7 @@ export default function TechConstellation() {
     }
   }, [activeNode, isTransitioning]);
 
-  // --- ADAPTIVE ANIMATION SEQUENCE ---
+  // --- ANIMATION SEQUENCE ---
   const transitionToNode = (node: any) => {
     if (!fgRef.current) return;
 
@@ -128,18 +139,17 @@ export default function TechConstellation() {
     }
     currentNodeRef.current = node;
 
+    // Lock Target
     node.fx = node.x;
     node.fy = node.y;
     
-    // DYNAMIC TARGETS based on screen size
-    // Mobile: Target (0, -150) -> Center Top
-    // Desktop: Target (300, 0) -> Right Center
-    const targetX = window.innerWidth < 768 ? 0 : 300;
-    const targetY = window.innerWidth < 768 ? -150 : 0;
+    // CRITICAL FIX: Always target Y=0.
+    // The canvas height itself handles the visual offset now.
+    const targetX = isMobile ? 0 : DESKTOP_OFFSET_X;
 
     gsap.to(node, {
       fx: targetX,
-      fy: targetY,
+      fy: 0,
       duration: 2.0,
       ease: "power3.inOut",
       onUpdate: () => { fgRef.current?.d3ReheatSimulation(); }
@@ -167,7 +177,7 @@ export default function TechConstellation() {
     }, 12000);
 
     return () => clearInterval(interval);
-  }, [graphData]);
+  }, [graphData, isMobile]); // Check isMobile
 
   const handleInteraction = useCallback((nodeId: string) => {
     autoPilotRef.current = false;
@@ -179,8 +189,8 @@ export default function TechConstellation() {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
       autoPilotRef.current = true;
-    }, 5000); 
-  }, [graphData]);
+    }, 6000); 
+  }, [graphData, isMobile]);
 
   const handleDeepLink = () => {
     const targetMap: Record<string, string> = {
@@ -202,140 +212,143 @@ export default function TechConstellation() {
     <div className="fixed inset-0 bg-[#050505] overflow-hidden">
       
       {/* --- RESPONSIVE CARD --- */}
-      {/* Desktop: Left Side | Mobile: Bottom Sheet */}
+      {/* MOBILE: Positioned at Bottom (0), Height 55%.
+         DESKTOP: Positioned Left, Full Height.
+      */}
       <div className={`
         absolute z-20 pointer-events-none flex items-center 
         md:left-0 md:top-0 md:h-full md:w-[650px] md:p-12 md:items-center
-        bottom-0 left-0 w-full p-4 items-end h-[55vh]
+        bottom-0 left-0 w-full h-[55%] items-end
       `}>
         <div 
-          className={`pointer-events-auto w-full transition-all duration-700 transform 
+          className={`pointer-events-auto w-full h-full md:h-auto transition-all duration-700 transform 
             ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
         >
-           <div className="bg-black/85 backdrop-blur-3xl border border-white/10 p-6 md:p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-t-2xl md:rounded-2xl">
+           <div className="h-full bg-black/85 backdrop-blur-3xl border-t md:border border-white/10 p-6 md:p-12 shadow-[0_0_100px_rgba(0,0,0,0.9)] relative overflow-hidden rounded-t-2xl md:rounded-2xl flex flex-col justify-start">
               
               <div className="absolute top-0 left-0 w-full h-1 md:w-2 md:h-full transition-colors duration-500" 
                    style={{ backgroundColor: activeNode?.color || '#fff' }} />
               
               {/* LIVE FEED */}
-              <div className="mb-4 md:mb-8 border-b border-white/10 pb-4 md:pb-6 bg-white/5 -mx-6 -mt-6 md:-mx-12 md:-mt-12 p-6 md:p-12">
+              <div className="mb-4 md:mb-8 border-b border-white/10 pb-4 md:pb-6 bg-white/5 -mx-6 -mt-6 md:-mx-12 md:-mt-12 p-6 md:p-12 shrink-0">
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[9px] font-mono text-white uppercase tracking-wider font-bold">Live Signal</span>
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                        <span className="text-[9px] font-mono text-white uppercase tracking-wider font-bold">Network Signal</span>
                     </div>
                 </div>
-                <p className="text-xs md:text-sm font-mono text-[#00FF94] h-8 leading-relaxed overflow-hidden">
+                <p className="text-xs md:text-sm font-mono text-[#00FF94] h-6 md:h-8 leading-relaxed overflow-hidden whitespace-nowrap md:whitespace-normal text-ellipsis">
                   {currentTrend}<span className="animate-pulse text-white">_</span>
                 </p>
               </div>
 
-              <h3 className="font-mono text-[#0070F3] text-[10px] md:text-xs mb-2 uppercase tracking-widest font-bold" 
-                  style={{ color: activeNode?.color }}>
-                {activeNode?.role}
-              </h3>
-              <h1 className="text-3xl md:text-6xl font-sans font-bold text-white mb-4 md:mb-8 leading-none tracking-tight">
-                {activeNode?.title || activeNode?.id}
-              </h1>
+              {/* MAIN CONTENT SCROLLER FOR MOBILE */}
+              <div className="overflow-y-auto md:overflow-visible flex-1 pr-2">
+                  <h3 className="font-mono text-[#0070F3] text-[10px] md:text-xs mb-2 uppercase tracking-widest font-bold" 
+                      style={{ color: activeNode?.color }}>
+                    {activeNode?.role}
+                  </h3>
+                  <h1 className="text-3xl md:text-6xl font-sans font-bold text-white mb-4 md:mb-8 leading-none tracking-tight">
+                    {activeNode?.title || activeNode?.id}
+                  </h1>
 
-              {/* Hide Description on Mobile to save space, show on Desktop */}
-              <p className="text-sm md:text-lg text-gray-300 font-sans leading-relaxed mb-6 md:mb-8 max-w-xl md:border-l-4 md:border-white/10 md:pl-6 hidden md:block">
-                {activeNode?.desc}
-              </p>
+                  <p className="text-sm md:text-lg text-gray-300 font-sans leading-relaxed mb-6 md:mb-8 max-w-xl md:border-l-4 md:border-white/10 md:pl-6">
+                    {activeNode?.desc}
+                  </p>
 
-              {/* Show Brief Bullets on Mobile */}
-              <div className="md:hidden text-xs text-gray-400 mb-4 font-mono">
-                 {activeNode?.desc?.substring(0, 100)}...
-              </div>
-
-              {/* METRICS (Responsive Grid) */}
-              {activeNode?.metrics && (
-                <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-8 pt-4 md:pt-8 border-t border-white/10">
-                  {activeNode.metrics.map((m: string) => (
-                    <div key={m} className="text-center">
-                      <span className="block text-[8px] md:text-xs font-mono text-gray-500 mb-1 uppercase tracking-wider">Metric</span>
-                      <span className="block text-[10px] md:text-sm font-bold text-white">{m}</span>
+                  {/* METRICS */}
+                  {activeNode?.metrics && (
+                    <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-8 pt-4 md:pt-8 border-t border-white/10">
+                      {activeNode.metrics.map((m: string) => (
+                        <div key={m} className="text-center">
+                          <span className="block text-[8px] md:text-xs font-mono text-gray-500 mb-1 uppercase tracking-wider">Metric</span>
+                          <span className="block text-[10px] md:text-sm font-bold text-white">{m}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  )}
 
-              <div className="mt-2 md:mt-4 pt-4 md:pt-6 border-t border-gray-800">
-                  <button 
-                    onClick={handleDeepLink}
-                    className="w-full border border-white/20 bg-white/5 px-4 py-3 md:px-6 md:py-4 text-[10px] md:text-xs font-mono text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest flex justify-between items-center"
-                  >
-                    <span>{activeNode.id === "JONATHAN" ? "INITIATE RESEARCH" : "INSPECT DATA"}</span>
-                    <span>&darr;</span>
-                  </button>
+                  <div className="mt-2 md:mt-4 pt-4 md:pt-6 border-t border-gray-800 pb-12 md:pb-0">
+                      <button 
+                        onClick={handleDeepLink}
+                        className="w-full border border-white/20 bg-white/5 px-4 py-3 md:px-6 md:py-4 text-[10px] md:text-xs font-mono text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest flex justify-between items-center"
+                      >
+                        <span>{activeNode.id === "JONATHAN" ? "INITIATE SEQUENCE" : "ACCESS DATA"}</span>
+                        <span>&darr;</span>
+                      </button>
+                  </div>
               </div>
            </div>
         </div>
       </div>
 
-      {/* RIGHT BRAIN CANVAS */}
-      <ForceGraph2D
-        ref={fgRef}
-        width={dimensions.w}
-        height={dimensions.h}
-        graphData={graphData}
-        backgroundColor="#050505"
-        
-        onNodeClick={(node) => handleInteraction(node.id as string)}
-        onNodeDrag={() => { if (activeNode) handleInteraction(activeNode.id as string); }} 
-        onBackgroundClick={() => { if (activeNode) handleInteraction(activeNode.id as string); }}
-        
-        cooldownTicks={100}
-        d3AlphaDecay={0.05} 
-        d3VelocityDecay={0.6}
-        
-        nodeRelSize={isMobile ? 6 : 9} // Smaller nodes on mobile
-        linkColor={() => "#ffffff15"}
-        linkWidth={1.5}
-        linkDirectionalParticles={2}
-        linkDirectionalParticleSpeed={0.005}
-        
-        nodeCanvasObject={(node, ctx, globalScale) => {
-          if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
-
-          const isTarget = node.id === activeNode?.id;
-          const color = (node.color as string) || "#fff";
+      {/* RIGHT BRAIN CANVAS 
+         Mobile: Fixed to TOP of screen, Height 45%.
+         Desktop: Full Screen.
+      */}
+      <div className="absolute top-0 left-0 w-full md:h-full z-10" style={{ height: dimensions.h }}>
+        <ForceGraph2D
+          ref={fgRef}
+          width={dimensions.w}
+          height={dimensions.h}
+          graphData={graphData}
+          backgroundColor="#050505"
           
-          const pulse = Math.sin(Date.now() / 800) * 3; 
-          // Adaptive sizes for mobile
-          const mobileScale = isMobile ? 0.6 : 1; 
-          const baseRadius = 6 * mobileScale;
-          const radius = (isTarget ? (baseRadius * 1.5) + pulse : baseRadius);
+          onNodeClick={(node) => handleInteraction(node.id as string)}
+          onNodeDrag={() => { if (activeNode) handleInteraction(activeNode.id as string); }} 
+          onBackgroundClick={() => { if (activeNode) handleInteraction(activeNode.id as string); }}
+          
+          cooldownTicks={100}
+          d3AlphaDecay={0.05} 
+          d3VelocityDecay={0.6}
+          
+          nodeRelSize={isMobile ? 7 : 9} 
+          linkColor={() => "#ffffff15"}
+          linkWidth={1.5}
+          linkDirectionalParticles={2}
+          linkDirectionalParticleSpeed={0.005}
+          
+          nodeCanvasObject={(node, ctx, globalScale) => {
+            if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
 
-          const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
-          gradient.addColorStop(0, color);
-          gradient.addColorStop(0.4, color + '44');
-          gradient.addColorStop(1, 'transparent');
+            const isTarget = node.id === activeNode?.id;
+            const color = (node.color as string) || "#fff";
+            
+            const pulse = Math.sin(Date.now() / 800) * 3; 
+            const mobileScale = isMobile ? 0.7 : 1; 
+            const baseRadius = 6 * mobileScale;
+            const radius = (isTarget ? (baseRadius * 1.5) + pulse : baseRadius);
 
-          ctx.beginPath();
-          ctx.arc(node.x!, node.y!, radius * 3, 0, 2 * Math.PI, false);
-          ctx.fillStyle = gradient;
-          ctx.fill();
+            const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 3);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(0.4, color + '44');
+            gradient.addColorStop(1, 'transparent');
 
-          ctx.beginPath();
-          ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
-          ctx.fillStyle = "#000";
-          ctx.fill();
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 2;
-          ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(node.x!, node.y!, radius * 3, 0, 2 * Math.PI, false);
+            ctx.fillStyle = gradient;
+            ctx.fill();
 
-          if (node.group <= 2) {
-             const label = node.id as string;
-             const fontSize = (12 / globalScale) * mobileScale;
-             ctx.font = `bold ${fontSize}px Sans-Serif`;
-             ctx.textAlign = 'center';
-             ctx.textBaseline = 'middle';
-             ctx.fillStyle = 'rgba(255,255,255,0.5)';
-             ctx.fillText(label, node.x!, node.y! + radius + fontSize + 4);
-          }
-        }}
-      />
+            ctx.beginPath();
+            ctx.arc(node.x!, node.y!, radius * 0.6, 0, 2 * Math.PI, false);
+            ctx.fillStyle = "#000";
+            ctx.fill();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (node.group <= 2) {
+              const label = node.id as string;
+              const fontSize = (12 / globalScale) * mobileScale;
+              ctx.font = `bold ${fontSize}px Sans-Serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillStyle = 'rgba(255,255,255,0.7)';
+              ctx.fillText(label, node.x!, node.y! + radius + fontSize + 4);
+            }
+          }}
+        />
+      </div>
     </div>
   );
 }
