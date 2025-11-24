@@ -2,55 +2,90 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
-import { useBrainPhysics } from "../hooks/useBrainPhysics"; // <--- NEW IMPORT
+import gsap from "gsap";
 
-// --- DATA ---
+// --- 1. CONFIGURATION ---
+const STAGE_X = 250; 
+const STAGE_Y = 0;
+
 const LIVE_TRENDS = {
-  "Strategy": ["DETECTING: EU AI Act enforcement...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
-  "Engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini.", "DEPLOY: Next.js 15 PPR.", "PATTERN: Agentic Workflows."],
-  "Creative": ["TREND: WebGPU adoption +40%.", "UX: Glassmorphism & Bento Grids.", "METRIC: 3D Storytelling -40% bounce."],
-  "Global Ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
-  "Gemini API": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
-  "JONATHAN": ["SYSTEM: CONNECTED.", "STATUS: READY.", "MODE: EXECUTIVE OVERVIEW."]
+  "strategy": ["DETECTING: EU AI Act enforcement...", "ANALYSIS: Risk migration > Model Gov.", "SIGNAL: Data sovereignty frag."],
+  "engineering": ["BENCHMARK: DeepSeek-V3 vs Gemini.", "DEPLOY: Next.js 15 PPR.", "PATTERN: Agentic Workflows."],
+  "creative": ["TREND: WebGPU adoption +40%.", "UX: Glassmorphism & Bento Grids.", "METRIC: 3D Storytelling -40% bounce."],
+  "global_ops": ["LIVE: Vendor consolidation EMEA.", "OPS: AI-driven SOP generation."],
+  "gemini_api": ["UPDATE: Context window expansion.", "USE CASE: Multimodal latency < 200ms."],
+  "jonathan": ["SYSTEM: CONNECTED.", "STATUS: READY.", "MODE: EXECUTIVE OVERVIEW."]
 };
 
+// --- 2. MASTER DATA (Sanitized System IDs) ---
 const MASTER_DATA = {
   nodes: [
-    { id: "JONATHAN", group: 1, val: 120, color: "#FFFFFF", title: "JONATHAN W. MARINO", role: "STRATEGIC TECH EXEC", desc: "Architecting the intersection of Policy, Code, and Design.", bullets: ["15+ Years Experience", "Boardroom to Backend Bridge", "1.4M Citizens Mapped"], metrics: ["Global Scale", "Polymathic", "Impact-Driven"] },
-    { id: "Strategy", group: 2, val: 60, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical Architect", desc: "Mitigating enterprise risk via policy/code bridges.", bullets: ["Orchestrated 'Beyond the Map'", "Navigated diplomacy", "Established privacy frameworks"], metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"] },
-    { id: "Policy", group: 3, val: 30, color: "#0070F3", title: "PRODUCT POLICY", role: "Compliance", desc: "Defining and enforcing digital standards.", bullets: ["GDPR/CCPA Alignment", "Content Moderation", "Safety Guidelines"], metrics: ["Global Standards", "Risk Reduction", "User Trust"] },
-    { id: "Inclusion", group: 3, val: 30, color: "#0070F3", title: "DIGITAL INCLUSION", role: "Access", desc: "Ensuring technology serves under-represented populations.", bullets: ["Mapped 1.4M Citizens (Rio)", "Digital Identity Access", "Civic Tech Partnerships"], metrics: ["1.4M Users", "Social Impact", "Accessibility"] },
-    { id: "Engineering", group: 2, val: 60, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI", desc: "Deploying AI agents to automate workflows.", bullets: ["Built 'SlideSense' AI", "Developed 'Stevie' Audio", "Global keyword tools"], metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"] },
-    { id: "GenAI", group: 3, val: 40, color: "#00FF94", title: "GENERATIVE AI", role: "LLM Integration", desc: "Leveraging LLMs for unstructured data.", bullets: ["RAG Pipelines", "Automated Review", "Context-Aware Agents"], metrics: ["Efficiency +400%", "Latency <200ms", "Accuracy"] },
-    { id: "Audio AI", group: 3, val: 30, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Neural Speech", desc: "Creating inclusive audio interfaces for internal tools.", bullets: ["'Stevie' Audio Engine", "Text-to-Speech", "WCAG Compliance"], metrics: ["Inclusive Design", "Accessibility", "Innovation"] },
-    { id: "Next.js", group: 3, val: 30, color: "#00FF94", title: "MODERN STACK", role: "Architecture", desc: "High-performance web architecture.", bullets: ["Next.js 15", "Edge Computing", "Real-time Data"], metrics: ["Performance", "Scalability", "Maintainability"] },
-    { id: "Creative", group: 2, val: 60, color: "#FF0055", title: "CREATIVE TECHNOLOGY", role: "High-Fidelity UX", desc: "Translating complex technical concepts into intuitive experiences.", bullets: ["Directed 'Monk-e-Mail'", "E-Trade Baby", "3D Swirl Formats"], metrics: ["High Engagement", "Retention", "Storytelling"] },
-    { id: "Motion", group: 3, val: 30, color: "#FF0055", title: "MOTION DESIGN", role: "3D & Animation", desc: "Using motion to guide user attention.", bullets: ["After Effects / C4D", "UI Animation", "Interactive Story"], metrics: ["User Delight", "Clarity", "Adoption"] },
-    { id: "WebGL", group: 3, val: 30, color: "#FF0055", title: "WEBGL / 3D", role: "Immersive Web", desc: "Browser-based rendering.", bullets: ["Three.js / R3F", "GLSL Shaders", "Performance"], metrics: ["60FPS", "No Plugins", "Cross-Platform"] },
-    { id: "Global Ops", group: 4, val: 30, color: "#0070F3", title: "GLOBAL OPS", role: "Scale", desc: "Standardizing operations across APAC and EMEA.", bullets: ["Vendor Management", "SOP Standardization", "Excellence"], metrics: ["Cost Reduction", "Reliability", "Global Reach"] },
-    { id: "Gemini API", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "Integration", desc: "Deep implementation of multimodal models.", bullets: ["Multimodal Inputs", "Function Calling", "Security"], metrics: ["Scale", "Security", "Intelligence"] },
+    // CORE
+    { 
+      id: "jonathan", group: 1, val: 120, color: "#FFFFFF",
+      title: "JONATHAN W. MARINO", 
+      role: "STRATEGIC TECHNOLOGY EXECUTIVE",
+      desc: "A hybrid executive architecting the intersection of Geopolitics, Data, and Design. Weaponizing technical curiosity to solve systemic organizational challenges.",
+      bullets: ["15+ Years Experience", "Boardroom to Backend Bridge", "1.4M Citizens Mapped"],
+      metrics: ["Global Scale", "Polymathic", "Impact-Driven"]
+    },
+    
+    // STRATEGIC PILLAR
+    { id: "strategy", group: 2, val: 60, color: "#0070F3", title: "STRATEGIC RISK", role: "Geopolitical Architect", desc: "Mitigating enterprise risk by translating abstract policy mandates into rigorous code enforcement.", bullets: ["Orchestrated 'Beyond the Map'", "Navigated diplomacy", "Established privacy frameworks"], metrics: ["1.4M Citizens", "Privacy Compliance", "Cross-Border"] },
+    { id: "geopolitics", group: 3, val: 30, color: "#0070F3", title: "GEOPOLITICS", role: "Digital Sovereignty", desc: "Mapping unmapped territories (Rio Favelas) to establish civic identity.", bullets: ["Partnered with AfroReggae NGO", "Mapped 1.4M Citizens", "Data Sovereignty Policy"], metrics: ["Civic Identity", "NGO Alliance", "Crisis Mapping"] },
+    { id: "governance", group: 3, val: 30, color: "#0070F3", title: "GOVERNANCE", role: "Policy as Code", desc: "Automated compliance for global data standards via algorithmic guardrails.", bullets: ["GDPR/CCPA Automation", "Trust & Safety Architect", "Risk Radar Dashboard"], metrics: ["Zero Violations", "Automated Audit", "Policy <-> Code"] },
+
+    // ENGINEERING PILLAR
+    { id: "engineering", group: 2, val: 60, color: "#00FF94", title: "ENGINEERING VELOCITY", role: "Full-Stack & GenAI Lead", desc: "Deploying AI agents to automate workflows and reclaim executive hours.", bullets: ["Built 'SlideSense' AI", "Developed 'Stevie' Audio Engine", "Global keyword tools"], metrics: ["$300k+ Savings", "Automated Ops", "Gemini API"] },
+    { id: "gen_ai", group: 3, val: 40, color: "#00FF94", title: "GENERATIVE AI", role: "LLM Integration", desc: "Leveraging Large Language Models to solve unstructured data problems.", bullets: ["RAG Pipelines", "Automated Review Systems", "Context-Aware Agents"], metrics: ["Efficiency +400%", "Latency <200ms", "Accuracy"] },
+    { id: "audio_ai", group: 3, val: 30, color: "#00FF94", title: "AUDIO SYNTHESIS", role: "Neural Speech", desc: "Creating inclusive audio interfaces for internal tools.", bullets: ["'Stevie' Audio Engine", "Text-to-Speech Pipelines", "WCAG Compliance"], metrics: ["Inclusive Design", "Accessibility", "Innovation"] },
+    { id: "next_js", group: 3, val: 30, color: "#00FF94", title: "MODERN STACK", role: "Architecture", desc: "High-performance web architecture using React Server Components.", bullets: ["Next.js 15", "Edge Computing", "Real-time Data"], metrics: ["Performance", "Scalability", "Maintainability"] },
+    { id: "cloud", group: 3, val: 30, color: "#00FF94", title: "CLOUD INFRA", role: "GCP", desc: "Scalable global architecture.", bullets: ["Serverless Edge Functions", "Global CDN Strategy", "FinOps Optimization"], metrics: ["99.99% Uptime", "Edge Latency", "Auto-Scale"] },
+    { id: "analytics", group: 3, val: 30, color: "#00FF94", title: "DATA ANALYTICS", role: "GA4 & SQL", desc: "Custom widgets (CARTA) for document tracking.", bullets: ["Custom GA4 Implementations", "SQL Data Warehousing", "Looker Studio Dashboards"], metrics: ["Real-time Data", "Custom KPIs", "Full Visibility"] },
+
+    // CREATIVE PILLAR
+    { id: "creative", group: 2, val: 60, color: "#FF0055", title: "CREATIVE TECHNOLOGY", role: "High-Fidelity UX", desc: "Translating complex technical concepts into intuitive, engaging user experiences.", bullets: ["Directed 'Monk-e-Mail' (50M+ Users)", "E-Trade Baby Campaign", "3D Swirl Ad Formats"], metrics: ["High Engagement", "User Retention", "Visual Storytelling"] },
+    { id: "motion", group: 3, val: 30, color: "#FF0055", title: "MOTION DESIGN", role: "3D & Animation", desc: "Using motion to guide user attention and explain complex systems.", bullets: ["After Effects / C4D", "UI Animation", "Interactive Storytelling"], metrics: ["User Delight", "Clarity", "Adoption"] },
+    { id: "webgl", group: 3, val: 30, color: "#FF0055", title: "WEBGL / 3D", role: "Immersive Web", desc: "Pushing the boundaries of browser-based rendering.", bullets: ["Three.js / R3F", "GLSL Shaders", "Performance Optimization"], metrics: ["60FPS", "No Plugins", "Cross-Platform"] },
+    { id: "storytelling", group: 3, val: 30, color: "#FF0055", title: "STORYTELLING", role: "Narrative Strategy", desc: "Aligning stakeholders through visual persuasion.", bullets: ["Executive Keynotes", "Vision Decks", "Complex Data Viz"], metrics: ["Board Alignment", "Sales Velocity", "Brand Equity"] },
+    { id: "ar_vr", group: 3, val: 30, color: "#FF0055", title: "XR COMPUTING", role: "Spatial", desc: "YouTube 'Try-On' modules for e-commerce.", bullets: ["ARCore Implementation", "WebXR Standards", "Virtual Try-On"], metrics: ["Conversion Lift", "Immersive UX", "Future Tech"] },
+
+    // ORBIT
+    { id: "global_ops", group: 4, val: 30, color: "#0070F3", title: "GLOBAL OPS", role: "Scale", desc: "Standardizing operations across APAC and EMEA regions.", bullets: ["Vendor Management", "SOP Standardization", "Operational Excellence"], metrics: ["Cost Reduction", "Reliability", "Global Reach"] },
+    { id: "gemini_api", group: 3, val: 30, color: "#00FF94", title: "GEMINI API", role: "Integration", desc: "Deep implementation of Google's multimodal models.", bullets: ["Multimodal Inputs", "Function Calling", "Enterprise Security"], metrics: ["Scale", "Security", "Intelligence"] },
+    { id: "process", group: 4, val: 20, color: "#0070F3", title: "PROCESS ENG", role: "SOPs & BRDs", desc: "Codifying tacit knowledge.", bullets: ["Documentation Architecture", "Knowledge Transfer", "Change Management"], metrics: ["Knowledge Retention", "Onboarding Speed", "Consistency"] },
+    { id: "vendor_mgmt", group: 4, val: 20, color: "#0070F3", title: "VENDOR MGMT", role: "Supply Chain", desc: "Managing creative pipelines.", bullets: ["Procurement Strategy", "Performance Audits", "Relationship Building"], metrics: ["ROI Optimization", "Delivery Speed", "Partner Trust"] },
+    { id: "viral_history", group: 4, val: 20, color: "#FFCC00", title: "VIRAL HISTORY", role: "Legacy", desc: "Architect of 'Monk-e-Mail'.", bullets: ["Flash Era Viral Hits", "Social Engineering", "Mass Scale"], metrics: ["50M+ Users", "Cultural Icon", "Early Web 2.0"] },
+    { id: "gsap", group: 3, val: 20, color: "#FF0055", title: "GSAP ANIMATION", role: "Motion", desc: "Complex timeline orchestration.", bullets: ["ScrollTrigger", "Flip Layouts", "Canvas Integration"], metrics: ["Award Winning", "Smooth UX", "Interaction"] },
   ],
   links: [
-    { source: "JONATHAN", target: "Trust & Safety" }, { source: "JONATHAN", target: "Engineering" }, { source: "JONATHAN", target: "Creative" },
-    { source: "Trust & Safety", target: "Policy" }, { source: "Trust & Safety", target: "Inclusion" }, { source: "Trust & Safety", target: "Global Ops" },
-    { source: "Engineering", target: "GenAI" }, { source: "Engineering", target: "Next.js" }, { source: "Engineering", target: "Audio AI" }, { source: "Engineering", target: "Gemini API" },
-    { source: "Creative", target: "Motion" }, { source: "Creative", target: "WebGL" },
-    { source: "GenAI", target: "Audio AI" }, { source: "Policy", target: "Inclusion" }, { source: "Global Ops", target: "Policy" }
+    // CORE LINKS
+    { source: "jonathan", target: "strategy" }, { source: "jonathan", target: "engineering" }, { source: "jonathan", target: "creative" },
+    // STRATEGY
+    { source: "strategy", target: "geopolitics" }, { source: "strategy", target: "governance" }, { source: "strategy", target: "global_ops" },
+    // ENGINEERING
+    { source: "engineering", target: "gen_ai" }, { source: "engineering", target: "next_js" }, { source: "engineering", target: "audio_ai" }, { source: "engineering", target: "gemini_api" }, { source: "engineering", target: "cloud" }, { source: "engineering", target: "analytics" },
+    // CREATIVE
+    { source: "creative", target: "motion" }, { source: "creative", target: "webgl" }, { source: "creative", target: "ar_vr" }, { source: "creative", target: "storytelling" },
+    // CROSS & ORBIT
+    { source: "gen_ai", target: "audio_ai" }, { source: "global_ops", target: "process" }, { source: "global_ops", target: "vendor_mgmt" },
+    { source: "motion", target: "viral_history" }, { source: "motion", target: "gsap" },
+    { source: "gemini_api", target: "governance" }
   ]
 };
 
-const TOUR_STEPS = ["JONATHAN", "Trust & Safety", "Engineering", "Creative", "GenAI"];
+const TOUR_STEPS = ["jonathan", "strategy", "engineering", "creative", "gemini_api"];
 
 export default function TechConstellation() {
   const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
+  const [dimensions, setDimensions] = useState({ w: 1000, h: 800 });
   
-  // USE THE HOOK (Logic moved here)
-  const { dimensions, isMobile, moveCameraToNode, isReady } = useBrainPhysics(fgRef);
-
+  // Stable Data Clone
   const graphData = useMemo(() => JSON.parse(JSON.stringify(MASTER_DATA)), []);
   const [activeNode, setActiveNode] = useState<any>(graphData.nodes[0]); 
   const [isTransitioning, setIsTransitioning] = useState(false); 
   const [currentTrend, setCurrentTrend] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
   
   const indexRef = useRef(0);
   const autoPilotRef = useRef(true);
@@ -58,7 +93,44 @@ export default function TechConstellation() {
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => { setIsClient(true); }, []);
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== "undefined") {
+      const handleResize = () => {
+        const mobile = window.innerWidth < 768;
+        setIsMobile(mobile);
+        setDimensions({ 
+          w: window.innerWidth, 
+          h: mobile ? window.innerHeight * 0.45 : window.innerHeight 
+        });
+      };
+      window.addEventListener("resize", handleResize);
+      handleResize(); 
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []);
+
+  // --- PHYSICS INIT ---
+  useEffect(() => {
+    if (fgRef.current) {
+        const graph = fgRef.current;
+        const targetX = isMobile ? 0 : STAGE_X;
+        const targetY = isMobile ? -20 : 0;
+
+        graph.d3Force('charge')?.strength(isMobile ? -80 : -200); 
+        graph.d3Force('link')?.distance(isMobile ? 50 : 100);
+        graph.d3Force('center')?.x(targetX); 
+        graph.d3Force('center')?.y(targetY);
+
+        // Camera Start
+        graph.centerAt(targetX, targetY, 0);
+        graph.zoom(0.1, 0); 
+
+        setTimeout(() => {
+          graph.zoom(isMobile ? 2.2 : 3.5, 2000);
+        }, 500);
+    }
+  }, [isClient, isMobile]);
 
   // --- INTELLIGENCE ENGINE ---
   useEffect(() => {
@@ -78,48 +150,51 @@ export default function TechConstellation() {
   }, [activeNode, isTransitioning]);
 
   // --- ANIMATION SEQUENCE ---
-  const transitionToNode = useCallback((node: any) => {
-    if (!isReady) return; // Wait for physics to warm up
-
+  const transitionToNode = (node: any) => {
+    if (!fgRef.current) return;
     setIsTransitioning(true);
 
-    // Release old node
     if (currentNodeRef.current && currentNodeRef.current !== node) {
       currentNodeRef.current.fx = undefined;
       currentNodeRef.current.fy = undefined;
     }
     currentNodeRef.current = node;
 
-    // Lock Start
     node.fx = node.x;
     node.fy = node.y;
+    
+    const targetX = isMobile ? 0 : STAGE_X;
 
-    // USE THE HOOK FOR MOVEMENT
-    moveCameraToNode(node, () => {
-      // On Complete
-      setActiveNode(node);
-      setIsTransitioning(false);
+    gsap.to(node, {
+      fx: targetX,
+      fy: 0,
+      duration: 2.5,
+      ease: "power2.inOut",
+      onUpdate: () => { fgRef.current?.d3ReheatSimulation(); }
     });
 
-  }, [isReady, moveCameraToNode]);
+    setTimeout(() => {
+      setActiveNode(node);
+      setIsTransitioning(false);
+    }, 800); 
+  };
 
   // --- AUTO-PILOT ---
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!autoPilotRef.current || !isReady) return;
-
-      const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
-      indexRef.current = nextIndex;
-      
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const graphNodes = (graphData.nodes as any[]);
-      const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
-
-      if (node) transitionToNode(node);
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [graphData, isReady, transitionToNode]);
+    const startDelay = setTimeout(() => {
+      const interval = setInterval(() => {
+        if (!autoPilotRef.current) return;
+        const nextIndex = (indexRef.current + 1) % TOUR_STEPS.length;
+        indexRef.current = nextIndex;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const graphNodes = (graphData.nodes as any[]);
+        const node = graphNodes.find(n => n.id === TOUR_STEPS[nextIndex]);
+        if (node) transitionToNode(node);
+      }, 10000);
+      return () => clearInterval(interval);
+    }, 4000);
+    return () => clearTimeout(startDelay);
+  }, [graphData, isMobile]);
 
   // --- INTERACTION ---
   const handleInteraction = useCallback((nodeId: string) => {
@@ -132,17 +207,17 @@ export default function TechConstellation() {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
       autoPilotRef.current = true;
-    }, 10000); 
-  }, [graphData, transitionToNode]);
+    }, 15000); 
+  }, [graphData, isMobile]);
 
   const handleDeepLink = () => {
     const targetMap: Record<string, string> = {
-        "Engineering": "slide-sense",
-        "GenAI": "slide-sense",
-        "Audio AI": "stevie",
-        "Trust & Safety": "beyond-the-map",
-        "Creative": "monk-e-mail",
-        "Global Ops": "exp-google"
+        "engineering": "slide-sense",
+        "gen_ai": "slide-sense",
+        "audio_ai": "stevie",
+        "strategy": "beyond-the-map",
+        "creative": "monk-e-mail",
+        "global_ops": "exp-google"
     };
     const targetId = targetMap[activeNode.title] || targetMap[activeNode.id] || "content-start";
     const element = document.getElementById(targetId);
@@ -204,7 +279,7 @@ export default function TechConstellation() {
                   )}
                   <div className="mt-2 md:mt-4 pt-4 md:pt-6 border-t border-gray-800 pb-12 md:pb-0">
                       <button onClick={handleDeepLink} className="w-full border border-white/20 bg-white/5 px-4 py-3 md:px-6 md:py-4 text-[10px] md:text-xs font-mono text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest flex justify-between items-center">
-                        <span>{activeNode.id === "JONATHAN" ? "INITIATE RESEARCH" : "INSPECT DATA"}</span>
+                        <span>{activeNode.id === "jonathan" ? "INITIATE RESEARCH" : "INSPECT DATA"}</span>
                         <span>&darr;</span>
                       </button>
                   </div>
@@ -230,24 +305,26 @@ export default function TechConstellation() {
           d3AlphaDecay={0.05} 
           d3VelocityDecay={0.6}
           
-          nodeRelSize={isMobile ? 7 : 9} 
+          nodeRelSize={9}
           linkColor={() => "#ffffff15"}
           linkWidth={1.5}
           linkDirectionalParticles={2}
           linkDirectionalParticleSpeed={0.005}
           
+          // ULTRON RENDERER
           nodeCanvasObject={(node, ctx, globalScale) => {
             if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
 
             const isTarget = node.id === activeNode?.id;
             const color = (node.color as string) || "#fff";
+            
             const time = Date.now();
             const pulse = Math.sin(time / 500) * 3; 
             const mobileScale = isMobile ? 0.6 : 1; 
             const baseRadius = 6 * mobileScale;
             const radius = (isTarget ? (baseRadius * 1.5) + pulse : baseRadius);
 
-            // OUTER GLOW (Additive)
+            // 1. OUTER GLOW
             ctx.globalCompositeOperation = 'lighter';
             const gradient = ctx.createRadialGradient(node.x!, node.y!, 0, node.x!, node.y!, radius * 4);
             gradient.addColorStop(0, color);
@@ -257,7 +334,7 @@ export default function TechConstellation() {
             ctx.arc(node.x!, node.y!, radius * 4, 0, 2 * Math.PI);
             ctx.fill();
 
-            // REACTOR RING
+            // 2. REACTOR RING
             if (isTarget) {
                 ctx.save();
                 ctx.translate(node.x!, node.y!);
@@ -273,7 +350,7 @@ export default function TechConstellation() {
                 ctx.restore();
             }
 
-            // CORE
+            // 3. CORE
             ctx.globalCompositeOperation = 'source-over';
             ctx.beginPath();
             ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
@@ -285,16 +362,18 @@ export default function TechConstellation() {
             ctx.fillStyle = color;
             ctx.fill();
 
-            // LABEL
+            // 4. LABEL
             if (node.group <= 2 || isTarget) {
-              const label = node.id as string;
+              const label = node.title || node.id as string; // Use Title if available
               const fontSize = (12 / globalScale) * mobileScale;
               ctx.font = `bold ${fontSize}px Sans-Serif`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillStyle = 'rgba(255,255,255,0.8)';
               const textOffset = radius + (isTarget ? 15 : 8);
-              ctx.fillText(label, node.x!, node.y! + textOffset);
+              // Only show first word of ID for cleaner look on graph
+              const shortLabel = label.split(' ')[0].toUpperCase();
+              ctx.fillText(shortLabel, node.x!, node.y! + textOffset);
             }
           }}
         />
