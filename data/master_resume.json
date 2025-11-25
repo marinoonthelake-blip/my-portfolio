@@ -1,0 +1,129 @@
+{
+  "profile": {
+    "name": "Jonathan William Marino",
+    "title": "Tech Lead for Policy @ Google",
+    "tagline": "From E-Trade Babies to Enterprise Policy: Architecting the Integrity of the Future.",
+    "contact": {
+      "portfolio": "https://jwm.digital",
+      "linkedin": "https://linkedin.com/in/jwmdigital"
+    }
+  },
+  "brand_narrative": {
+    [cite_start]"bio_summary": "A digital engineer and creative strategist who evolved from designing for Jay-Z and the E-Trade Babies to architecting Google's global policy infrastructure. I combine high-level creative direction with complex data engineering (SQL, Policy logic) to build systems that protect billions of users while eliminating friction. [cite: 8, 12, 42, 102]",
+    [cite_start]"unique_value_prop": "The Power of Synthesis: Combining Creative Motion, Web Design, Data Analysis, and Policy Engineering to solve problems others deem impossible. [cite: 97, 216]"
+  },
+  "philosophy": {
+    "northstars": [
+      {
+        "name": "The Integrity Imperative",
+        "description": "Architecting data-driven solutions that ensure the fairness and consistency of Global Policy."
+      },
+      {
+        "name": "Frictionless Future",
+        "description": "Using complex data analysis to pinpoint dissatisfaction at the source and turn policy challenges into high-trust experiences."
+      },
+      {
+        "name": "Elevate the Human",
+        "description": "Freeing up high-level teams from manual review by building the 'Professional Google Inside' they never had."
+      }
+    ],
+    "core_values": [
+      "Empowerment and Safety First (Team Health)",
+      "Unwavering Problem Solver (Relentless Execution)",
+      [cite_start]"Data-Backed Conviction (Evidence over Opinion) [cite: 136]",
+      [cite_start]"Security & Scalability First (Due Diligence) [cite: 133]",
+      "Ethical Vigilance (Mitigating AI over-flagging)"
+    ]
+  },
+  "core_competencies": [
+    [cite_start]"GoogleSQL (BigQuery) & Complex Querying [cite: 190]",
+    "Policy Infrastructure Architecture",
+    "Crisis Management (ATO Code Red)",
+    "Hierarchical Account Infection Mapping (TRACE)",
+    [cite_start]"Creative Strategy (Motion & Web) [cite: 169]",
+    [cite_start]"Vendor Vetting & Contract Negotiation [cite: 133]",
+    "Security Analysis & Risk Mitigation",
+    [cite_start]"Team Leadership (Global Supply Chain) [cite: 129]"
+  ],
+  "experience_highlights": [
+    {
+      "role": "Tech Lead, Policy & Trust Safety",
+      "company": "Google",
+      [cite_start]"duration": "2015 - Present [cite: 99]",
+      "key_achievement": "Architecting global data solutions for Policy, Trust & Safety, and Crisis Response across a 12-year tenure.",
+      "projects": [
+        {
+          "name": "ATO Crisis Response (Account Takeover Code Red)",
+          "focus": "Risk Mitigation & Operational Recovery",
+          "details": [
+            "Orchestrated the 'Code Red' operational cleanup for high-risk Account Takeovers (ATO), directly managing 'Option B' protocols for critical clients.",
+            "Engineered data pipelines integrating Buganizer CIDs into real-time dashboards, closing visibility gaps on missing cases.",
+            "Led the transition from manual Trix-based investigations to the automated AART Clean Up Tool, significantly reducing case resolution time."
+          ]
+        },
+        {
+          "name": "Certs CX Infrastructure (Ads Certifications)",
+          "focus": "Scalability & User Experience",
+          "details": [
+            "Collaborated on the architectural expansion of 'MCC Inheritance' criteria, simplifying certification logic for parent accounts.",
+            "Developed scalable infrastructure for Certification Auditing and Revocation, ensuring policy compliance without throttling legitimate ad spend.",
+            "Implemented 'Structured & Transparent Rejection' logic, reducing support ticket volume by clarifying policy violations to users."
+          ]
+        },
+        {
+          "name": "AI & Internal Tooling Innovation",
+          "focus": "Automation & Innovation",
+          "details": [
+            [cite_start]"Built 'SlideSense' (NLP/Computer Vision), an AI tool that automates executive presentation review, saving 1,000+ management hours. [cite: 143]",
+            [cite_start]"Created 'Stevie,' a Gemini-powered audio synthesis interface, solving accessibility gaps for visually impaired users by enabling audio-only LLM chat. [cite: 149]",
+            [cite_start]"Engineered 'CARTA,' a custom GA4 analytics widget to solve complex document tracking issues that standard tools could not handle. [cite: 155]"
+          ]
+        },
+        {
+          "name": "Global Operations Engineering",
+          "focus": "Scale & Efficiency",
+          "details": [
+            [cite_start]"Founded and scaled 'Production Creative Works' from a pilot to a multi-million dollar global operation across APAC, EMEA, and AMER. [cite: 129]",
+            [cite_start]"Authored the core SOPs and Business Requirement Documents (BRDs) that standardized Google's creative supply chain. [cite: 134]",
+            [cite_start]"Implemented 'Data & Metrics Visualization' to track Time to Delivery and Revision Rates, moving creative management to objective P&L management. [cite: 136]"
+          ]
+        },
+        {
+          "name": "Creative Technology (Ad Formats)",
+          "focus": "First-to-Market Engineering",
+          "details": [
+            [cite_start]"Led Technical Program Management for '3D Swirl,' enabling interactive 3D assets (glTF/glb) in display ads. [cite: 110]",
+            [cite_start]"Drove adoption of YouTube AR 'Virtual Try-On,' using ARCore to allow users to try makeup via front-facing camera. [cite: 118]",
+            [cite_start]"Served as Technical Consultant for 'Beyond the Map' (Rio Favelas) and 'Hidden Worlds' (National Parks), using 360-degree video/WebGL for digital archiving. [cite: 161, 163]"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Motion Graphics Director / Lead",
+      "company": "Boombox",
+      [cite_start]"duration": "2010 - 2015 [cite: 74]",
+      "key_achievement": "Evolved from a singular video editor to a Director, building an internal creative production powerhouse.",
+      [cite_start]"metrics": "Managed 'award-winning projects' and defined pipeline management for video & graphics. [cite: 86]"
+    },
+    {
+      "role": "Lead 3D Artist & Audio Engineer",
+      "company": "LimeGorilla (Indie Game Dev)",
+      [cite_start]"duration": "2010s [cite: 91]",
+      [cite_start]"key_achievement": "Built 'Goofer' for iPad, demonstrating full-stack mobile capability (Audio, 3D, Logic) during the early App Store boom. [cite: 91]",
+      [cite_start]"metrics": "Handled Music Creation, 3D Modeling, and Game Logic. [cite: 94]"
+    },
+    {
+      "role": "Production Designer / Performer",
+      "company": "Oddcast",
+      [cite_start]"duration": "2006 - 2010 [cite: 18]",
+      [cite_start]"key_achievement": "Pioneered early viral marketing and personalized interactivity. [cite: 21]",
+      [cite_start]"metrics": "Key contributor to 'Monk-e-Mail' (50M users) and the 'E-Trade Baby' Super Bowl campaign (ran for 6 years). [cite: 37, 46]"
+    }
+  ],
+  "voice_settings": {
+    "tone": "Visionary but grounded, Authoritative, 'The Adult in the Room'",
+    "keywords_to_include": ["Integrity", "Frictionless", "Synthesis", "Scale", "Conviction", "Governance"],
+    "forbidden_phrases": ["I helped", "I think", "Rockstar", "Ninja"]
+  }
+}
