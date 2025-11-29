@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import fs from 'fs';
 import path from 'path';
+import { kv } from '@vercel/kv';
 import { RESUME_TEXT } from "../../data/resume_source";
 
 export const maxDuration = 60; 
@@ -27,8 +28,6 @@ export async function POST(req: Request) {
     try {
         const apiKey = process.env.GEMINI_API_KEY || "";
         const genAI = new GoogleGenerativeAI(apiKey);
-        
-        // Get accurate date string for the prompt
         const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
         const promptText = `
@@ -37,9 +36,8 @@ export async function POST(req: Request) {
         TODAY'S DATE: ${today}
 
         TASK:
-        1. **BREAKING NEWS (Item 1):** Find ONE major tech event from the last 24 hours (e.g. ${today}).
-           - FORCE the 'date' field for this item to be "LIVE - TODAY".
-        
+        1. **BREAKING NEWS (Item 1):** Find ONE major tech event from the last 24 hours.
+           - FORCE the 'date' field to be "LIVE - TODAY".
         2. **MARKET TRENDS (Items 2-10):** Find 9 other recent events (last 30 days).
 
         CRITICAL RULES:
@@ -47,63 +45,49 @@ export async function POST(req: Request) {
         - "experience.result": Use exact numbers from the resume.
         - "category": Must be "live".
 
-        OUTPUT JSON ONLY:
-        [
-          {
-            "id": "LIVE_GEN_01",
-            "category": "live",
-            "headline": { "title": "Headline", "subtitle": "Impact Area" },
-            "context": {
-              "label": "Market Context",
-              "description": "1-sentence summary.",
-              "date": "LIVE - TODAY", 
-              "sources": [{ "label": "Source", "type": "News", "url": "URL" }]
-            },
-            "insight": { "label": "Friction", "explanation": "Why this is hard." },
-            "experience": {
-              "label": "Strategic Response",
-              "role": "Role",
-              "action": "Detailed action from resume.",
-              "result": "Metric",
-              "tags": ["Tag1"]
-            },
-            "icon": "Activity" 
-          }
-        ]
+        OUTPUT JSON ONLY (Array of objects matching NarrativeCard schema).
         `;
 
+        log("Attempting Gemini 2.5 Flash (Search Enabled)...");
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-2.5-flash", 
+            tools: [{ googleSearch: {} }] as any 
+        });
+        
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: promptText }] }]
+        });
+        
+        let jsonResult = cleanAndParseJSON(result.response.text());
+        
+        // Garbage Filter
+        jsonResult = jsonResult.filter((item: any) => {
+            const url = item.context?.sources?.[0]?.url || "";
+            return url && !url.includes("example.com") && url.startsWith("http");
+        });
+        
+        // --- PERSISTENCE LAYER ---
+        
+        // 1. Write to Vercel KV (Production Storage)
         try {
-            log("Attempting Gemini 2.5 Flash (Search Enabled)...");
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-2.5-flash", 
-                // CRITICAL FIX: Use the specific, canonical structure for search tool
-                tools: [{ googleSearch: {} }] as any // Casting to 'any' as a final bypass for environmental type issues
-            });
-            
-            const result = await model.generateContent({
-                contents: [{ role: "user", parts: [{ text: promptText }] }]
-            });
-            
-            let jsonResult = cleanAndParseJSON(result.response.text());
-            
-            // Garbage Filter
-            jsonResult = jsonResult.filter((item: any) => {
-                const url = item.context?.sources?.[0]?.url || "";
-                return url && !url.includes("example.com") && url.startsWith("http");
-            });
-            
-            if (process.env.NODE_ENV === 'development') {
+            await kv.set('live_cache', jsonResult);
+            log("✅ Saved to Vercel KV (Redis)");
+        } catch (kvError: any) {
+            log("⚠️ Vercel KV Write Failed: " + kvError.message);
+        }
+
+        // 2. Write to Local File (Dev Mode Only)
+        if (process.env.NODE_ENV === 'development') {
+            try {
                 const filePath = path.join(process.cwd(), 'app', 'data', 'live_cache.json');
                 fs.writeFileSync(filePath, JSON.stringify(jsonResult, null, 2));
-                log("Cache updated.");
+                log("✅ Saved to Local Filesystem");
+            } catch (fsError) {
+                log("⚠️ Local Write Failed (Expected in Production)");
             }
-
-            return NextResponse.json({ success: true, logs: debugLog, data: jsonResult });
-
-        } catch (err: any) {
-            log("❌ Error: " + err.message);
-            throw err;
         }
+
+        return NextResponse.json({ success: true, logs: debugLog, data: jsonResult });
 
     } catch (fatalError: any) {
         return NextResponse.json({ success: false, error: fatalError.message, logs: debugLog }, { status: 500 });

@@ -101,7 +101,10 @@ export default function CinematicIntro({ onComplete, context }: Props) {
         window.addEventListener('mousemove', onMouseMove);
         
         // --- PARTICLE SYSTEM ---
-        const PARTICLE_COUNT = 8000; 
+        // MOBILE OPTIMIZATION: Reduce particles on small screens
+        const isMobile = window.innerWidth < 768;
+        const PARTICLE_COUNT = isMobile ? 3000 : 8000; 
+        
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(PARTICLE_COUNT * 3);
         const colors = new Float32Array(PARTICLE_COUNT * 3);
@@ -195,23 +198,18 @@ export default function CinematicIntro({ onComplete, context }: Props) {
             return [r, g, b];
         }
 
-        // 15 Lines, 60 seconds total (~3.8s per line)
+        // Updated Script: 10 Lines, Technical & Intriguing
         const cinematicScript = [
             [1.5, "Welcome."],
-            [5.3, "You haven’t just loaded a webpage."],
-            [9.1, "You have awakened a living system."],
-            [12.9, "Right now, a swarm of AI is setting to work."],
-            [16.7, "They are traveling the internet at lightspeed."],
-            [20.5, "Looking for context and meaning in the noise."],
-            [24.3, "They are learning what matters right this second."],
-            [28.1, "And weaving a portfolio from what they find."],
-            [31.9, "This is not a pre-made template."],
-            [35.7, "It is a creation happening in real-time."],
-            [39.5, "Watch as the design begins to breathe."],
-            [43.3, "Evolving from simple data into complex life."],
-            [47.1, "It is thinking, growing, and assembling for you."],
-            [50.9, "The experience is now alive."],
-            [54.7, "Welcome."]
+            [6.0, "This page is being built in real-time."],
+            [11.0, "Right now, a network of AI agents is exploring."],
+            [17.0, "They are scanning the web for context."],
+            [23.0, "Curating the most relevant data for this moment."],
+            [29.0, "And assembling a dynamic portfolio from scratch."],
+            [35.0, "No static templates, just live creation."],
+            [41.0, "Watch as the structure takes shape."],
+            [47.0, "Your unique experience is ready."],
+            [53.0, "Welcome."]
         ];
 
         let lastNarrativeIndex = -1;
@@ -435,6 +433,14 @@ export default function CinematicIntro({ onComplete, context }: Props) {
                     }}></div>
                 </div>
             </div>
+
+            {/* SKIP BUTTON */}
+            <button 
+                onClick={runCleanup}
+                className="absolute bottom-8 right-8 z-[200] text-[10px] md:text-xs font-bold text-white/50 hover:text-white border border-white/20 hover:border-white/50 px-4 py-2 rounded uppercase tracking-widest transition-all backdrop-blur-sm cursor-pointer pointer-events-auto"
+            >
+                Skip Sequence »
+            </button>
         </div>
     );
 }

@@ -1,30 +1,29 @@
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
 import { 
-  Fingerprint, ExternalLink, Lightbulb, User, Pause, Activity, Calendar, MousePointer2, PauseCircle, Play
+  Fingerprint, ExternalLink, Lightbulb, User, Pause, Activity, Calendar, MousePointer2, PauseCircle
 } from 'lucide-react';
 import { NarrativeCard } from './NeuralData';
 import { SwarmEngine } from './SwarmEngine';
 
+// CardModule: Ref is now attached DIRECTLY to the visible connector bar
 const CardModule = forwardRef(({ title, children, color, isVisible, delay, glow, date, link }: any, ref: any) => {
     return (
         <div 
-            ref={ref}
             style={{ 
                 background: `rgba(15, 23, 42, 0.9)`,
-                borderLeft: "4px solid " + color, // FIXED: Used concatenation
+                borderLeft: "4px solid " + color,
                 borderTop: '1px solid rgba(255,255,255,0.05)',
                 borderRight: '1px solid rgba(255,255,255,0.05)',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
                 borderRadius: '0 12px 12px 0',
-                padding: '20px',
                 marginBottom: '16px',
-                width: '100%',
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? 'translateX(0)' : 'translateX(-20px)',
-                transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) " + delay + "ms", // FIXED: Used concatenation
-                boxShadow: isVisible ? "0 4px 30px " + color + (glow ? "40" : "10") : "none", // FIXED: Used concatenation
+                transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) " + delay + "ms",
+                boxShadow: isVisible ? "0 4px 30px " + color + (glow ? "40" : "10") : "none",
                 position: 'relative'
             }}
+            className="w-full p-4 md:p-5"
         >
             <div className="flex justify-between items-start mb-2">
                 <div style={{ fontSize: '10px', fontWeight: 700, color: color, textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -54,11 +53,23 @@ const CardModule = forwardRef(({ title, children, color, isVisible, delay, glow,
                 </a>
             )}
             
-            <div style={{ 
-                position: 'absolute', top: '50%', right: '-4px', width: '4px', height: '12px', 
-                background: color, borderRadius: '2px', marginTop: '-6px',
-                opacity: isVisible ? 1 : 0, transition: 'opacity 1s'
-            }} />
+            {/* 1. VISUAL CONNECTOR BAR (Now also acts as the Anchor) */}
+            {/* We attach the Ref here directly to ensure coordinates match the visible element exactly */}
+            <div 
+                ref={ref}
+                style={{ 
+                    position: 'absolute', 
+                    top: '50%', 
+                    right: '-4px', 
+                    width: '4px', 
+                    height: '12px', 
+                    marginTop: '-6px', 
+                    background: color, 
+                    borderRadius: '2px',
+                    opacity: isVisible ? 1 : 0, 
+                    transition: 'opacity 1s'
+                }} 
+            />
         </div>
     )
 });
@@ -74,26 +85,45 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
     const [activeContent, setActiveContent] = useState<NarrativeCard | null>(null);
     const [visible, setVisible] = useState([false, false, false, false]);
     const [isHovered, setIsHovered] = useState(false);
+    const [isTouch, setIsTouch] = useState(false);
     
+    // Refs attached to the specific ANCHOR points inside the cards
     const card1Ref = useRef<HTMLDivElement>(null);
     const card2Ref = useRef<HTMLDivElement>(null);
     const card3Ref = useRef<HTMLDivElement>(null);
     const card4Ref = useRef<HTMLDivElement>(null);
+    
     const isHoveredRef = useRef(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
     useEffect(() => { isHoveredRef.current = isHovered; }, [isHovered]);
+
+    // DETECT TOUCH CAPABILITY
+    useEffect(() => {
+        setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    }, []);
     
     useEffect(() => {
         if (!engine) return;
+        
+        let rafId: number;
+        
         const updateTargets = () => {
             const refs = [card1Ref, card2Ref, card3Ref, card4Ref];
+            // Get the bounding rect of the visible anchor bar
             const rects = refs.map(r => r.current?.getBoundingClientRect() || new DOMRect(0,0,0,0));
-            engine.setTargets(rects);
+            
+            // We pass the anchor rects directly. SwarmEngine will target their center.
+            if (rects[0] && rects[0].top !== 0) {
+                engine.setTargets(rects);
+            }
+            
+            rafId = requestAnimationFrame(updateTargets);
         };
-        const interval = setInterval(updateTargets, 100);
-        return () => clearInterval(interval);
+        
+        rafId = requestAnimationFrame(updateTargets);
+        return () => cancelAnimationFrame(rafId);
     }, [engine, content]);
 
     // --- STRICT CONTENT SWAPPING LOGIC ---
@@ -163,28 +193,26 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
 
     return (
         <div 
-            style={{ 
-                position: 'absolute', top: '50%', left: '60px', width: '500px', transform: 'translateY(-50%)',
-                zIndex: 20, display: 'flex', flexDirection: 'column' 
-            }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className="absolute bottom-20 left-4 right-4 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:left-[60px] md:right-auto md:w-[500px] z-20 flex flex-col"
+            onMouseEnter={() => !isTouch && setIsHovered(true)}
+            onMouseLeave={() => !isTouch && setIsHovered(false)}
+            onClick={() => isTouch && setIsHovered(!isHovered)} 
         >
             <CardModule ref={card1Ref} title={activeContent.category === 'live' ? "LIVE_INTERCEPT" : "IDENTITY_SIGNAL"} color={themeColor} isVisible={visible[0]} delay={0} glow={isLive} date={activeContent.context.date}>
                 <div className="flex items-center gap-3">
                     <div className={"p-2 rounded border " + (isLive ? 'bg-red-950/50 border-red-500/50' : 'bg-slate-800 border-slate-700')}>
-                        <Icon className="w-6 h-6 text-white" />
+                        <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
-                    <div className="pr-8">
-                        <h2 className="text-xl font-bold text-white leading-tight">{activeContent.headline.title}</h2>
-                        <p className="text-xs text-slate-400 mt-1 font-mono">{activeContent.headline.subtitle}</p>
+                    <div className="pr-2 md:pr-8">
+                        <h2 className="text-lg md:text-xl font-bold text-white leading-tight">{activeContent.headline.title}</h2>
+                        <p className="text-[10px] md:text-xs text-slate-400 mt-1 font-mono">{activeContent.headline.subtitle}</p>
                     </div>
                 </div>
             </CardModule>
 
             <CardModule ref={card2Ref} title={activeContent.context.label} color={themeColor} isVisible={visible[1]} delay={0} link={isLive ? primaryLink : null}>
-                <p className="text-sm text-slate-300 mb-3 leading-relaxed pr-6">{activeContent.context.description}</p>
-                <div className="flex gap-2">
+                <p className="text-xs md:text-sm text-slate-300 mb-3 leading-relaxed pr-6">{activeContent.context.description}</p>
+                <div className="flex gap-2 flex-wrap">
                     {!isLive && activeContent.context.sources.map((s, i) => (
                         <a key={i} href={s.url} target="_blank" rel="noreferrer" 
                            className="px-2 py-1 bg-blue-900/30 border border-blue-500/30 rounded text-[10px] text-blue-300 hover:bg-blue-900/50 transition-colors flex items-center gap-1">
@@ -202,7 +230,7 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
             <CardModule ref={card3Ref} title={activeContent.insight.label} color={themeColor} isVisible={visible[2]} delay={0}>
                  <div className="flex items-start gap-3">
                      <div className={"mt-1 " + (isLive ? 'text-red-500' : 'text-amber-500')}><Lightbulb size={16} /></div>
-                     <p className="text-sm text-slate-200 leading-relaxed">
+                     <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
                          {activeContent.insight.explanation}
                      </p>
                  </div>
@@ -211,12 +239,12 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
             <CardModule ref={card4Ref} title={activeContent.experience.label} color={themeColor} isVisible={visible[3]} delay={0}>
                 <div className={"rounded p-3 border " + (isLive ? 'bg-red-950/20 border-red-500/20' : 'bg-emerald-950/30 border-emerald-500/20')}>
                      <div className="flex justify-between items-center mb-2">
-                         <span className={"text-xs font-bold " + (isLive ? 'text-red-400' : 'text-emerald-400')}>{activeContent.experience.role}</span>
+                         <span className={"text-[10px] md:text-xs font-bold " + (isLive ? 'text-red-400' : 'text-emerald-400')}>{activeContent.experience.role}</span>
                          <span className={"text-[10px] px-2 py-0.5 rounded " + (isLive ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300')}>
                              {activeContent.experience.result}
                          </span>
                      </div>
-                     <p className="text-xs text-slate-300 mb-2">{activeContent.experience.action}</p>
+                     <p className="text-[10px] md:text-xs text-slate-300 mb-2">{activeContent.experience.action}</p>
                      <div className="flex gap-1 flex-wrap">
                          {activeContent.experience.tags.map(t => (
                              <span key={t} className="text-[9px] text-slate-500 border border-slate-700 px-1.5 rounded">{t}</span>
@@ -234,12 +262,12 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
                     {isHovered ? (
                         <><PauseCircle size={12} className="animate-pulse" />System Paused</>
                     ) : (
-                        <><MousePointer2 size={12} />Hover to Pause</>
+                        <><MousePointer2 size={12} />{isTouch ? "Tap to Pause" : "Hover to Pause"}</>
                     )}
                 </div>
                 
                 {!isHovered && (
-                    <div className="h-0.5 bg-slate-800 w-24 rounded-full overflow-hidden">
+                    <div className="h-0.5 bg-slate-800 w-16 md:w-24 rounded-full overflow-hidden">
                         <div 
                             key={activeContent.id} 
                             className="h-full bg-slate-500/50 animate-progress origin-left"

@@ -152,7 +152,7 @@ const mapGemToCard = (gem: any, index: number): NarrativeCard => {
     };
 };
 
-const portfolioCards = RAW_GEMS.map(mapGemToCard); // <-- Line 152 in output
+const portfolioCards = RAW_GEMS.map(mapGemToCard); 
 
 // Bio Card
 const bioCard: NarrativeCard = { 
@@ -164,8 +164,7 @@ const bioCard: NarrativeCard = {
       description: "Executive leader bridging Engineering Velocity and Operational Safety. Transforming regulatory frameworks into automated data meshes.",
       date: "EST. 2005",
       sources: [
-        { label: "LinkedIn", type: "Social", url: "https://www.linkedin.com/in/jwmdigital" },
-        { label: "Portfolio", type: "Web", url: "https://jwm.digital" }
+        { label: "LinkedIn", type: "Social", url: "https://www.linkedin.com/in/jwmdigital" }
       ]
     },
     insight: {

@@ -40,11 +40,6 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
-.backup/
-  brain_components/
-    HeroCard.tsx
-    NeuralBackground.tsx
-    SwarmEngine.ts
 app/
   admin/
     brain/
@@ -59,6 +54,8 @@ app/
     generate-resume/
       route.ts
     live-agent/
+      route.ts
+    read-cache/
       route.ts
   builder/
     page.tsx
@@ -80,6 +77,7 @@ app/
   data/
     live_cache.json
     master_gems.ts
+    master_resume.json
     resume_source.ts
   gems/
     artisan.ts
@@ -90,15 +88,9 @@ app/
   globals.css
   layout.tsx
   page.tsx
-data/
-  generated_site_content.json
-  master_resume.json
-gems/
-  brain_prime.txt
-  constructor.txt
-  executive_profiler.txt
-  resume_architect.txt
 public/
+  js/
+    noise.js
   projects/
     global-ops-arch.png
     global-ops.png
@@ -112,848 +104,181 @@ public/
   vercel.svg
   window.svg
 .gitignore
-check_models.py
 deploy.sh
 eslint.config.mjs
+legacy_scripts_backup.zip
 next.config.ts
-orchestrator.py
 package.json
 postcss.config.mjs
 README.md
 tsconfig.json
-update_resume.py
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
 
-<file path=".backup/brain_components/HeroCard.tsx">
-import React, { useEffect, useState, useRef, forwardRef } from 'react';
-import { NarrativeCard } from './NeuralData';
-import { ExternalLink, ChevronDown, ChevronUp, CheckCircle2, ArrowRight, Activity } from 'lucide-react';
+<file path="app/api/read-cache/route.ts">
+import { NextResponse } from 'next/server';
+import { kv } from '@vercel/kv';
+import staticCache from '../../data/live_cache.json';
 
-interface HeroCardProps {
-  content: NarrativeCard;
-  onDeparticlize: () => void;
-  onCycleComplete: () => void;
-  triggerBurst: () => void; 
+export const dynamic = 'force-dynamic'; // Always fetch fresh data
+
+export async function GET() {
+  try {
+    // 1. Try to fetch from Vercel KV (Redis)
+    const liveData = await kv.get('live_cache');
+
+    // 2. If Redis has data, return it.
+    if (liveData) {
+      return NextResponse.json(liveData);
+    }
+
+    // 3. If Redis is empty (first run), return static backup
+    return NextResponse.json(staticCache);
+
+  } catch (error) {
+    console.error("KV Read Error:", error);
+    // 4. Fail safe: return static backup
+    return NextResponse.json(staticCache);
+  }
 }
-
-const HeroCard = forwardRef<HTMLDivElement, HeroCardProps>(({ content, onDeparticlize, onCycleComplete, triggerBurst }, ref) => {
-  if (!content) return null;
-
-  const [phase, setPhase] = useState<"context" | "insight" | "experience">("context");
-  
-  // Visibility States
-  const [showContext, setShowContext] = useState(false);
-  const [collapseContext, setCollapseContext] = useState(false);
-  
-  const [showInsight, setShowInsight] = useState(false);
-  const [collapseInsight, setCollapseInsight] = useState(false);
-  
-  const [showExperience, setShowExperience] = useState(false);
-  
-  // Text Typing States
-  const [txtDescription, setTxtDescription] = useState("");
-  const [txtExplanation, setTxtExplanation] = useState("");
-  const [txtAction, setTxtAction] = useState("");
-
-  const [clipPath, setClipPath] = useState("inset(0 0 0 100%)");
-  
-  // Manual Expansion State
-  const [forceExpand, setForceExpand] = useState<string | null>(null);
-
-  // Hover Logic
-  const [isHovered, setIsHovered] = useState(false);
-  const isHoveredRef = useRef(false);
-  const frameRef = useRef(0);
-
-  useEffect(() => { isHoveredRef.current = isHovered; }, [isHovered]);
-  const randomChar = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 52)];
-
-  useEffect(() => {
-    // RESET
-    setPhase("context");
-    setClipPath("inset(0 0 0 100%)");
-    setShowContext(false); setCollapseContext(false);
-    setShowInsight(false); setCollapseInsight(false);
-    setShowExperience(false);
-    setTxtDescription(""); setTxtExplanation(""); setTxtAction("");
-    setForceExpand(null);
-    frameRef.current = 0;
-
-    let reqId: number;
-    const totalDuration = 1400; 
-    const closeStart = totalDuration - 60; 
-
-    const animLoop = () => {
-      // PAUSE IF HOVERED
-      if (isHoveredRef.current) {
-         reqId = requestAnimationFrame(animLoop);
-         return;
-      }
-
-      frameRef.current++;
-      const frame = frameRef.current;
-
-      // 1. INIT: WIPE IN FROM RIGHT
-      if (frame < 60) {
-        const p = frame / 60;
-        const ease = 1 - Math.pow(1 - p, 3);
-        setClipPath(`inset(0 0 0 ${100 - (ease * 100)}%)`);
-      }
-      if (frame === 40) setShowContext(true);
-
-      // 2. CONTEXT (60-300)
-      if (frame > 60 && frame < 250) {
-          const p = (frame - 60) / 1.0;
-          const text = content.context?.description || "";
-          if (p < text.length) setTxtDescription(text.substring(0, Math.floor(p)) + randomChar());
-          else setTxtDescription(text);
-      }
-      if (frame === 300) { setCollapseContext(true); setPhase("insight"); }
-
-      // 3. INSIGHT (300-650)
-      if (frame === 330) setShowInsight(true);
-      if (frame > 330 && frame < 600) {
-          const p = (frame - 330) / 1.0;
-          const text = content.insight?.explanation || "";
-          if (p < text.length) setTxtExplanation(text.substring(0, Math.floor(p)) + randomChar());
-          else setTxtExplanation(text);
-      }
-      if (frame === 650) { setCollapseInsight(true); setPhase("experience"); }
-
-      // 4. EXPERIENCE (650-1400)
-      if (frame === 680) setShowExperience(true);
-      if (frame > 680 && frame < 950) {
-          const p = (frame - 680) / 1.0;
-          const text = content.experience?.action || "";
-          if (p < text.length) setTxtAction(text.substring(0, Math.floor(p)));
-          else setTxtAction(text);
-      }
-
-      // 5. EXIT
-      if (frame > closeStart) {
-          const p = (frame - closeStart) / 60;
-          setClipPath(`inset(0 0 0 ${p * 100}%)`);
-          if (frame % 5 === 0 && triggerBurst) triggerBurst();
-          if (frame === closeStart + 1) onDeparticlize();
-          if (frame === totalDuration) onCycleComplete();
-      }
-
-      reqId = requestAnimationFrame(animLoop);
-    };
-
-    reqId = requestAnimationFrame(animLoop);
-    return () => cancelAnimationFrame(reqId);
-  }, [content, onDeparticlize, onCycleComplete, triggerBurst]);
-
-  const Icon = content.icon || Activity;
-
-  // Manual Toggle Handlers
-  const toggleContext = () => { if (isHovered) setForceExpand(prev => prev === 'context' ? null : 'context'); };
-  const toggleInsight = () => { if (isHovered) setForceExpand(prev => prev === 'insight' ? null : 'insight'); };
-
-  const activeId = forceExpand || phase;
-
-  return (
-    <div 
-      id="hero-card" 
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-          setIsHovered(false);
-          if (frameRef.current >= 1340) onCycleComplete();
-      }}
-      style={{
-        position: 'absolute', top: '50%', left: '60px', width: '600px', minHeight: '420px',
-        transform: `translateY(-50%)`, zIndex: 20, userSelect: 'none', cursor: 'default'
-      }}
-    >
-      <div style={{
-        width: '100%', height: '100%',
-        background: 'rgba(10, 15, 30, 0.90)', 
-        border: `1px solid rgba(255,255,255,0.1)`, 
-        borderRadius: '24px', padding: '40px',
-        position: 'relative',
-        boxShadow: `0 20px 60px rgba(0,0,0,0.6)`,
-        clipPath: clipPath,
-        display: 'flex', flexDirection: 'column',
-        backdropFilter: 'blur(20px)',
-        transition: 'box-shadow 0.5s ease'
-      }}>
-          
-         {/* Soft Gradient Top */}
-         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/50 via-purple-500/50 to-emerald-500/50"></div>
-
-         {/* Header Area */}
-         <div className="flex justify-between items-start mb-6">
-             <div className="flex items-center gap-3">
-                 <div className="p-2 bg-white/5 rounded-lg border border-white/10">
-                     <Icon className="w-5 h-5 text-white" />
-                 </div>
-                 <div className="flex flex-col">
-                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Current Situation</span>
-                     <h2 className="text-xl font-bold text-white leading-tight">{content.headline}</h2>
-                 </div>
-             </div>
-         </div>
-
-         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
-
-            {/* --- 1. CONTEXT --- */}
-            <div 
-                onClick={toggleContext}
-                className={`transition-all duration-500 ease-out overflow-hidden rounded-xl border ${isHovered && collapseContext ? 'cursor-pointer hover:bg-white/5 border-white/5' : 'border-transparent'}`}
-                style={{ 
-                    opacity: showContext ? 1 : 0, 
-                    transform: showContext ? 'translateY(0)' : 'translateY(10px)',
-                    maxHeight: (activeId === 'context' || (!collapseContext && showContext)) ? '200px' : '50px',
-                }}
-            >
-               {/* Collapsed State (Memory Pill) */}
-               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0' }}>
-                   <div className={`w-1 h-full bg-blue-500 rounded-full ${collapseContext ? 'opacity-100' : 'opacity-0'} transition-opacity`}></div>
-                   <div style={{ flex: 1 }}>
-                      <div className="text-xs font-bold text-blue-400 mb-1">{content.context.question}</div>
-                      {collapseContext && activeId !== 'context' && (
-                          <div className="text-sm text-slate-300 truncate">{content.context.description}</div>
-                      )}
-                   </div>
-                   {isHovered && collapseContext && (activeId === 'context' ? <ChevronUp size={16} className="text-slate-500"/> : <ChevronDown size={16} className="text-slate-500"/>)}
-               </div>
-
-               {/* Active State */}
-               <div style={{ opacity: (activeId === 'context' || !collapseContext) ? 1 : 0, transition: 'opacity 0.3s' }}>
-                   <p className="text-base text-slate-300 leading-relaxed mb-3">{txtDescription}</p>
-                   <div className="flex gap-2">
-                       {content.context.sources.map((s, i) => (
-                           <a 
-                               key={i} href={s.url} target="_blank" rel="noopener noreferrer"
-                               className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-xs text-slate-400 transition-colors border border-white/5"
-                               onClick={(e) => e.stopPropagation()}
-                           >
-                               <ExternalLink size={10} />
-                               <span>{s.label}</span>
-                           </a>
-                       ))}
-                   </div>
-               </div>
-            </div>
-
-            {/* --- 2. INSIGHT --- */}
-            <div 
-                onClick={toggleInsight}
-                className={`transition-all duration-500 ease-out overflow-hidden rounded-xl border ${isHovered && collapseInsight ? 'cursor-pointer hover:bg-white/5 border-white/5' : 'border-transparent'}`}
-                style={{ 
-                    opacity: showInsight ? 1 : 0.3, 
-                    transform: showInsight ? 'translateY(0)' : 'translateY(10px)',
-                    maxHeight: (activeId === 'insight' || (!collapseInsight && showInsight)) ? '200px' : '50px',
-                }}
-            >
-               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0' }}>
-                   <div className={`w-1 h-full bg-amber-500 rounded-full ${collapseInsight ? 'opacity-100' : 'opacity-0'} transition-opacity`}></div>
-                   <div style={{ flex: 1 }}>
-                      <div className="text-xs font-bold text-amber-400 mb-1">{content.insight.question}</div>
-                      {collapseInsight && activeId !== 'insight' && (
-                          <div className="text-sm text-slate-300 truncate">{content.insight.explanation}</div>
-                      )}
-                   </div>
-                   {isHovered && collapseInsight && (activeId === 'insight' ? <ChevronUp size={16} className="text-slate-500"/> : <ChevronDown size={16} className="text-slate-500"/>)}
-               </div>
-
-               <div style={{ opacity: (activeId === 'insight' || !collapseInsight) ? 1 : 0, transition: 'opacity 0.3s' }}>
-                   <p className="text-base text-slate-200 leading-relaxed border-l-2 border-amber-500/30 pl-4">
-                       {txtExplanation}
-                   </p>
-               </div>
-            </div>
-
-            {/* --- 3. EXPERIENCE --- */}
-            <div style={{ 
-                flex: 1, transition: 'all 0.5s ease',
-                opacity: showExperience ? 1 : 0.3, transform: showExperience ? 'translateY(0)' : 'translateY(10px)',
-                marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)'
-            }}>
-                <div className="text-xs font-bold text-emerald-400 mb-3 flex items-center gap-2">
-                    <CheckCircle2 size={14} />
-                    {content.experience.question}
-                </div>
-                
-                <div className="bg-emerald-500/5 rounded-xl p-4 border border-emerald-500/20">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="text-sm font-bold text-emerald-300">{content.experience.role}</div>
-                        <div className="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded">
-                            {content.experience.result}
-                        </div>
-                    </div>
-                    <p className="text-sm text-slate-300 mb-3">{txtAction}</p>
-                    
-                    <div className="flex gap-2">
-                        {content.experience.tags.map(tag => (
-                            <span key={tag} className="text-[10px] text-emerald-400/70 px-2 py-0.5 rounded border border-emerald-500/20">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-                
-                {/* CTA */}
-                <button className="mt-4 w-full flex items-center justify-center gap-2 text-xs font-bold text-white/50 hover:text-white transition-colors py-2 pointer-events-auto">
-                    View Full Portfolio <ArrowRight size={12} />
-                </button>
-            </div>
-
-         </div>
-      </div>
-      
-      {/* Anchor Point on the RIGHT edge, matching the stream target */}
-      <div ref={ref} style={{ position: 'absolute', top: '50%', right: '-4px', width: '4px', height: '20px', background: '#10b981', boxShadow: '0 0 15px #10b981', borderRadius: '2px', zIndex: 5 }}></div>
-    </div>
-  );
-});
-
-HeroCard.displayName = "HeroCard";
-export default HeroCard;
 </file>
 
-<file path=".backup/brain_components/NeuralBackground.tsx">
-import React, { useEffect, useRef, useState } from 'react';
-import { SwarmEngine } from './SwarmEngine';
-import HeroCard from './HeroCard';
-import { narrativeData } from './NeuralData';
-
-const SiteHeader = ({ visible }: { visible: boolean }) => {
-  const [text, setText] = useState("");
-  
-  // Dynamic Header Text Cycle
-  useEffect(() => {
-      const phrases = [
-        "IDENTIFYING OPPORTUNITIES...",
-        "ANALYZING MARKET GAPS...",
-        "MATCHING EXPERTISE...",
-        "SYNTHESIZING SOLUTIONS..."
-      ];
-      let phraseIndex = 0;
-      let charIndex = 0;
-      let currentPhrase = "";
-      let isDeleting = false;
-
-      const timer = setInterval(() => {
-          const target = phrases[phraseIndex];
-          
-          if (isDeleting) {
-              currentPhrase = target.substring(0, charIndex--);
-              if (charIndex < 0) {
-                  isDeleting = false;
-                  phraseIndex = (phraseIndex + 1) % phrases.length;
-                  charIndex = 0;
-              }
-          } else {
-              currentPhrase = target.substring(0, charIndex++);
-              if (charIndex > target.length) {
-                  // Wait before deleting
-                  if (charIndex > target.length + 30) { // 30 ticks * 50ms = 1.5s pause
-                      isDeleting = true;
-                  }
-              }
-          }
-          setText(currentPhrase);
-      }, 50);
-      return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div style={{
-      position: 'absolute', top: 30, left: 40, 
-      textAlign: 'left', pointerEvents: 'none', zIndex: 10,
-      opacity: visible ? 1 : 0,
-      transform: visible ? 'translateY(0)' : 'translateY(-20px)',
-      transition: 'opacity 1.5s ease, transform 1.5s ease',
-      transitionDelay: '0.5s'
-    }}>
-      <h1 style={{ margin: 0, fontSize: '24px', color: '#fff', letterSpacing: '1px', fontWeight: 700 }}>
-        JONATHAN WILLIAM MARINO
-      </h1>
-      <div className="flex items-center gap-2 mt-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8', fontFamily: 'monospace' }}>
-            {text}
-          </p>
-      </div>
-    </div>
-  )
+<file path="app/data/master_resume.json">
+{
+  "profile": {
+    "name": "Jonathan William Marino",
+    "title": "Tech Lead for Policy @ Google",
+    "tagline": "From E-Trade Babies to Enterprise Policy: Architecting the Integrity of the Future.",
+    "contact": {
+      "portfolio": "https://jwm.digital",
+      "linkedin": "https://linkedin.com/in/jwmdigital"
+    }
+  },
+  "brand_narrative": {
+    [cite_start]"bio_summary": "A digital engineer and creative strategist who evolved from designing for Jay-Z and the E-Trade Babies to architecting Google's global policy infrastructure. I combine high-level creative direction with complex data engineering (SQL, Policy logic) to build systems that protect billions of users while eliminating friction. [cite: 8, 12, 42, 102]",
+    [cite_start]"unique_value_prop": "The Power of Synthesis: Combining Creative Motion, Web Design, Data Analysis, and Policy Engineering to solve problems others deem impossible. [cite: 97, 216]"
+  },
+  "philosophy": {
+    "northstars": [
+      {
+        "name": "The Integrity Imperative",
+        "description": "Architecting data-driven solutions that ensure the fairness and consistency of Global Policy."
+      },
+      {
+        "name": "Frictionless Future",
+        "description": "Using complex data analysis to pinpoint dissatisfaction at the source and turn policy challenges into high-trust experiences."
+      },
+      {
+        "name": "Elevate the Human",
+        "description": "Freeing up high-level teams from manual review by building the 'Professional Google Inside' they never had."
+      }
+    ],
+    "core_values": [
+      "Empowerment and Safety First (Team Health)",
+      "Unwavering Problem Solver (Relentless Execution)",
+      [cite_start]"Data-Backed Conviction (Evidence over Opinion) [cite: 136]",
+      [cite_start]"Security & Scalability First (Due Diligence) [cite: 133]",
+      "Ethical Vigilance (Mitigating AI over-flagging)"
+    ]
+  },
+  "core_competencies": [
+    [cite_start]"GoogleSQL (BigQuery) & Complex Querying [cite: 190]",
+    "Policy Infrastructure Architecture",
+    "Crisis Management (ATO Code Red)",
+    "Hierarchical Account Infection Mapping (TRACE)",
+    [cite_start]"Creative Strategy (Motion & Web) [cite: 169]",
+    [cite_start]"Vendor Vetting & Contract Negotiation [cite: 133]",
+    "Security Analysis & Risk Mitigation",
+    [cite_start]"Team Leadership (Global Supply Chain) [cite: 129]"
+  ],
+  "experience_highlights": [
+    {
+      "role": "Tech Lead, Policy & Trust Safety",
+      "company": "Google",
+      [cite_start]"duration": "2015 - Present [cite: 99]",
+      "key_achievement": "Architecting global data solutions for Policy, Trust & Safety, and Crisis Response across a 12-year tenure.",
+      "projects": [
+        {
+          "name": "ATO Crisis Response (Account Takeover Code Red)",
+          "focus": "Risk Mitigation & Operational Recovery",
+          "details": [
+            "Orchestrated the 'Code Red' operational cleanup for high-risk Account Takeovers (ATO), directly managing 'Option B' protocols for critical clients.",
+            "Engineered data pipelines integrating Buganizer CIDs into real-time dashboards, closing visibility gaps on missing cases.",
+            "Led the transition from manual Trix-based investigations to the automated AART Clean Up Tool, significantly reducing case resolution time."
+          ]
+        },
+        {
+          "name": "Certs CX Infrastructure (Ads Certifications)",
+          "focus": "Scalability & User Experience",
+          "details": [
+            "Collaborated on the architectural expansion of 'MCC Inheritance' criteria, simplifying certification logic for parent accounts.",
+            "Developed scalable infrastructure for Certification Auditing and Revocation, ensuring policy compliance without throttling legitimate ad spend.",
+            "Implemented 'Structured & Transparent Rejection' logic, reducing support ticket volume by clarifying policy violations to users."
+          ]
+        },
+        {
+          "name": "AI & Internal Tooling Innovation",
+          "focus": "Automation & Innovation",
+          "details": [
+            [cite_start]"Built 'SlideSense' (NLP/Computer Vision), an AI tool that automates executive presentation review, saving 1,000+ management hours. [cite: 143]",
+            [cite_start]"Created 'Stevie,' a Gemini-powered audio synthesis interface, solving accessibility gaps for visually impaired users by enabling audio-only LLM chat. [cite: 149]",
+            [cite_start]"Engineered 'CARTA,' a custom GA4 analytics widget to solve complex document tracking issues that standard tools could not handle. [cite: 155]"
+          ]
+        },
+        {
+          "name": "Global Operations Engineering",
+          "focus": "Scale & Efficiency",
+          "details": [
+            [cite_start]"Founded and scaled 'Production Creative Works' from a pilot to a multi-million dollar global operation across APAC, EMEA, and AMER. [cite: 129]",
+            [cite_start]"Authored the core SOPs and Business Requirement Documents (BRDs) that standardized Google's creative supply chain. [cite: 134]",
+            [cite_start]"Implemented 'Data & Metrics Visualization' to track Time to Delivery and Revision Rates, moving creative management to objective P&L management. [cite: 136]"
+          ]
+        },
+        {
+          "name": "Creative Technology (Ad Formats)",
+          "focus": "First-to-Market Engineering",
+          "details": [
+            [cite_start]"Led Technical Program Management for '3D Swirl,' enabling interactive 3D assets (glTF/glb) in display ads. [cite: 110]",
+            [cite_start]"Drove adoption of YouTube AR 'Virtual Try-On,' using ARCore to allow users to try makeup via front-facing camera. [cite: 118]",
+            [cite_start]"Served as Technical Consultant for 'Beyond the Map' (Rio Favelas) and 'Hidden Worlds' (National Parks), using 360-degree video/WebGL for digital archiving. [cite: 161, 163]"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Motion Graphics Director / Lead",
+      "company": "Boombox",
+      [cite_start]"duration": "2010 - 2015 [cite: 74]",
+      "key_achievement": "Evolved from a singular video editor to a Director, building an internal creative production powerhouse.",
+      [cite_start]"metrics": "Managed 'award-winning projects' and defined pipeline management for video & graphics. [cite: 86]"
+    },
+    {
+      "role": "Lead 3D Artist & Audio Engineer",
+      "company": "LimeGorilla (Indie Game Dev)",
+      [cite_start]"duration": "2010s [cite: 91]",
+      [cite_start]"key_achievement": "Built 'Goofer' for iPad, demonstrating full-stack mobile capability (Audio, 3D, Logic) during the early App Store boom. [cite: 91]",
+      [cite_start]"metrics": "Handled Music Creation, 3D Modeling, and Game Logic. [cite: 94]"
+    },
+    {
+      "role": "Production Designer / Performer",
+      "company": "Oddcast",
+      [cite_start]"duration": "2006 - 2010 [cite: 18]",
+      [cite_start]"key_achievement": "Pioneered early viral marketing and personalized interactivity. [cite: 21]",
+      [cite_start]"metrics": "Key contributor to 'Monk-e-Mail' (50M users) and the 'E-Trade Baby' Super Bowl campaign (ran for 6 years). [cite: 37, 46]"
+    }
+  ],
+  "voice_settings": {
+    "tone": "Visionary but grounded, Authoritative, 'The Adult in the Room'",
+    "keywords_to_include": ["Integrity", "Frictionless", "Synthesis", "Scale", "Conviction", "Governance"],
+    "forbidden_phrases": ["I helped", "I think", "Rockstar", "Ninja"]
+  }
 }
-
-const NeuralBackground: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const markerRef = useRef<HTMLDivElement>(null);
-  const engineRef = useRef<SwarmEngine | null>(null);
-  const [contentIndex, setContentIndex] = useState(0);
-
-  // Bridges React Events -> Canvas Engine Methods
-  const handleDeparticlize = () => { if (engineRef.current) engineRef.current.departiclize(); };
-  const handleCycleComplete = () => { if (engineRef.current) engineRef.current.cycleNextNode(); };
-  const handleTriggerBurst = () => { if (engineRef.current) engineRef.current.triggerReverseBurst(); }; 
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    // Initialize Engine
-    const engine = new SwarmEngine(canvasRef.current, (id) => setContentIndex(id));
-    engineRef.current = engine;
-    
-    // Pass initial target coordinates
-    if (markerRef.current) engine.setStreamTarget(markerRef.current.getBoundingClientRect());
-    
-    const handleResize = () => {
-      if (markerRef.current && engineRef.current) engineRef.current.setStreamTarget(markerRef.current.getBoundingClientRect());
-    };
-    window.addEventListener('resize', handleResize);
-    
-    // Cleanup on Unmount
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (engineRef.current) engineRef.current.dispose();
-    };
-  }, []);
-  
-  // Safety: Stop streaming particles if the user lingers too long
-  useEffect(() => {
-      const timer = setTimeout(() => { if(engineRef.current) engineRef.current.stopStream(); }, 1350); 
-      return () => clearTimeout(timer);
-  }, [contentIndex]);
-
-  return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#02040a', overflow: 'hidden' }}>
-      <SiteHeader visible={true} />
-      <HeroCard 
-          ref={markerRef} 
-          content={narrativeData[contentIndex]} 
-          onDeparticlize={handleDeparticlize} 
-          onCycleComplete={handleCycleComplete} 
-          triggerBurst={handleTriggerBurst}
-      />
-      <canvas ref={canvasRef} style={{ display: 'block' }} />
-    </div>
-  );
-};
-
-export default NeuralBackground;
 </file>
 
-<file path=".backup/brain_components/SwarmEngine.ts">
-import { Vector3D, Perlin } from './MathUtils';
-import { narrativeData } from './NeuralData';
-
-// --- 1. ORBITAL PARTICLES (The Cloud) ---
-export class Particle {
-  p: Vector3D; t: Vector3D; v: Vector3D; life = 0; maxLife = 0;
-  constructor(public g: Perlin, public parent: Node) {
-    this.p=new Vector3D(0,0,0); this.t=new Vector3D(0,0,0); this.v=new Vector3D(0,0,0); 
-    this.respawn();
-  }
-  respawn() {
-    const spread = this.parent.isCentral ? 60 : 35;
-    this.p.set(this.parent.pos.x + (Math.random()-0.5)*spread, this.parent.pos.y + (Math.random()-0.5)*spread, 0);
-    this.t.set(this.p.x, this.p.y, 0);
-    this.v.set(0,0,0);
-    this.life=0;
-    this.maxLife=100+Math.random()*300;
-  }
-  step() {
-    this.life++;
-    const xx=this.p.x/200, yy=this.p.y/200, zz=Date.now()/5000;
-    this.v.x += (Math.random()-0.5)*0.1 + this.g.simplex3d(xx,yy,-zz)*0.05;
-    this.v.y += (Math.random()-0.5)*0.1 + this.g.simplex3d(xx,yy,zz)*0.05;
-    
-    // Gentle pull back to parent
-    this.v.add(this.parent.pos.clone().sub(this.p).mul(0.002)).mul(0.95);
-    
-    if(this.life>this.maxLife) this.respawn();
-    this.p.move(this.t).add(this.v);
-  }
-  render(ctx: CanvasRenderingContext2D, color: string) {
-    ctx.fillStyle = color; 
-    ctx.beginPath(); 
-    ctx.arc(this.p.x, this.p.y, 0.6, 0, Math.PI*2); 
-    ctx.fill();
-  }
-}
-
-// --- 2. DATA STREAM (Node to Card) ---
-export class StreamParticle {
-  p: Vector3D; pastP: Vector3D; v: Vector3D;
-  life=0; maxLife=150; arrived=false; color: {h:number,s:number,l:number,a:number}; zoff:number;
-  constructor(startPos: Vector3D, public targetX: number, public targetY: number, public generator: Perlin) {
-    this.p = startPos.clone(); this.pastP = startPos.clone(); this.v = new Vector3D(0,0,0);
-    this.p.x += (Math.random()-0.5)*10; this.p.y += (Math.random()-0.5)*10;
-    this.color = { h: 170+Math.random()*40, s: 100, l: 70, a: 0 };
-    this.zoff = Math.random()*100;
-  }
-  step() {
-    if(this.arrived) return;
-    this.pastP.set(this.p.x, this.p.y, 0);
-    
-    const dx=this.targetX-this.p.x, dy=this.targetY-this.p.y, dist=Math.sqrt(dx*dx+dy*dy);
-    
-    if(dist<15 || this.life > this.maxLife) { this.arrived=true; return; }
-    
-    const noiseVal = this.generator.simplex3d(this.p.x*0.005, this.p.y*0.005, this.zoff);
-    const angle = noiseVal * Math.PI * 4;
-    this.v = new Vector3D(dx,dy,0).div(dist).mul(8).add(new Vector3D(Math.cos(angle),Math.sin(angle),0).mul(2.5)).mul(0.6);
-    this.p.add(this.v);
-    if(this.life<10) this.color.a+=0.1;
-    this.life++; this.zoff+=0.01;
-  }
-  render(ctx: CanvasRenderingContext2D) {
-    if(this.arrived) return;
-    ctx.beginPath(); ctx.strokeStyle=`hsla(${this.color.h},${this.color.s}%,${this.color.l}%,${this.color.a})`;
-    ctx.lineWidth=1.5; ctx.lineCap='round'; ctx.moveTo(this.pastP.x, this.pastP.y); ctx.lineTo(this.p.x, this.p.y); ctx.stroke();
-  }
-}
-
-// --- 3. REVERSE PARTICLE (Explosion back to Node) ---
-export class ReverseStreamParticle {
-    p: Vector3D; pastP: Vector3D; v: Vector3D;
-    life=0; maxLife=100; arrived=false; color: {h:number,s:number,l:number,a:number};
-    constructor(startX: number, startY: number, public target: Vector3D) {
-        this.p = new Vector3D(startX, startY, 0);
-        this.pastP = this.p.clone();
-        this.v = new Vector3D(0,0,0);
-        this.color = { h: 140+Math.random()*40, s: 100, l: 70, a: 1 }; 
-        this.v = new Vector3D((Math.random()-0.5)*15, (Math.random()-0.5)*15, 0);
-    }
-    step() {
-        if(this.arrived) return;
-        this.pastP.set(this.p.x, this.p.y, 0);
-        const dx = this.target.x - this.p.x;
-        const dy = this.target.y - this.p.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < 15) { this.arrived=true; return; }
-        const dir = new Vector3D(dx, dy, 0).div(dist);
-        this.v.add(dir.mul(1.5)); 
-        this.v.mul(0.95); 
-        this.p.add(this.v);
-        this.color.a -= 0.02; 
-    }
-    render(ctx: CanvasRenderingContext2D) {
-        if(this.arrived || this.color.a <= 0) return;
-        ctx.beginPath(); ctx.strokeStyle=`hsla(${this.color.h},${this.color.s}%,${this.color.l}%,${this.color.a})`;
-        ctx.lineWidth=1.5; ctx.lineCap='round'; 
-        ctx.moveTo(this.pastP.x, this.pastP.y); ctx.lineTo(this.p.x, this.p.y); ctx.stroke();
-    }
-}
-
-// --- 4. NODE ---
-export class Node {
-  pos: Vector3D; vel: Vector3D; particles: Particle[]=[]; neighbors: Node[]=[];
-  isActive=false; colorHue: number; radiusBase: number; shapeOffsets: number[];
-  isDragging = false; 
-
-  constructor(x:number, y:number, public generator: Perlin, public isCentral: boolean=false) {
-    this.pos=new Vector3D(x,y,0); this.vel=new Vector3D(0,0,0);
-    this.colorHue=isCentral?45:170+Math.random()*50;
-    this.radiusBase=isCentral?12:5+Math.random()*3;
-    this.shapeOffsets=Array.from({length:8},()=>0.8+Math.random()*0.4);
-    for(let i=0;i<(isCentral?100:60);i++) this.particles.push(new Particle(generator, this));
-  }
-  connect(nodes: Node[], maxDist: number) {
-    this.neighbors = [];
-    for(let other of nodes) {
-      if(other===this) continue;
-      if(this.isCentral || other.isCentral) { this.neighbors.push(other); continue; }
-      if(this.pos.dist(other.pos)<maxDist) this.neighbors.push(other);
-    }
-  }
-  update(width: number, height: number, allNodes: Node[]) {
-    if (this.isDragging) {
-         for(let p of this.particles) p.step();
-         return;
-    }
-    const time=Date.now()*0.0005;
-    const wf=this.isCentral?0.0005:0.003;
-    this.vel.add(new Vector3D(this.generator.simplex3d(this.pos.x*0.002,this.pos.y*0.002,time)*wf, this.generator.simplex3d(this.pos.x*0.002,this.pos.y*0.002,time+100)*wf, 0));
-    const minDist=this.isCentral?180:130;
-    for(let o of allNodes) {
-      if(o===this) continue;
-      const d=this.pos.dist(o.pos);
-      if(d<minDist && d>0) this.vel.add(this.pos.clone().sub(o.pos).div(d).mul(0.005));
-      if(!this.isCentral && o.isCentral) this.vel.sub(this.pos.clone().sub(o.pos).div(d).mul(0.0005));
-    }
-    this.vel.mul(0.98); this.pos.add(this.vel);
-    
-    const safeX=560, margin=50;
-    if(this.pos.x<safeX) this.vel.x+=0.08;
-    if(this.pos.x>width-margin) this.vel.x-=0.05;
-    if(this.pos.y<margin) this.vel.y+=0.05;
-    if(this.pos.y>height-margin) this.vel.y-=0.05;
-    
-    for(let p of this.particles) p.step();
-  }
-  render(ctx: CanvasRenderingContext2D) {
-    const a=0.2; 
-    // Fixed alpha calculation logic here if needed, using pulseOffset if stored
-    const col=this.isCentral?`hsla(${this.colorHue},90%,70%,${a})`: this.isActive ? `hsla(${this.colorHue}, 100%, 85%, ${a + 0.2})` : `hsla(${this.colorHue},80%,60%,${a})`;
-    for(let p of this.particles) p.render(ctx, col);
-    
-    const r=this.radiusBase;
-    let fill = this.isCentral ? `hsla(${this.colorHue}, 90%, 60%, 0.9)` : `hsla(${this.colorHue}, 90%, 55%, 0.9)`;
-    let shadow = this.isCentral ? `hsla(${this.colorHue}, 90%, 60%, 0.7)` : `hsla(${this.colorHue}, 90%, 60%, 0.7)`;
-    if (this.isActive) {
-      fill = '#ffffff';
-      shadow = `hsla(${this.colorHue}, 100%, 70%, 1.0)`;
-      ctx.shadowBlur = 50;
-    } else {
-      ctx.shadowBlur = this.isCentral ? 35 : 25;
-    }
-    ctx.fillStyle=fill; ctx.shadowColor=shadow;
-    ctx.beginPath();
-    for(let i=0;i<=8;i++) {
-      const ang=(i/8)*Math.PI*2, rad=r*this.shapeOffsets[i%8];
-      const x=this.pos.x+Math.cos(ang)*rad, y=this.pos.y+Math.sin(ang)*rad;
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    }
-    ctx.closePath(); ctx.fill();
-    if(!this.isActive) {
-      ctx.fillStyle="#fff"; ctx.shadowBlur=10; ctx.beginPath();
-      ctx.arc(this.pos.x, this.pos.y, r*0.3, 0, Math.PI*2); ctx.fill();
-    }
-    ctx.shadowBlur=0;
-  }
-  renderConnections(ctx: CanvasRenderingContext2D) {
-    ctx.lineWidth=this.isCentral?1.5:0.8;
-    for(let n of this.neighbors) {
-      const g=ctx.createLinearGradient(this.pos.x,this.pos.y,n.pos.x,n.pos.y);
-      g.addColorStop(0,`hsla(${this.colorHue},60%,40%,0.1)`);
-      g.addColorStop(0.5,`hsla(${this.colorHue},60%,40%,0.2)`);
-      g.addColorStop(1,`hsla(${n.colorHue},60%,40%,0.1)`);
-      ctx.strokeStyle=g; ctx.beginPath(); ctx.moveTo(this.pos.x,this.pos.y); ctx.lineTo(n.pos.x,n.pos.y); ctx.stroke();
-    }
-  }
-  hitTest(mx:number, my:number) { return Math.sqrt((this.pos.x-mx)**2+(this.pos.y-my)**2)<(this.isCentral?50:35); }
-}
-
-// --- 5. SWARM ENGINE ---
-export class SwarmEngine {
-  canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; width=0; height=0;
-  nodes: Node[]=[]; streamParticles: StreamParticle[]=[]; reverseParticles: ReverseStreamParticle[]=[];
-  pGen=new Perlin(); activeNode: Node|null=null; 
-  onNodeChange: (idx:number)=>void; 
-  targetY = 0; targetX = 540; 
-  isStreaming = false; linkProgress = 0;
-  draggedNode: Node | null = null;
-  dragStart: { x: number, y: number } | null = null;
-  mouse = { x: 0, y: 0 };
-  boundMouseMove: (e: MouseEvent) => void;
-  boundMouseDown: (e: MouseEvent) => void;
-  boundMouseUp: (e: MouseEvent) => void;
-  reqId: number = 0;
-
-  constructor(canvas: HTMLCanvasElement, onNodeChange: (idx:number)=>void) {
-    this.canvas=canvas; this.ctx=canvas.getContext('2d')!; this.onNodeChange=onNodeChange;
-    this.resize();
-    window.addEventListener('resize', ()=>this.resize());
-    this.boundMouseMove = this.handleMouseMove.bind(this);
-    this.boundMouseDown = this.handleMouseDown.bind(this);
-    this.boundMouseUp = this.handleMouseUp.bind(this);
-    canvas.addEventListener('mousemove', this.boundMouseMove);
-    canvas.addEventListener('mousedown', this.boundMouseDown);
-    window.addEventListener('mouseup', this.boundMouseUp);
-    this.initNodes();
-    this.activateNode(this.nodes[0]);
-    this.animate();
-  }
-
-  dispose() {
-      this.canvas.removeEventListener('mousemove', this.boundMouseMove);
-      this.canvas.removeEventListener('mousedown', this.boundMouseDown);
-      window.removeEventListener('mouseup', this.boundMouseUp);
-      cancelAnimationFrame(this.reqId);
-  }
-
-  setStreamTarget(rect: DOMRect) {
-    this.targetX = rect.right; 
-    this.targetY = rect.top + rect.height / 2;
-  }
-
-  resize() {
-    this.width=window.innerWidth; this.height=window.innerHeight;
-    this.canvas.width=this.width; this.canvas.height=this.height;
-    this.targetY = this.height / 2;
-    if(this.nodes.length===0) this.initNodes();
-    const dist=Math.sqrt(this.width*this.height)*0.25;
-    for(let n of this.nodes) n.connect(this.nodes, dist);
-  }
-
-  initNodes() {
-    this.nodes=[];
-    const safeX=560; 
-    this.nodes.push(new Node(safeX+(this.width-safeX)*0.4, this.height*0.5, this.pGen, true));
-    for(let i=1;i<20;i++) {
-      this.nodes.push(new Node(safeX+Math.random()*(this.width-safeX-50), this.height*0.1+Math.random()*(this.height*0.8), this.pGen));
-    }
-    this.resize(); 
-  }
-
-  handleMouseMove(e: MouseEvent) {
-    const rect = this.canvas.getBoundingClientRect();
-    this.mouse.x = e.clientX - rect.left;
-    this.mouse.y = e.clientY - rect.top;
-    if (this.draggedNode) {
-        this.draggedNode.pos.x = this.mouse.x;
-        this.draggedNode.pos.y = this.mouse.y;
-        this.draggedNode.vel.set(0, 0, 0); 
-        this.canvas.style.cursor = 'grabbing';
-    } else {
-        let hit = false;
-        for (let n of this.nodes) {
-            if (n.hitTest(this.mouse.x, this.mouse.y)) {
-                hit = true;
-                break;
-            }
-        }
-        this.canvas.style.cursor = hit ? 'pointer' : 'default';
-    }
-  }
-
-  handleMouseDown(e: MouseEvent) {
-    const rect=this.canvas.getBoundingClientRect(); const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-    for(let n of this.nodes) {
-      if(n.hitTest(mx, my)) { 
-          this.draggedNode = n;
-          n.isDragging = true;
-          this.dragStart = { x: mx, y: my };
-          break; 
-      }
-    }
-  }
-
-  handleMouseUp(e: MouseEvent) {
-      if (this.draggedNode && this.dragStart) {
-          const dx = this.mouse.x - this.dragStart.x;
-          const dy = this.mouse.y - this.dragStart.y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist < 5) {
-              this.activateNode(this.draggedNode);
-          }
-          this.draggedNode.isDragging = false;
-          this.draggedNode = null;
-          this.dragStart = null;
-          this.canvas.style.cursor = 'default';
-      }
-  }
-
-  activateNode(node: Node) {
-    if(this.activeNode) this.activeNode.isActive=false;
-    this.activeNode=node; this.activeNode.isActive=true;
-    this.isStreaming = true; 
-    this.linkProgress = 0; 
-    this.onNodeChange(this.nodes.indexOf(node)%narrativeData.length);
-    for(let i=0; i<10; i++) {
-        this.streamParticles.push(new StreamParticle(node.pos, this.targetX, this.targetY, this.pGen));
-    }
-  }
-  
-  stopStream() {
-      this.isStreaming = false;
-  }
-  
-  cycleNextNode() {
-      if (this.nodes.length === 0) return;
-      let currentIndex = 0;
-      if (this.activeNode) {
-        currentIndex = this.nodes.indexOf(this.activeNode);
-      }
-      const nextIndex = (currentIndex + 1) % this.nodes.length; 
-      this.activateNode(this.nodes[nextIndex]);
-  }
-
-  departiclize() {
-      if (this.activeNode) {
-          for(let i=0; i<50; i++) {
-             this.reverseParticles.push(new ReverseStreamParticle(this.targetX, this.targetY, this.activeNode.pos));
-          }
-      }
-  }
-
-  triggerReverseBurst() {
-      if (this.activeNode) {
-          for(let i=0; i<30; i++) {
-             this.reverseParticles.push(new ReverseStreamParticle(this.targetX, this.targetY, this.activeNode.pos));
-          }
-      }
-  }
-
-  lerp(v1: Vector3D, v2: Vector3D, t: number): Vector3D {
-      return new Vector3D(
-          v1.x + (v2.x - v1.x) * t,
-          v1.y + (v2.y - v1.y) * t,
-          0
-      );
-  }
-
-  animate = () => {
-    this.reqId = requestAnimationFrame(this.animate);
-    this.ctx.globalCompositeOperation='source-over';
-    this.ctx.fillStyle='rgba(2,4,10,0.2)'; 
-    this.ctx.fillRect(0,0,this.width,this.height);
-
-    this.ctx.globalCompositeOperation='screen';
-    for(let n of this.nodes) n.renderConnections(this.ctx);
-    for(let n of this.nodes) { n.update(this.width, this.height, this.nodes); n.render(this.ctx); }
-
-    if(this.activeNode) {
-      if (this.isStreaming && this.linkProgress < 1) {
-          this.linkProgress += 0.02; 
-          if (this.linkProgress > 1) this.linkProgress = 1;
-      }
-      if (this.isStreaming && this.linkProgress > 0.2 && this.streamParticles.length < 300 && Math.random() < 0.8) {
-         this.streamParticles.push(new StreamParticle(this.activeNode.pos, this.targetX, this.targetY, this.pGen));
-      }
-      if (this.linkProgress > 0) {
-        const P0 = this.activeNode.pos;
-        const P2 = new Vector3D(this.targetX, this.targetY, 0);
-        const P1 = new Vector3D((P0.x + P2.x) / 2, P0.y, 0);
-        const t = this.linkProgress;
-        const Q0 = this.lerp(P0, P1, t);
-        const Q1 = this.lerp(P1, P2, t);
-        const R0 = this.lerp(Q0, Q1, t);
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(P0.x, P0.y);
-        this.ctx.quadraticCurveTo(Q0.x, Q0.y, R0.x, R0.y);
-        const opacity = this.isStreaming ? 0.6 : Math.min(0.6, this.streamParticles.length / 50);
-        this.ctx.shadowBlur = this.isStreaming ? 20 : 0; 
-        this.ctx.shadowColor = '#4deeea';
-        this.ctx.strokeStyle = `rgba(77, 238, 234, ${opacity})`;
-        this.ctx.lineWidth = this.isStreaming ? 2 : 1;
-        this.ctx.stroke(); 
-        this.ctx.shadowBlur = 0;
-        
-        if (this.isStreaming && t < 1) {
-              this.ctx.fillStyle = '#fff'; 
-              this.ctx.shadowBlur = 10; 
-              this.ctx.shadowColor = '#fff';
-              this.ctx.beginPath(); 
-              this.ctx.arc(R0.x, R0.y, 2, 0, Math.PI*2); 
-              this.ctx.fill(); 
-              this.ctx.shadowBlur = 0;
-        }
-      }
-    }
-    
-    for(let i=this.streamParticles.length-1; i>=0; i--) {
-      let p = this.streamParticles[i];
-      p.step(); p.render(this.ctx);
-      if(p.arrived) this.streamParticles.splice(i, 1);
-    }
-
-    for(let i=this.reverseParticles.length-1; i>=0; i--) {
-        let p = this.reverseParticles[i];
-        p.step(); p.render(this.ctx);
-        if(p.arrived || p.color.a <= 0) this.reverseParticles.splice(i, 1);
-    }
-  }
-}
+<file path="public/js/noise.js">
+!function(){"use strict";var r=.5*(Math.sqrt(3)-1),e=(3-Math.sqrt(3))/6,t=1/6,a=(Math.sqrt(5)-1)/4,o=(5-Math.sqrt(5))/20;function i(r){var e;e="function"==typeof r?r:r?function(){var r=0,e=0,t=0,a=1,o=i.now()/1e3;function i(e){return(r=e*a+o)%256}return i.seed=function(e){e<1&&(e*=65536),o=(e=Math.floor(e))>>>8,a=e%256+111,r=0,e=0,t=0},i}():Math.random,this.p=n(e),this.perm=new Uint8Array(512),this.permMod12=new Uint8Array(512);for(var t=0;t<512;t++)this.perm[t]=this.p[255&t],this.permMod12[t]=this.perm[t]%12}function n(r){var e,t=new Uint8Array(256);for(e=0;e<256;e++)t[e]=e;for(e=0;e<255;e++){var a,o=e+~~(r()*(256-e)),i=t[e];t[e]=t[o],t[o]=i}return t}i.prototype={grad3:new Float32Array([1,1,0,-1,1,0,1,-1,0,-1,-1,0,1,0,1,-1,0,1,1,0,-1,-1,0,-1,0,1,1,0,-1,1,0,1,-1,0,-1,-1]),noise3D:function(a,o,i){var n,s,h,l,f,c,u,d,p,m,M=this.permMod12,y=this.perm,v=this.grad3,w=(a+o+i)*t,A=Math.floor(a+w),x=Math.floor(o+w),g=Math.floor(i+w),S=(A+x+g)*t,U=a-(A-S),b=o-(x-S),F=i-(g-S);U>=b?b>=F?(f=1,c=0,u=0,d=1,p=1,m=0):U>=F?(f=1,c=0,u=0,d=1,p=0,m=1):(f=0,c=0,u=1,d=1,p=0,m=1):b<F?(f=0,c=0,u=1,d=0,p=1,m=1):U<F?(f=0,c=1,u=0,d=0,p=1,m=1):(f=0,c=1,u=0,d=1,p=1,m=0);var D=U-f+t,T=b-c+t,k=F-u+t,P=U-d+2*t,z=b-p+2*t,q=F-m+2*t,E=U-1+.5,I=b-1+.5,j=F-1+.5,H=255&A,K=255&x,L=255&g,N=.6-U*U-b*b-F*F;if(N<0)n=0;else{var O=3*M[H+y[K+y[L]]];n=(N*=N)*N*(v[O]*U+v[O+1]*b+v[O+2]*F)}var Q=.6-D*D-T*T-k*k;if(Q<0)s=0;else{var R=3*M[H+f+y[K+c+y[L+u]]];s=(Q*=Q)*Q*(v[R]*D+v[R+1]*T+v[R+2]*k)}var V=.6-P*P-z*z-q*q;if(V<0)h=0;else{var W=3*M[H+d+y[K+p+y[L+m]]];h=(V*=V)*V*(v[W]*P+v[W+1]*z+v[W+2]*q)}var X=.6-E*E-I*I-j*j;if(X<0)l=0;else{var Y=3*M[H+1+y[K+1+y[L+1]]];l=(X*=X)*X*(v[Y]*E+v[Y+1]*I+v[Y+2]*j)}return 32*(n+s+h+l)}},window.SimplexNoise=i}();
 </file>
 
 <file path="app/admin/brain/page.tsx">
@@ -1106,6 +431,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import fs from 'fs';
 import path from 'path';
+import { kv } from '@vercel/kv';
 import { RESUME_TEXT } from "../../data/resume_source";
 
 export const maxDuration = 60; 
@@ -1131,8 +457,6 @@ export async function POST(req: Request) {
     try {
         const apiKey = process.env.GEMINI_API_KEY || "";
         const genAI = new GoogleGenerativeAI(apiKey);
-        
-        // Get accurate date string for the prompt
         const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
         const promptText = `
@@ -1141,9 +465,8 @@ export async function POST(req: Request) {
         TODAY'S DATE: ${today}
 
         TASK:
-        1. **BREAKING NEWS (Item 1):** Find ONE major tech event from the last 24 hours (e.g. ${today}).
-           - FORCE the 'date' field for this item to be "LIVE - TODAY".
-        
+        1. **BREAKING NEWS (Item 1):** Find ONE major tech event from the last 24 hours.
+           - FORCE the 'date' field to be "LIVE - TODAY".
         2. **MARKET TRENDS (Items 2-10):** Find 9 other recent events (last 30 days).
 
         CRITICAL RULES:
@@ -1151,63 +474,49 @@ export async function POST(req: Request) {
         - "experience.result": Use exact numbers from the resume.
         - "category": Must be "live".
 
-        OUTPUT JSON ONLY:
-        [
-          {
-            "id": "LIVE_GEN_01",
-            "category": "live",
-            "headline": { "title": "Headline", "subtitle": "Impact Area" },
-            "context": {
-              "label": "Market Context",
-              "description": "1-sentence summary.",
-              "date": "LIVE - TODAY", 
-              "sources": [{ "label": "Source", "type": "News", "url": "URL" }]
-            },
-            "insight": { "label": "Friction", "explanation": "Why this is hard." },
-            "experience": {
-              "label": "Strategic Response",
-              "role": "Role",
-              "action": "Detailed action from resume.",
-              "result": "Metric",
-              "tags": ["Tag1"]
-            },
-            "icon": "Activity" 
-          }
-        ]
+        OUTPUT JSON ONLY (Array of objects matching NarrativeCard schema).
         `;
 
+        log("Attempting Gemini 2.5 Flash (Search Enabled)...");
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-2.5-flash", 
+            tools: [{ googleSearch: {} }] as any 
+        });
+        
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: promptText }] }]
+        });
+        
+        let jsonResult = cleanAndParseJSON(result.response.text());
+        
+        // Garbage Filter
+        jsonResult = jsonResult.filter((item: any) => {
+            const url = item.context?.sources?.[0]?.url || "";
+            return url && !url.includes("example.com") && url.startsWith("http");
+        });
+        
+        // --- PERSISTENCE LAYER ---
+        
+        // 1. Write to Vercel KV (Production Storage)
         try {
-            log("Attempting Gemini 2.5 Flash (Search Enabled)...");
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-2.5-flash", 
-                // CRITICAL FIX: Use the specific, canonical structure for search tool
-                tools: [{ googleSearch: {} }] as any // Casting to 'any' as a final bypass for environmental type issues
-            });
-            
-            const result = await model.generateContent({
-                contents: [{ role: "user", parts: [{ text: promptText }] }]
-            });
-            
-            let jsonResult = cleanAndParseJSON(result.response.text());
-            
-            // Garbage Filter
-            jsonResult = jsonResult.filter((item: any) => {
-                const url = item.context?.sources?.[0]?.url || "";
-                return url && !url.includes("example.com") && url.startsWith("http");
-            });
-            
-            if (process.env.NODE_ENV === 'development') {
+            await kv.set('live_cache', jsonResult);
+            log("✅ Saved to Vercel KV (Redis)");
+        } catch (kvError: any) {
+            log("⚠️ Vercel KV Write Failed: " + kvError.message);
+        }
+
+        // 2. Write to Local File (Dev Mode Only)
+        if (process.env.NODE_ENV === 'development') {
+            try {
                 const filePath = path.join(process.cwd(), 'app', 'data', 'live_cache.json');
                 fs.writeFileSync(filePath, JSON.stringify(jsonResult, null, 2));
-                log("Cache updated.");
+                log("✅ Saved to Local Filesystem");
+            } catch (fsError) {
+                log("⚠️ Local Write Failed (Expected in Production)");
             }
-
-            return NextResponse.json({ success: true, logs: debugLog, data: jsonResult });
-
-        } catch (err: any) {
-            log("❌ Error: " + err.message);
-            throw err;
         }
+
+        return NextResponse.json({ success: true, logs: debugLog, data: jsonResult });
 
     } catch (fatalError: any) {
         return NextResponse.json({ success: false, error: fatalError.message, logs: debugLog }, { status: 500 });
@@ -2140,23 +1449,18 @@ export default function CinematicIntro({ onComplete, context }: Props) {
             return [r, g, b];
         }
 
-        // 15 Lines, 60 seconds total (~3.8s per line)
+        // Updated Script: 10 Lines, Technical & Intriguing
         const cinematicScript = [
             [1.5, "Welcome."],
-            [5.3, "You haven’t just loaded a webpage."],
-            [9.1, "You have awakened a living system."],
-            [12.9, "Right now, a swarm of AI is setting to work."],
-            [16.7, "They are traveling the internet at lightspeed."],
-            [20.5, "Looking for context and meaning in the noise."],
-            [24.3, "They are learning what matters right this second."],
-            [28.1, "And weaving a portfolio from what they find."],
-            [31.9, "This is not a pre-made template."],
-            [35.7, "It is a creation happening in real-time."],
-            [39.5, "Watch as the design begins to breathe."],
-            [43.3, "Evolving from simple data into complex life."],
-            [47.1, "It is thinking, growing, and assembling for you."],
-            [50.9, "The experience is now alive."],
-            [54.7, "Welcome."]
+            [6.0, "This page is being built in real-time."],
+            [11.0, "Right now, a network of AI agents is exploring."],
+            [17.0, "They are scanning the web for context."],
+            [23.0, "Curating the most relevant data for this moment."],
+            [29.0, "And assembling a dynamic portfolio from scratch."],
+            [35.0, "No static templates, just live creation."],
+            [41.0, "Watch as the structure takes shape."],
+            [47.0, "Your unique experience is ready."],
+            [53.0, "Welcome."]
         ];
 
         let lastNarrativeIndex = -1;
@@ -2380,6 +1684,14 @@ export default function CinematicIntro({ onComplete, context }: Props) {
                     }}></div>
                 </div>
             </div>
+
+            {/* SKIP BUTTON */}
+            <button 
+                onClick={runCleanup}
+                className="absolute bottom-8 right-8 z-[200] text-[10px] md:text-xs font-bold text-white/50 hover:text-white border border-white/20 hover:border-white/50 px-4 py-2 rounded uppercase tracking-widest transition-all backdrop-blur-sm cursor-pointer pointer-events-auto"
+            >
+                Skip Sequence »
+            </button>
         </div>
     );
 }
@@ -2471,7 +1783,7 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { FULL_RESUME_DATA } from './brain/NeuralData';
-import liveCache from '../data/live_cache.json';
+import staticCache from '../data/live_cache.json';
 
 export default function ExecutiveProfile() {
   const [isDownloadingLive, setIsDownloadingLive] = useState(false);
@@ -2479,9 +1791,20 @@ export default function ExecutiveProfile() {
   const [liveData, setLiveData] = useState<any[]>([]);
 
   useEffect(() => {
-      if (Array.isArray(liveCache)) {
-          setLiveData(liveCache.slice(0, 4)); 
+      // 1. Load Static Data Immediately (Instant Load)
+      if (Array.isArray(staticCache)) {
+          setLiveData(staticCache); 
       }
+
+      // 2. Attempt to Fetch Fresh Live Data (Hydration)
+      fetch('/api/read-cache')
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data) && data.length > 0) {
+                setLiveData(data);
+            }
+        })
+        .catch(err => console.warn("Live profile data fetch failed", err));
   }, []);
 
   const COL_SIDEBAR = "#0f172a"; 
@@ -2489,39 +1812,51 @@ export default function ExecutiveProfile() {
   const COL_TEXT_GRAY = "#4b5563";
   const COL_ACCENT = "#0d9488"; 
   const COL_LIVE_ACCENT = "#1e3a8a"; 
-  const COL_ALERT = "#dc2626"; // Red used in the component style
   const MARGIN_X = 85;
   const MAX_WIDTH = 110;
 
-  // --- GENERATOR 1: LIVE BRIEFING (V12 Fix) ---
+  // --- GENERATOR 1: LIVE BRIEFING (LIVE DATA ONLY) ---
   const downloadLiveBriefing = async () => {
       setIsDownloadingLive(true);
       const doc = new jsPDF();
       
+      // Helper: Draw Sidebar (Repeated on every page)
       const drawSidebar = () => {
+          const pageHeight = doc.internal.pageSize.getHeight();
           doc.setFillColor(COL_SIDEBAR);
-          doc.rect(0, 0, 75, doc.internal.pageSize.getHeight(), 'F');
+          doc.rect(0, 0, 75, pageHeight, 'F');
           
-          let sidebarY = 80;
+          let sidebarY = 40;
+          
+          // Avatar Placeholder (Circle)
+          doc.setFillColor(30, 41, 59);
+          doc.circle(37.5, sidebarY, 15, 'F');
+          doc.setFontSize(20);
           doc.setTextColor(255, 255, 255);
+          doc.text("JM", 37.5, sidebarY + 2, { align: 'center' });
+          
+          sidebarY += 30;
+
+          // Name & Title
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(18);
+          doc.setFontSize(16);
           const nameParts = FULL_RESUME_DATA.header.name.split(" ");
           doc.text(nameParts[0], 12, sidebarY);
-          doc.text(nameParts.slice(1).join(" "), 12, sidebarY + 8);
+          doc.text(nameParts.slice(1).join(" "), 12, sidebarY + 7);
           
           doc.setFont("helvetica", "normal");
           doc.setFontSize(9);
           doc.setTextColor(148, 163, 184); 
-          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 60);
+          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 55);
           doc.text(titleLines, 12, sidebarY + 16);
 
-          sidebarY += 35;
+          sidebarY += 30;
           
+          // Competencies Section
           const addSection = (title: string, items: any) => {
               doc.setFont("helvetica", "bold");
               doc.setFontSize(8);
-              doc.setTextColor(13, 148, 136); // Explicit RGB for COL_ACCENT (#0d9488)
+              doc.setTextColor(13, 148, 136); // Explicit RGB (#0d9488)
               doc.text(title, 12, sidebarY);
               sidebarY += 6;
               doc.setFont("helvetica", "normal");
@@ -2529,34 +1864,37 @@ export default function ExecutiveProfile() {
               doc.setTextColor(220, 220, 220);
               
               if (Array.isArray(items)) {
-                 items.forEach(item => { doc.text(item, 12, sidebarY); sidebarY += 5; });
+                 items.forEach(item => { 
+                     doc.text(`• ${item}`, 12, sidebarY); 
+                     sidebarY += 5; 
+                 });
               } else {
                  Object.entries(items).forEach(([k, v]: any) => {
                     doc.setFont("helvetica", "bold");
                     doc.text(k, 12, sidebarY);
                     sidebarY += 4;
                     doc.setFont("helvetica", "normal");
-                    const lines = doc.splitTextToSize(v, 58);
+                    const lines = doc.splitTextToSize(v, 50);
                     doc.text(lines, 12, sidebarY);
-                    sidebarY += (lines.length * 4) + 4;
+                    sidebarY += (lines.length * 3.5) + 4;
                  });
               }
-              sidebarY += 10;
+              sidebarY += 8;
           };
 
           addSection("CONTACT", FULL_RESUME_DATA.header.contact);
-          addSection("COMPETENCIES", FULL_RESUME_DATA.core_competencies);
+          addSection("CORE COMPETENCIES", FULL_RESUME_DATA.core_competencies);
       };
 
       drawSidebar();
 
       let cursorY = 20;
 
-      // --- SECTION 1: LIVE CONTEXT (Streamlined) ---
+      // HEADER: LIVE CONTEXT
       if (liveData.length > 0) {
-          doc.setTextColor(30, 58, 138); // Explicit RGB for COL_LIVE_ACCENT (#1e3a8a)
+          doc.setTextColor(30, 58, 138); 
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(11);
+          doc.setFontSize(12);
           doc.text("LIVE STRATEGIC BRIEFING", MARGIN_X, cursorY);
           
           doc.setFontSize(8);
@@ -2564,210 +1902,134 @@ export default function ExecutiveProfile() {
           const genDate = new Date().toLocaleDateString();
           doc.text(`Generated: ${genDate}`, MARGIN_X + MAX_WIDTH, cursorY, { align: 'right' });
           
-          cursorY += 6;
+          cursorY += 8;
           
-          // INTRO (Plain English Narrative)
+          // INTRO NARRATIVE
           doc.setFont("helvetica", "italic");
           doc.setFontSize(9);
           doc.setTextColor(80);
-          const introText = "This document was generated dynamically today. It scans global news for active risks and maps my specific experience to solve them.";
+          const introText = "This document represents a real-time analysis of global market signals. An AI Agent has scanned 30+ live news sources and mapped them to specific capabilities in my portfolio to demonstrate immediate relevance.";
           const introLines = doc.splitTextToSize(introText, MAX_WIDTH);
           doc.text(introLines, MARGIN_X, cursorY);
           
-          cursorY += (introLines.length * 4.5) + 8;
+          cursorY += (introLines.length * 4.5) + 10;
 
+          // LOOP THROUGH LIVE SIGNALS
           liveData.forEach((signal, index) => {
-              if (cursorY > 260) { doc.addPage(); drawSidebar(); cursorY = 20; } 
+              // --- SMART PAGINATION CHECK ---
+              // Estimate block height (Headline + Context + Solution) approx 50-60mm
+              // If cursor is beyond 230mm (A4 is 297mm), push to next page to avoid cuts.
+              if (cursorY > 230) { 
+                  doc.addPage(); 
+                  drawSidebar(); 
+                  cursorY = 20; 
+              } 
 
-              doc.setDrawColor(230);
+              // Divider
+              doc.setDrawColor(220);
               doc.setLineWidth(0.5);
-              doc.line(MARGIN_X, cursorY - 3, MARGIN_X + MAX_WIDTH, cursorY - 3);
-              cursorY += 4;
+              doc.line(MARGIN_X, cursorY, MARGIN_X + MAX_WIDTH, cursorY);
+              cursorY += 6;
 
-              // 1. HEADLINE (Fix: Use almost max width to prevent overflow)
-              doc.setTextColor(17, 24, 39); // Explicit RGB for COL_TEXT_DARK (#111827)
+              // 1. HEADLINE 
+              doc.setTextColor(17, 24, 39); 
               doc.setFont("helvetica", "bold");
               doc.setFontSize(10);
-              const titleLines = doc.splitTextToSize(signal.headline.title, MAX_WIDTH - 2); 
+              const titleLines = doc.splitTextToSize(signal.headline.title, MAX_WIDTH); 
               doc.text(titleLines, MARGIN_X, cursorY);
-              cursorY += (titleLines.length * 4) + 2;
+              cursorY += (titleLines.length * 5);
 
-              // 2. LINK & DATE (Stacked below headline)
-              doc.setFont("helvetica", "normal");
+              // 2. SOURCE DATE
+              doc.setFont("helvetica", "bold");
               doc.setFontSize(8);
-              
               if (signal.context.date) {
                   const isToday = signal.context.date.includes("TODAY");
-                  
-                  // CRITICAL FIX: Explicitly set RGB components for setTextColor
                   if (isToday) {
-                      doc.setTextColor(220, 38, 38); // COL_ALERT (#dc2626)
+                      doc.setTextColor(220, 38, 38); // Red
                   } else {
-                      doc.setTextColor(100, 100, 100); // Gray color equivalent of 100
+                      doc.setTextColor(100, 100, 100); // Gray
                   }
+                  doc.text(signal.context.date.toUpperCase(), MARGIN_X, cursorY);
                   
-                  doc.text(signal.context.date, MARGIN_X, cursorY);
-                  
-                  // Link
+                  // Source Link (If valid)
                   const sourceUrl = signal.context.sources[0]?.url;
                   if (sourceUrl && !sourceUrl.includes("example.com")) {
                        doc.setTextColor(37, 99, 235);
-                       doc.textWithLink(`[Link to Source]`, MARGIN_X + 25, cursorY, { url: sourceUrl });
+                       doc.textWithLink(`  [SOURCE LINK]`, MARGIN_X + 30, cursorY, { url: sourceUrl });
                   }
                   cursorY += 6;
-              } else {
-                  cursorY += 2;
               }
 
-              // 3. CONTEXT SNIPPET (Brief explanation before solution)
+              // 3. CONTEXT
               doc.setFont("helvetica", "normal");
               doc.setFontSize(9);
-              doc.setTextColor(75, 85, 99); // Explicit RGB for COL_TEXT_GRAY (#4b5563)
+              doc.setTextColor(75, 85, 99);
               const contextLines = doc.splitTextToSize(signal.context.description, MAX_WIDTH);
               doc.text(contextLines, MARGIN_X, cursorY);
-              cursorY += (contextLines.length * 4.5) + 4;
+              cursorY += (contextLines.length * 4.5) + 5;
               
-              // 4. STRATEGIC RESPONSE (No Context label on this line)
+              // 4. MY SOLUTION (Accent Block)
               const actionLines = doc.splitTextToSize(signal.experience.action, MAX_WIDTH - 5);
-              const blockHeight = (actionLines.length * 4);
+              const blockHeight = (actionLines.length * 4.5) + 8;
               
-              doc.setDrawColor(30, 58, 138); // COL_LIVE_ACCENT
-              doc.setLineWidth(1);
-              doc.line(MARGIN_X, cursorY, MARGIN_X, cursorY + blockHeight + 2); // Accent Bar
+              // Accent Bar
+              doc.setDrawColor(30, 58, 138); 
+              doc.setLineWidth(1.5);
+              doc.line(MARGIN_X, cursorY, MARGIN_X, cursorY + blockHeight);
 
-              // Text: 'MY SOLUTION:'
+              // Label
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(9);
-              doc.setTextColor(30, 58, 138); // COL_LIVE_ACCENT
-              doc.text("MY SOLUTION:", MARGIN_X + 3, cursorY + 3);
+              doc.setFontSize(8);
+              doc.setTextColor(30, 58, 138); 
+              doc.text("STRATEGIC RESPONSE:", MARGIN_X + 4, cursorY + 3);
 
-              // Action Text
+              // Content
               doc.setFont("helvetica", "normal");
-              doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-              doc.text(actionLines, MARGIN_X + 25, cursorY + 3); 
-              
-              // Result Metric
-              const resY = cursorY + 3 + blockHeight;
-              doc.setFont("helvetica", "bold");
               doc.setFontSize(9);
-              doc.setTextColor(16, 185, 129); // Green for Result
-              doc.text(`RESULT: ${signal.experience.result}`, MARGIN_X + 25, resY + 2);
+              doc.setTextColor(17, 24, 39); 
+              doc.text(actionLines, MARGIN_X + 4, cursorY + 8); 
+              
+              // Result
+              const resY = cursorY + 8 + (actionLines.length * 4.5);
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(16, 185, 129); // Green
+              doc.text(`IMPACT: ${signal.experience.result}`, MARGIN_X + 4, resY);
 
-              cursorY = resY + 8;
+              cursorY += blockHeight + 10; // Spacing before next item
           });
-          
-          cursorY += 5;
       }
 
-      // --- SECTION 2: EXECUTIVE SUMMARY ---
-      if (cursorY > 240) { doc.addPage(); drawSidebar(); cursorY = 20; }
-      
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text("EXECUTIVE SUMMARY", MARGIN_X, cursorY);
-      cursorY += 8;
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9); 
-      doc.setTextColor(75, 85, 99); // COL_TEXT_GRAY
-      const vpLines = doc.splitTextToSize(FULL_RESUME_DATA.summary, MAX_WIDTH);
-      doc.text(vpLines, MARGIN_X, cursorY);
-      cursorY += (vpLines.length * 4.5) + 10;
-
-      // --- SECTION 3: EXPERIENCE ---
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text("PROFESSIONAL EXPERIENCE", MARGIN_X, cursorY);
-      cursorY += 10;
-
-      FULL_RESUME_DATA.experience.forEach((companyBlock) => {
-          companyBlock.roles.forEach((role) => {
-              if (cursorY > 260) { doc.addPage(); drawSidebar(); cursorY = 20; }
-
-              // Role Title
-              doc.setTextColor(0, 0, 0);
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(11);
-              const titleLines = doc.splitTextToSize(role.title, MAX_WIDTH);
-              doc.text(titleLines, MARGIN_X, cursorY);
-              cursorY += (titleLines.length * 5) + 1;
-
-              // Company | Date
-              doc.setFontSize(9);
-              doc.setTextColor(100);
-              doc.text(`${companyBlock.company} | ${role.date}`, MARGIN_X, cursorY);
-              cursorY += 6;
-
-              // Mandate
-              if (role.mandate) {
-                  doc.setFont("helvetica", "italic");
-                  doc.setTextColor(80);
-                  const mandateLines = doc.splitTextToSize(`Mandate: ${role.mandate}`, MAX_WIDTH);
-                  doc.text(mandateLines, MARGIN_X, cursorY);
-                  cursorY += (mandateLines.length * 4) + 4;
-              }
-
-              // Bullets
-              role.bullets.forEach((b: any) => {
-                  if (cursorY > 270) { doc.addPage(); drawSidebar(); cursorY = 20; }
-                  
-                  doc.setFont("helvetica", "normal");
-                  doc.setFontSize(9);
-                  doc.setTextColor(50);
-                  
-                  if (typeof b === 'string') {
-                      const lines = doc.splitTextToSize(`• ${b}`, MAX_WIDTH);
-                      doc.text(lines, MARGIN_X, cursorY);
-                      cursorY += (lines.length * 3.5) + 1;
-                  } else {
-                      doc.setFont("helvetica", "bold");
-                      const headText = `• ${b.head}:`;
-                      doc.text(headText, MARGIN_X, cursorY);
-                      const headWidth = doc.getTextWidth(headText);
-                      
-                      doc.setFont("helvetica", "normal");
-                      const bodyLines = doc.splitTextToSize(b.body, MAX_WIDTH - headWidth - 2);
-                      if (bodyLines.length > 0) doc.text(bodyLines[0], MARGIN_X + headWidth + 2, cursorY);
-                      for(let i=1; i<bodyLines.length; i++) { cursorY += 4; doc.text(bodyLines[i], MARGIN_X + 4, cursorY); }
-                      cursorY += 5;
-                  }
-              });
-              cursorY += 8;
-          });
-      });
-
-      doc.save("Jonathan_Marino_Executive_Resume.pdf");
+      doc.save("Jonathan_Marino_Live_Briefing.pdf");
       setIsDownloadingLive(false);
   };
 
-  // --- GENERATOR 2: FULL RESUME (Static) ---
+  // --- GENERATOR 2: FULL RESUME (STATIC DATA ONLY) ---
   const downloadResume = async () => {
       setIsDownloadingResume(true);
-      const img = new Image();
-      img.src = '/profile.png';
-      await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
-
       const doc = new jsPDF();
       const SIDEBAR_WIDTH = 75;
       const MAIN_X = 85;
       const MAIN_WIDTH = 110;
 
+      // Sidebar Logic (Same as Live, but scoped here to be safe)
       const drawSidebar = () => {
-          doc.setFillColor(15, 23, 42); // COL_SIDEBAR
-          doc.rect(0, 0, SIDEBAR_WIDTH, doc.internal.pageSize.getHeight(), 'F');
-          let sidebarY = 80;
+          const pageHeight = doc.internal.pageSize.getHeight();
+          doc.setFillColor(15, 23, 42); 
+          doc.rect(0, 0, SIDEBAR_WIDTH, pageHeight, 'F');
+          
+          let sidebarY = 40;
           doc.setTextColor(255, 255, 255);
           doc.setFont("helvetica", "bold");
           doc.setFontSize(18);
           const nameParts = FULL_RESUME_DATA.header.name.split(" ");
           doc.text(nameParts[0], 12, sidebarY);
           doc.text(nameParts.slice(1).join(" "), 12, sidebarY + 8);
+          
           doc.setFont("helvetica", "normal");
           doc.setFontSize(9);
           doc.setTextColor(148, 163, 184); 
-          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 60);
+          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 55);
           doc.text(titleLines, 12, sidebarY + 16);
 
           sidebarY += 35;
@@ -2775,7 +2037,7 @@ export default function ExecutiveProfile() {
           const addSection = (title: string, items: any) => {
               doc.setFont("helvetica", "bold");
               doc.setFontSize(8);
-              doc.setTextColor(13, 148, 136); // COL_ACCENT
+              doc.setTextColor(13, 148, 136); 
               doc.text(title, 12, sidebarY);
               sidebarY += 6;
               doc.setFont("helvetica", "normal");
@@ -2783,15 +2045,18 @@ export default function ExecutiveProfile() {
               doc.setTextColor(220, 220, 220);
               
               if (Array.isArray(items)) {
-                 items.forEach(item => { doc.text(item, 12, sidebarY); sidebarY += 5; });
+                 items.forEach(item => { 
+                    doc.text(`• ${item}`, 12, sidebarY); 
+                    sidebarY += 5; 
+                 });
               } else {
                  Object.entries(items).forEach(([k, v]: any) => {
                     doc.setFont("helvetica", "bold"); doc.text(k, 12, sidebarY); sidebarY += 4;
-                    doc.setFont("helvetica", "normal"); const lines = doc.splitTextToSize(v, 58);
-                    doc.text(lines, 12, sidebarY); sidebarY += (lines.length * 4) + 4;
+                    doc.setFont("helvetica", "normal"); const lines = doc.splitTextToSize(v, 50);
+                    doc.text(lines, 12, sidebarY); sidebarY += (lines.length * 3.5) + 4;
                  });
               }
-              sidebarY += 10;
+              sidebarY += 8;
           };
 
           addSection("CONTACT", FULL_RESUME_DATA.header.contact);
@@ -2801,20 +2066,29 @@ export default function ExecutiveProfile() {
       drawSidebar();
       let cursorY = 20;
 
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("EXECUTIVE SUMMARY", MAIN_X, cursorY);
-      cursorY += 8; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(75, 85, 99); // COL_TEXT_GRAY
+      // EXECUTIVE SUMMARY
+      doc.setTextColor(17, 24, 39); 
+      doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("EXECUTIVE SUMMARY", MAIN_X, cursorY);
+      cursorY += 6; 
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(75, 85, 99); 
       const vpLines = doc.splitTextToSize(FULL_RESUME_DATA.summary, MAIN_WIDTH);
       doc.text(vpLines, MAIN_X, cursorY);
       cursorY += (vpLines.length * 4.5) + 10;
 
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("PROFESSIONAL EXPERIENCE", MAIN_X, cursorY);
+      // EXPERIENCE
+      doc.setTextColor(17, 24, 39); 
+      doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("PROFESSIONAL EXPERIENCE", MAIN_X, cursorY);
       cursorY += 10;
 
       FULL_RESUME_DATA.experience.forEach((companyBlock) => {
           companyBlock.roles.forEach((role) => {
-              if (cursorY > 260) { doc.addPage(); drawSidebar(); cursorY = 20; }
+              // PAGINATION CHECK
+              // Estimating role block size. If we are low on page, force break.
+              if (cursorY > 220) { 
+                  doc.addPage(); 
+                  drawSidebar(); 
+                  cursorY = 20; 
+              }
 
               doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "bold"); doc.setFontSize(11);
               const titleLines = doc.splitTextToSize(role.title, MAIN_WIDTH); doc.text(titleLines, MAIN_X, cursorY);
@@ -2827,14 +2101,33 @@ export default function ExecutiveProfile() {
               doc.text(`${companyBlock.company} | ${companyBlock.location}`, MAIN_X, cursorY);
               cursorY += 5;
 
-              if (role.mandate) { doc.setFont("helvetica", "italic"); doc.setTextColor(80); const mandateLines = doc.splitTextToSize(`Mandate: ${role.mandate}`, MAIN_WIDTH); doc.text(mandateLines, MAIN_X, cursorY); cursorY += (mandateLines.length * 4) + 4; }
+              if (role.mandate) { 
+                  doc.setFont("helvetica", "italic"); doc.setTextColor(80); 
+                  const mandateLines = doc.splitTextToSize(`Mandate: ${role.mandate}`, MAIN_WIDTH); 
+                  doc.text(mandateLines, MAIN_X, cursorY); 
+                  cursorY += (mandateLines.length * 4) + 4; 
+              }
 
               role.bullets.forEach((b: any) => {
-                  if (cursorY > 270) { doc.addPage(); drawSidebar(); cursorY = 20; }
+                  // Micro-pagination check for bullets
+                  if (cursorY > 275) { 
+                      doc.addPage(); drawSidebar(); cursorY = 20; 
+                  }
+                  
                   doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(50);
-                  if (typeof b === 'string') { const lines = doc.splitTextToSize(`• ${b}`, MAIN_WIDTH); doc.text(lines, MAIN_X, cursorY); cursorY += (lines.length * 3.5) + 1; } 
-                  else { doc.setFont("helvetica", "bold"); const headText = `• ${b.head}:`; doc.text(headText, MAIN_X, cursorY); const headWidth = doc.getTextWidth(headText);
-                      doc.setFont("helvetica", "normal"); const bodyLines = doc.splitTextToSize(b.body, MAIN_WIDTH - headWidth - 2);
+                  if (typeof b === 'string') { 
+                      const lines = doc.splitTextToSize(`• ${b}`, MAIN_WIDTH); 
+                      doc.text(lines, MAIN_X, cursorY); 
+                      cursorY += (lines.length * 3.5) + 1; 
+                  } 
+                  else { 
+                      doc.setFont("helvetica", "bold"); 
+                      const headText = `• ${b.head}:`; 
+                      doc.text(headText, MAIN_X, cursorY); 
+                      const headWidth = doc.getTextWidth(headText);
+                      
+                      doc.setFont("helvetica", "normal"); 
+                      const bodyLines = doc.splitTextToSize(b.body, MAIN_WIDTH - headWidth - 2);
                       if (bodyLines.length > 0) doc.text(bodyLines[0], MAIN_X + headWidth + 2, cursorY);
                       for(let i=1; i<bodyLines.length; i++) { cursorY += 4; doc.text(bodyLines[i], MAIN_X + 4, cursorY); }
                       cursorY += 5;
@@ -3106,34 +2399,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_01",
     "category": "live",
     "headline": {
-      "title": "India Enacts Landmark Data Protection Act, Echoing Global Standards",
-      "subtitle": "Digital Sovereignty & Strategic Risk"
+      "title": "Global AI Governance Accelerates Amidst Urgent Regulatory Landscape",
+      "subtitle": "Strategic Risk & Governance"
     },
     "context": {
       "label": "Market Context",
-      "description": "India has officially rolled out its Digital Personal Data Protection (DPDP) Act, establishing a comprehensive legal framework for data privacy and aligning with global benchmarks like the EU's GDPR to foster a secure digital economy.",
+      "description": "The year 2025 marks a critical phase in AI governance, as major frameworks transition from proposals to enforcement, pushing organizations to navigate a complex landscape of mandatory compliance and voluntary standards to balance innovation with accountability.",
       "date": "LIVE - TODAY",
       "sources": [
         {
-          "label": "CoinGeek",
+          "label": "AI Governance and Compliance in 2025",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGX5UceEUBZ4mO2Je7tq9r-8-PZgFSnFONrSBuvO4WiryZbLajrS05vxktXBy6uzrRVd2LrQqmWIwJGDU6n0dqhnHipz17bGOL2e_8hTX_5ohH78QJ-A1vwHgCw-o9-NV19N-rIbI5mhOd8jFYe_SPHI0_hfL3hsHbApp9z907teaxdrSuu4ftXIIbnTWr3Gy4q"
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE_1WySmXz7JIQNwN4au7MF23QXdXKTze5FCvJvq6g64f0oNeZhB5snAzhNr89FGrDqs0Y40_9wJ_Yb8rPx3E954bTyqQEr2vY25lbMLn-4q3WuB1ks3n4Ub67Nr7WlkV-5AOSbyGuepVTDpqqgyYQQKS2dounTP0bs3kx5yrFXCIlIIdsPCyIeWp2tjz1eZLdngUlA_09ppyHj5llyzkEoGNs_"
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Navigating complex global data privacy regulations and ensuring a single platform adheres to diverse local laws (e.g., China, EU, now India) without fracturing the product requires deep expertise in legal tech and data architecture."
+      "explanation": "Translating rapidly evolving global AI regulations into consistent, enforceable policies across diverse operational landscapes presents a significant challenge for enterprises aiming for seamless cross-border operations and maintaining competitive velocity."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Solved the puzzle of global fragmentation by engineering systems that allow a single platform to respect local laws in China and the EU without fracturing the product.",
-      "result": "Digital Sovereignty",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Built the 'Global Policy Data Mesh,' turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage.",
+      "result": "100% Compliance",
       "tags": [
-        "Digital Sovereignty",
-        "Data Governance",
-        "Compliance"
+        "AI Governance",
+        "Regulatory Compliance",
+        "Data Mesh",
+        "Global Strategy"
       ]
     },
     "icon": "Activity"
@@ -3142,34 +2436,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_02",
     "category": "live",
     "headline": {
-      "title": "European Digital Sovereignty Summit Reinforces Regional Autonomy",
-      "subtitle": "Strategic Risk & Governance"
+      "title": "Global AI Ethics Summit Calls for Unified Standards and Accountability",
+      "subtitle": "AI Safety & Revenue Retention"
     },
     "context": {
       "label": "Market Context",
-      "description": "A summit on European Digital Sovereignty in Berlin on November 18, 2025, brought together over 900 policymakers and industry leaders to strengthen Europe's resilience against technological dependencies and foster innovative solutions.",
-      "date": "November 18, 2025",
+      "description": "AI experts gathered at VinFuture Week 2025 to discuss urgent ethical and safety questions, emphasizing that ethics are a prerequisite for sustainable AI innovation, not a hindrance.",
+      "date": "November 25, 2025",
       "sources": [
         {
-          "label": "Élysée",
+          "label": "AI pioneers call for global cooperation on ethics and safety at VinFuture 2025",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHsJkc88fXnPikfsc0g8oUU6BWNZj4Am20bf0kP29chjoG92MdwP7L1h-79SuB2MPy5E61AiGS-uvCSVTIgiVRSQ2v1GSXc7gIximghoEYpWcWpW4KNeFHd4Q2ntKIToKcE8y_O7jC8aHyEdjwfhm5WQiQjFpsireI0gWk68YSRHsiwHU7w1G7jLcR8QYM5rDt75XK4yAnhbR6pD1Pzxnrv1VGciafkeskKMgWOmmj4mDOeBsQQc1MD7vCJyYMS3iUxVlW4qQqps5-1_XWMePQIRCbTqEzED8zykWT6G6LCag=="
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGeciKIUGmIH70UVSAxJwBl-Nfpnw0tvSguzBzkRqoD1C79OLqphShhajvkqifXtnHoEN5akZdsKsCAXfkTDcxDr9ZnChNpWQD9hjVC3ZhDCyZBsmZj21bgza6OUsc5nBRFYTv-iSZr4m7Ub4ZQIuozlga8GeKpSZH5bT_bu_KxTltxLTqcxsM5-K82ySKYsStLsaj17U_zAe0rXy4RL3U-SzD1moijhsDFGR7mgF2w"
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Translating ambitious digital sovereignty goals into actionable strategies requires complex data architectures that can enforce policy across diverse systems while maintaining operational efficiency and global interoperability."
+      "explanation": "The rapid scaling of AI systems necessitates robust safety nets to prevent biased outcomes and maintain human trust, which is challenging when algorithms operate autonomously across diverse applications."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Built the 'Global Policy Data Mesh,' turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage.",
-      "result": "100% Compliance",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Designed 'Safety Nets' that allow AI to scale without destroying value. Intercepted false positives to protect revenue and restore human trust in the algorithm.",
+      "result": "$5M+ in revenue",
       "tags": [
-        "Digital Sovereignty",
-        "Data Mesh",
-        "Regulatory Compliance"
+        "AI Ethics",
+        "Algorithmic Bias",
+        "Trust",
+        "Risk Mitigation"
       ]
     },
     "icon": "Activity"
@@ -3178,34 +2473,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_03",
     "category": "live",
     "headline": {
-      "title": "AI Governance Matures: Shifting from Idealism to Operational Discipline",
-      "subtitle": "AI Safety & Governance"
+      "title": "US States Bolster Data Privacy with New Laws, Expanding Compliance Requirements for 2025",
+      "subtitle": "Strategic Risk & Governance"
     },
     "context": {
       "label": "Market Context",
-      "description": "In 2025, responsible AI has moved from theoretical discussions to broad acceptance as a management discipline, with organizations focusing on structured governance, sharper guardrails, and tougher executive accountability.",
-      "date": "November 26, 2025",
+      "description": "Nine US states amended their existing comprehensive privacy laws in 2025, alongside several new state laws taking effect, creating a complex and evolving compliance landscape for businesses.",
+      "date": "November 10, 2025",
       "sources": [
         {
-          "label": "People Matters",
+          "label": "Retrospective: 2025 in state data privacy law - IAPP",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFJEVeAtGYKlhl1yL6f0taqYh9Nde1bt3eUS3NbqXERnUELKEzKbmwU7Zyz0W3Wifwj66SXllH4GBAukJJdDaksRZU-Lt9cXeK1SHZcFUojN-ej3KTV3DAFV7r7wxThCVlh3GxVRo0Ze_NycMhewyRVEFz9axgBWwTVB6E-lWUAF8uqT2nft-V_6TZ-m80e9m-7hL2Yf6HNKszJoecH5nZMnnrrmKEr5ONZUswiwTeR45PwQkcVkUAxYMndmYLHmvMl2VxDIbtfiNj6"
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFpBNiab2uszkgUiMAviOomaikpSz3FpRecycoKxxY-TlwycFdBbSTiYpyv6Yvio0bbu1N56ZGKB_zwtqcZdHX00cTbKE2Z9ydjAJfMVB-AbqsmxhH4tcMfe5Yqr6VXPcyO7OJo6rVsn3rC3eLOV58BSzRyzisIAeuZBq8R58S3"
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Operationalizing AI safety requires embedding governance throughout the data lifecycle, from model training to deployment, demanding 'safety nets' that protect against false positives and maintain human trust."
+      "explanation": "Navigating a fragmented regulatory environment with varying compliance requirements across states and international jurisdictions demands adaptable policy frameworks and robust data governance strategies."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Designed 'Safety Nets' that allow AI to scale without destroying value. Intercepted false positives to protect revenue and restore human trust in the algorithm.",
-      "result": "$5M+ in revenue",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Built the 'Global Policy Data Mesh,' turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage.",
+      "result": "100% Compliance",
       "tags": [
-        "AI Safety",
-        "AI Governance",
-        "Risk Management"
+        "Data Privacy",
+        "State Regulations",
+        "Compliance",
+        "Global Strategy"
       ]
     },
     "icon": "Activity"
@@ -3214,33 +2510,34 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_04",
     "category": "live",
     "headline": {
-      "title": "Cloud Cost Optimization Emerges as Key for Competitive Growth Amid Rising Spending",
+      "title": "AI-Driven Strategies Transform Cloud Cost Optimization for 2025",
       "subtitle": "Cloud FinOps & Efficiency"
     },
     "context": {
       "label": "Market Context",
-      "description": "Global spending on public cloud services is projected to exceed $1 trillion by 2028, but studies reveal over 30% of cloud spending is wasted, making cloud cost optimization a critical strategy for competitive growth.",
+      "description": "Global IT budget insights for 2025 reveal that AI-driven solutions are becoming critical for cloud cost optimization, with organizations focusing on reducing waste and improving forecasting accuracy.",
       "date": "November 11, 2025",
       "sources": [
         {
-          "label": "Sreeram Krishnamoorthy",
+          "label": "Cloud Cost Optimization in 2025: Global IT Budget Insights and Practical AI Integration",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEYesC2ilryBe753UrW9Ozq4SNNTAOVmfntQxqVndgKll_Z400HzgGW1l5RxgRjfyMJDuPDCeTTnz0r8XKiI2kms_Wo4btvcmwSz1kN7Uri98QpRIbcUyMMIAkjxMlPg6v6McI725ErzFvt_l1kgYrsuhu8A88VokFToX2_B7QDKlcFgsfRr3xA9qKZlZiP0MWscBHf-u0a8knnM0eRK12NIgU8m_SxjoCge8IIwIFp"
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFFawINxrOS0azyjGsCNt12IqGzPO1OHR9CVQ8XmLRkYum9CtE2fF2Scb4Bd0s_FggEW3sRdgBJP-j9uCembYLWWKLPCEp-3T9HIShC7oM01E7QsIwGpzrLk1xLjKh2jJ5yBBIyOwq6h1j32kRHSxmODbpRCF2Gl9eqyK_Jt7GpA6S1ToYi4voty9BSySUw5er_h-pJV5R0SCXA5U6dBThG6-hfToy9L03EsfvamXAq"
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Effectively managing cloud spend requires not just cost-cutting, but strategic governance and an understanding of compute power as a finite creative resource, to ensure efficiency drives innovation rather than stifles it."
+      "explanation": "The increasing complexity of multi-cloud environments and the rapid adoption of AI services make precise cost attribution and real-time optimization challenging without intelligent automation and strong FinOps practices."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Treated compute power as a finite creative resource. Implemented governance that saved money per year, proving that efficiency drives innovation.",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Treated compute power as a finite creative resource. Implemented governance that saved $500k/year.",
       "result": "$500k/year",
       "tags": [
-        "Cloud FinOps",
-        "Cost Optimization",
+        "FinOps",
+        "Cloud Cost Management",
+        "AI Optimization",
         "Efficiency"
       ]
     },
@@ -3250,34 +2547,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_05",
     "category": "live",
     "headline": {
-      "title": "IFS and Boston Dynamics Unveil Autonomous AI-Robotics System for Industrial Operations",
-      "subtitle": "Operational Automation"
+      "title": "AI Empowers Proactive Supply Chain Resilience Amidst Geopolitical Shifts",
+      "subtitle": "Global Supply Chain"
     },
     "context": {
       "label": "Market Context",
-      "description": "IFS and Boston Dynamics have partnered to launch an autonomous AI-robotics system that connects robots with enterprise data, aiming to revolutionize field operations by improving safety, efficiency, and uptime in industrial settings.",
+      "description": "As global supply chains face unprecedented disruption from shifting trade policies, AI is emerging as a critical technology for proactive risk management, enabling businesses to screen massive datasets globally to identify potential impacts.",
       "date": "November 27, 2025",
       "sources": [
         {
-          "label": "IFS",
+          "label": "Turn Tariff Turmoil into Supply Chain Resilience Using AI | Procurement Magazine",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFuNh9HpreO8NKmdCkm3lUp0GRveuQWZ91N6WwylQXPfz8bpP6Z9eG38Qn7p-06VDJocfqtFqKa_w1X7c6BnoXQPC8KTWKTY0JQHKUQbKXZcGtuY8yZxTAjJXdUs8SjUIb3isF53yHY3WMBP6QxxdpzbS0Vaw4cxyiaf8fvAWxFJJyNoPQ_RiHDNtN7158eYuxhPAlqfZiXtyf48J_Uqwun8QveARP9gA6yFQcDYB8EloaQez12Ln2k"
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFTFaZs4wRAzFjBHd6t0ZzkE98d-BtE4s_VBANVvqTWPiqb2E-5GUFcrRwaaFI7YaBTkvWjm57x3fnwE8RsN26sCuIM9CWFppY9rPzOAJ4KZG7_seC0x8Bu2BVJk0CbfuYIHTk92JeSPF3o6OGjEUhS3BAo8XS-pj_cbLqRuUotc4ijrNw_1a1N5D8us_OlL_TtJ1Zm2gtTUeoeLw=="
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Implementing advanced automation requires reclaiming human potential from mundane tasks and strategically re-allocating talent to focus on higher-value activities like strategy and innovation."
+      "explanation": "The dynamic nature of global trade and geopolitical tensions creates constant supply chain vulnerabilities, making it difficult to anticipate and mitigate disruptions without advanced predictive analytics and real-time visibility."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Reclaimed human potential by automating the mundane (Executive Review), allowing top talent to focus on strategy.",
-      "result": "1,000+ hours",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Engineered a borderless, secure vendor framework that allowed the business to tap into global talent pools.",
+      "result": "6 weeks faster",
       "tags": [
-        "Automation",
-        "Efficiency",
-        "Process Optimization"
+        "Supply Chain",
+        "AI",
+        "Risk Management",
+        "Global Talent"
       ]
     },
     "icon": "Activity"
@@ -3286,34 +2584,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_06",
     "category": "live",
     "headline": {
-      "title": "Predictive Analytics Unlocks Next-Gen Customer Experience Excellence",
-      "subtitle": "Customer Experience Engineering"
+      "title": "AI Gateways Operationalize New Governance Frameworks for Scalable Data Strategy",
+      "subtitle": "Data Architecture"
     },
     "context": {
       "label": "Market Context",
-      "description": "In 2025, predictive analytics is crucial for unlocking customer experience excellence, with AI-driven insights powering hyper-personalized interactions and achieving over 40% productivity gains in customer service.",
-      "date": "November 22, 2025",
+      "description": "New AI governance frameworks for 2025 are being operationalized through AI Gateways, which act as enforcement layers, translating policy into action via centralized governance, monitoring, and auditing to ensure compliance.",
+      "date": "November 7, 2025",
       "sources": [
         {
-          "label": "CX Quest",
+          "label": "AI Governance Frameworks for 2025: How AI Gateways Turn Policy into Practice",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFX4zi5wgDihHA2hKMnPTa4BOq5J-Xj76xkwglo1gFh2ksNMlOhyW00NnyrHYvSPnoCfzoFAOGRN8B3ujJZ95Jww-4PMb1u3Tza4qaLdjUxzqZ0iXRUBq-31GAchz01sEbvocPgRYlfmA94GlvwMwNhfzVeegFxwNBTrUfXx6ZXwNVeECn8mlvrNuvD927BSLMHPDZQLw=="
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEuZyuDpFXROcqNlZPGD3zaH6kwOGBwATCho08eS64RxuUC8Rh3kQexjftXa-NQ8LfNRDErXuEwjpBHCcVx_45b5RjtkfFcO1r7JuSsyMafCb35KavECLN2CSvngSNGQnsF2PTtBtfe2Ik0pxiVeOTRbLsG"
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Achieving frictionless customer journeys requires anticipating problems before they arise, necessitating sophisticated predictive analytics models that can translate historical patterns into actionable foresight."
+      "explanation": "Fragmented data silos and disparate systems hinder the implementation of consistent governance policies, making it challenging to establish a unified and trustworthy data foundation for enterprise-wide decision-making."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Used predictive analytics to solve problems before they happened, eliminating support tickets and creating a frictionless user journey.",
-      "result": "300,000 support tickets",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Unified fragmented silos into a 'Single Source of Truth,' giving leadership the real-time clarity needed to make bold, future-facing decisions.",
+      "result": "Single Source of Truth",
       "tags": [
-        "Predictive Analytics",
-        "Customer Experience",
-        "AI"
+        "Data Governance",
+        "Data Mesh",
+        "Architecture",
+        "Real-time Analytics"
       ]
     },
     "icon": "Activity"
@@ -3322,34 +2621,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_07",
     "category": "live",
     "headline": {
-      "title": "November Regulatory Roundup Highlights Tightening Oversight on AI, AML, and Geopolitics",
-      "subtitle": "Strategic Risk & Governance"
+      "title": "Australia Unveils New AI Guidance, Driving Operational Shifts for Enterprise Adoption",
+      "subtitle": "Operational Automation"
     },
     "context": {
       "label": "Market Context",
-      "description": "The November 2025 regulatory roundup indicates a global trend of tightening compliance oversight, with a focus on AI governance, Anti-Money Laundering (AML), and geopolitical risk convergence.",
-      "date": "November 11, 2025",
+      "description": "Australia has published new Guidance for AI Adoption (GfAA), replacing previous voluntary standards and placing greater emphasis on whole-of-lifecycle development, deployment, and ongoing assessment of AI systems, compelling operational adjustments for businesses.",
+      "date": "November 25, 2025",
       "sources": [
         {
-          "label": "FinScan",
+          "label": "Australia launches new AI guidance | White & Case LLP",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEOk6s1iWuwfr2CnnIKyjXHztwVWg73v0OJv6sVGxwAazOAsdcl9vTewksUl6YmLsPN265gqHT5p2Os8WdPJ-rH8bSy5SNyRbJDuS3FKc19hmU-mgD42OvFrGi7xzR7lEeczNyfzToFkVD8_jfh5zGbVIfMWdhhuHyDj_IG6UNs-ZzJALmeSsZly-E-ahYHIbVhDs_MzcspbJpy5IjE1VsgyzHME-FnI-iG0UVONeo="
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEZZfwVDCoLpoJDrsI9Ne6PTd5DIvZxsjrodZfur25jk-J7Wb7SDOqXrjXQ2O2hpQ4w_nGCLrcMF9F29wAQuz1WnTJUpen3fZWCc6O62oKj0TqzBk0Qq_YXBpllRzgk2Q8oTiLQebGJK457kzvec7aOfLDQr2c2GtwnNhtOF9wutOuczsEx"
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "The convergence of technology, financial crime, and global tensions creates a complex compliance landscape, demanding robust, data-driven governance programs to transform regulatory friction into competitive velocity."
+      "explanation": "Integrating new AI guidelines across an organization's entire operational lifecycle, from development to deployment and monitoring, requires significant process re-engineering and automation to ensure consistent adherence and efficiency."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Built the 'Global Policy Data Mesh,' turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage.",
-      "result": "100% Compliance",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Reclaimed human potential by automating the mundane (Executive Review), allowing top talent to focus on strategy.",
+      "result": "1,000+ hours",
       "tags": [
-        "Regulatory Compliance",
-        "Risk Management",
-        "Data Governance"
+        "Process Automation",
+        "AI Adoption",
+        "Operational Efficiency",
+        "Talent Optimization"
       ]
     },
     "icon": "Activity"
@@ -3358,34 +2658,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_08",
     "category": "live",
     "headline": {
-      "title": "Supply Chain Innovation 2025: Resilience in the Face of Global Turmoil",
-      "subtitle": "Global Supply Chain"
+      "title": "AI Ethics Summit Emphasizes Trust and Accountability for Enhanced User Experience",
+      "subtitle": "Customer Experience Engineering"
     },
     "context": {
       "label": "Market Context",
-      "description": "The 2025 Supply Chain Innovation Award highlights how companies are prioritizing innovation and resilience to navigate ongoing turmoil and uncertainty afflicting global trade and supply chains, leveraging AI and automation.",
-      "date": "November 3, 2025",
+      "description": "An AI ethics summit highlights the urgent need for robust ethical frameworks to address issues like bias and accountability, stressing that public trust is critical for AI adoption and overall user experience.",
+      "date": "November 25, 2025",
       "sources": [
         {
-          "label": "SupplyChainBrain",
+          "label": "Hopeful Calls from AI Ethics Summit: Equality, Safety and Accountability - Politics UK",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHkcpkK4aAWWwCrQjWys-RN3AVN2YcqFfE3w_vL2OJ5rDM8lLAosmPwogDaq0WyC7zDYL1r4zrKRtH3eGajUYG-RXoZd-fNGM68y_aLEmM0CNIQQVJXMo4OSJ_LdoUMRqHXQ8ZbpsM_QxbaPh2BZfE5Y0w42KWFiqPzj4aDW7Oc4dM7d3WlATyU0OMZSsU8c6W4IHsGadoElllxV_G7VXxrIwpaXOA4w=="
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFae6Ziwbbg7iT5yiUU4jlfmvkP7Lt9SNg75RA6UGWW_wAeGTDCXu-C7_Ne2SJia3sPt8Wm3z4W78oirru-FgiHr3Dgm6tcXWq1thphYMBDGsljLfykyk5LPMyYiPdMC-8B4LIXIli2cTvE7jdaPpEF5hanxmQGv92MDBgXBeC5eSy2"
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Building truly borderless and secure vendor frameworks to accelerate talent acquisition requires deep expertise in overcoming geopolitical complexities and fragmented global talent pools."
+      "explanation": "Ensuring AI systems are perceived as fair, transparent, and trustworthy by end-users requires proactive ethical design and robust accountability mechanisms, which are often complex to integrate into fast-evolving AI development cycles."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Engineered a borderless, secure vendor framework that allowed the business to tap into global talent pools faster than before.",
-      "result": "6 weeks faster",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Used predictive analytics to solve problems before they happened, eliminating support tickets and creating a frictionless user journey.",
+      "result": "300,000 support tickets",
       "tags": [
-        "Supply Chain",
-        "Global Strategy",
-        "Vendor Management"
+        "Customer Experience",
+        "AI Ethics",
+        "Predictive Analytics",
+        "Trust & Safety"
       ]
     },
     "icon": "Activity"
@@ -3394,34 +2695,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_09",
     "category": "live",
     "headline": {
-      "title": "EU Digital Omnibus Proposes GDPR and AI Act Reforms for Simplified Regulation",
-      "subtitle": "Data Architecture & Strategic Risk"
+      "title": "Digital Transformation Drives Sustainable Supply Chain Development",
+      "subtitle": "Intrapreneurship & Scaling"
     },
     "context": {
       "label": "Market Context",
-      "description": "The European Commission's Digital Omnibus proposals aim to simplify and modernize the EU's digital regulatory framework, including reforms to GDPR, NIS2, the Data Act, and the AI Act.",
-      "date": "November 24, 2025",
+      "description": "The development of resilient and sustainable supply chains for tomorrow is increasingly driven by digital transformation, integrating technologies like AI, IoT, and Blockchain to enhance visibility and efficiency.",
+      "date": "November 21, 2025",
       "sources": [
         {
-          "label": "Hogan Lovells",
+          "label": "Developing the supply chain of tomorrow: a path to resilience and sustainability",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHtbNkIjZolanMxxN8uyxqJSKSpFolNY5-MZSPj6XMTFmciO6gU2G1Ogh2plbJ-Kcg5_8S-yC1h3t4GwebjCniYl5a0nmRuW7ARRHWlKNAtsbxWp3bq8krNsAAWvuhHLqALcPoeKwIU4zeJLzlgCZ_E3Okk5ocbKUP0darylGT77RdjnYnPuJP5OJko5LlSTW-pZ__goOSrPhYl"
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGC88At8k7Idt5c8OZJvsFJ7RmemfyYyqU1W0hSb2c6jEEpi6NRPVeuLl6SP0GVBzwFLlIyYHHWj8hF3RAjm7OjhJ3GCfMbcW0oij-m2V1QsK4P1mpp6FZr3S50bdKtNMBzdrjKUXE11i6gBQWpSSpLrpN3imi7TUDMv7AXeEAvwMEo6uUpcN3mZ5MztZmZ_Z8sQITjIkQRkiikA-sZ-2i6wLxBzdHEn7m4Da845TJrynOSx7-7k6ys1Ai01A=="
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Fragmented data silos hinder effective compliance and real-time decision-making, requiring unification into a 'Single Source of Truth' to navigate evolving regulations and empower leadership."
+      "explanation": "Building innovative and sustainable internal operations within existing enterprise structures requires overcoming resistance to change, fostering a culture of experimentation, and securing resources for long-term vision projects."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Unified fragmented silos into a 'Single Source of Truth,' giving leadership the real-time clarity needed to make bold, future-facing decisions.",
-      "result": "Single Source of Truth",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Built 'Creative Production Works' from a concept into an enterprise.",
+      "result": "$15M enterprise",
       "tags": [
-        "Data Architecture",
-        "Data Governance",
-        "Regulatory Compliance"
+        "Intrapreneurship",
+        "Digital Transformation",
+        "Scaling",
+        "Innovation"
       ]
     },
     "icon": "Activity"
@@ -3430,34 +2732,35 @@ export default function SecurityLayer() {
     "id": "LIVE_GEN_10",
     "category": "live",
     "headline": {
-      "title": "Bangladesh Prioritizes Ethical AI Governance with National Readiness Report",
-      "subtitle": "AI Safety & Governance"
+      "title": "Federal Government Launches AI Safety Institute to Safeguard Digital Sovereignty",
+      "subtitle": "Digital Sovereignty"
     },
     "context": {
       "label": "Market Context",
-      "description": "Bangladesh launched its first national Artificial Intelligence Readiness Assessment (RAM) Report to guide ethical, inclusive, and human-centered AI governance, emphasizing data protection, cybersecurity, and skill development.",
-      "date": "November 20, 2025",
+      "description": "The Australian federal government has launched its AI Safety Institute, to be operational in early 2026, aiming to provide expert capability to monitor, test, and share information on emerging AI technologies, reflecting a national effort to control AI risks within its borders.",
+      "date": "November 26, 2025",
       "sources": [
         {
-          "label": "UNESCO",
+          "label": "Federal government launches AI safety institute - CRN Australia",
           "type": "News",
-          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHT5rr_pm3Kwhh9pwS1VV69AJHaF3qKvBMWXk5lfr2GYIlq8BIXGQ4nOxzVdh5LaZ_5Z0v7ldTwyWUcg7hHIiaJDxhpoZQYYIvYELSU_RjG8FxGh32cRH8WiWSuzLMP3iWJBZTFEaqd2qAIRkLk67Jt0gbwLYR626gcC04cQe8Kj0cQNrYod5BJX7OFpgom-6Eypnx7OsKrD7oH6fVxeOR5IsxLG79kTZhUEjFXekMWO0PO5oTuxI9uklSK9g=="
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE5bihv9g85Bt0RpYzQp1Alj19FS8uxXoREPVYTa1Vv9KKnytKilQmEtK2oewtV97zCcsZbUVg1fb8Q4SRXev-gPUA25XhB1DEz3eP0jiAI2lfqGB6eZMwigvgnKBiArvRVi4xDj2WmwGyfB2XqMycesEaaTp4M-OQ-JZ0iQ3v5E9CZAhr6s0JLpdODBnAmTzAIlRA5zOqm9_sUeT1pww=="
         }
       ]
     },
     "insight": {
       "label": "Friction",
-      "explanation": "Scaling AI ethically and inclusively requires not just technical prowess but also robust governance frameworks and 'safety nets' to prevent value destruction and ensure public trust."
+      "explanation": "Achieving digital sovereignty in an interconnected world is challenging due to the transboundary nature of AI risks and the need for a single platform to adhere to diverse local laws without fracturing product integrity."
     },
     "experience": {
       "label": "Strategic Response",
-      "role": "Tech Strategy Lead & Data Scientist",
-      "action": "Designed 'Safety Nets' that allow AI to scale without destroying value. Intercepted false positives to protect revenue and restore human trust in the algorithm.",
-      "result": "$5M+ in revenue",
+      "role": "Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems",
+      "action": "Solved the puzzle of global fragmentation. Engineered systems that allow a single platform to respect local laws in China and the EU without fracturing the product.",
+      "result": "Single platform",
       "tags": [
-        "AI Ethics",
-        "AI Governance",
-        "Data Protection"
+        "Digital Sovereignty",
+        "AI Safety",
+        "Global Fragmentation",
+        "Regulatory Compliance"
       ]
     },
     "icon": "Activity"
@@ -3708,6 +3011,205 @@ OUTPUT (JSON):
 `;
 </file>
 
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+.env
+.env.local
+.DS_Store
+</file>
+
+<file path="deploy.sh">
+#!/bin/bash
+
+# Increment the patch version in package.json (e.g., 0.1.0 -> 0.1.1)
+# This uses npm's built-in version tool (no git tag created to keep it simple)
+npm version patch --no-git-tag-version
+
+# Extract the new version to show the user
+NEW_VERSION=$(node -p "require('./package.json').version")
+echo "🚀 Deploying Version $NEW_VERSION to Vercel Production..."
+
+# Run the Vercel deployment
+npx vercel --prod
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
 <file path="app/api/generate-resume/route.ts">
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
@@ -3833,31 +3335,30 @@ export async function POST(req: Request) {
 <file path="app/components/brain/HeroCard.tsx">
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
 import { 
-  Fingerprint, ExternalLink, Lightbulb, User, Pause, Activity, Calendar, MousePointer2, PauseCircle, Play
+  Fingerprint, ExternalLink, Lightbulb, User, Pause, Activity, Calendar, MousePointer2, PauseCircle
 } from 'lucide-react';
 import { NarrativeCard } from './NeuralData';
 import { SwarmEngine } from './SwarmEngine';
 
+// CardModule: Ref is now attached DIRECTLY to the visible connector bar
 const CardModule = forwardRef(({ title, children, color, isVisible, delay, glow, date, link }: any, ref: any) => {
     return (
         <div 
-            ref={ref}
             style={{ 
                 background: `rgba(15, 23, 42, 0.9)`,
-                borderLeft: "4px solid " + color, // FIXED: Used concatenation
+                borderLeft: "4px solid " + color,
                 borderTop: '1px solid rgba(255,255,255,0.05)',
                 borderRight: '1px solid rgba(255,255,255,0.05)',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
                 borderRadius: '0 12px 12px 0',
-                padding: '20px',
                 marginBottom: '16px',
-                width: '100%',
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? 'translateX(0)' : 'translateX(-20px)',
-                transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) " + delay + "ms", // FIXED: Used concatenation
-                boxShadow: isVisible ? "0 4px 30px " + color + (glow ? "40" : "10") : "none", // FIXED: Used concatenation
+                transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) " + delay + "ms",
+                boxShadow: isVisible ? "0 4px 30px " + color + (glow ? "40" : "10") : "none",
                 position: 'relative'
             }}
+            className="w-full p-4 md:p-5"
         >
             <div className="flex justify-between items-start mb-2">
                 <div style={{ fontSize: '10px', fontWeight: 700, color: color, textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -3887,11 +3388,23 @@ const CardModule = forwardRef(({ title, children, color, isVisible, delay, glow,
                 </a>
             )}
             
-            <div style={{ 
-                position: 'absolute', top: '50%', right: '-4px', width: '4px', height: '12px', 
-                background: color, borderRadius: '2px', marginTop: '-6px',
-                opacity: isVisible ? 1 : 0, transition: 'opacity 1s'
-            }} />
+            {/* 1. VISUAL CONNECTOR BAR (Now also acts as the Anchor) */}
+            {/* We attach the Ref here directly to ensure coordinates match the visible element exactly */}
+            <div 
+                ref={ref}
+                style={{ 
+                    position: 'absolute', 
+                    top: '50%', 
+                    right: '-4px', 
+                    width: '4px', 
+                    height: '12px', 
+                    marginTop: '-6px', 
+                    background: color, 
+                    borderRadius: '2px',
+                    opacity: isVisible ? 1 : 0, 
+                    transition: 'opacity 1s'
+                }} 
+            />
         </div>
     )
 });
@@ -3908,10 +3421,12 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
     const [visible, setVisible] = useState([false, false, false, false]);
     const [isHovered, setIsHovered] = useState(false);
     
+    // Refs attached to the specific ANCHOR points inside the cards
     const card1Ref = useRef<HTMLDivElement>(null);
     const card2Ref = useRef<HTMLDivElement>(null);
     const card3Ref = useRef<HTMLDivElement>(null);
     const card4Ref = useRef<HTMLDivElement>(null);
+    
     const isHoveredRef = useRef(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
@@ -3920,13 +3435,24 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
     
     useEffect(() => {
         if (!engine) return;
+        
+        let rafId: number;
+        
         const updateTargets = () => {
             const refs = [card1Ref, card2Ref, card3Ref, card4Ref];
+            // Get the bounding rect of the visible anchor bar
             const rects = refs.map(r => r.current?.getBoundingClientRect() || new DOMRect(0,0,0,0));
-            engine.setTargets(rects);
+            
+            // We pass the anchor rects directly. SwarmEngine will target their center.
+            if (rects[0] && rects[0].top !== 0) {
+                engine.setTargets(rects);
+            }
+            
+            rafId = requestAnimationFrame(updateTargets);
         };
-        const interval = setInterval(updateTargets, 100);
-        return () => clearInterval(interval);
+        
+        rafId = requestAnimationFrame(updateTargets);
+        return () => cancelAnimationFrame(rafId);
     }, [engine, content]);
 
     // --- STRICT CONTENT SWAPPING LOGIC ---
@@ -3996,28 +3522,25 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
 
     return (
         <div 
-            style={{ 
-                position: 'absolute', top: '50%', left: '60px', width: '500px', transform: 'translateY(-50%)',
-                zIndex: 20, display: 'flex', flexDirection: 'column' 
-            }}
+            className="absolute top-1/2 -translate-y-1/2 z-20 flex flex-col left-4 right-4 md:left-[60px] md:right-auto md:w-[500px]"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             <CardModule ref={card1Ref} title={activeContent.category === 'live' ? "LIVE_INTERCEPT" : "IDENTITY_SIGNAL"} color={themeColor} isVisible={visible[0]} delay={0} glow={isLive} date={activeContent.context.date}>
                 <div className="flex items-center gap-3">
                     <div className={"p-2 rounded border " + (isLive ? 'bg-red-950/50 border-red-500/50' : 'bg-slate-800 border-slate-700')}>
-                        <Icon className="w-6 h-6 text-white" />
+                        <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
-                    <div className="pr-8">
-                        <h2 className="text-xl font-bold text-white leading-tight">{activeContent.headline.title}</h2>
-                        <p className="text-xs text-slate-400 mt-1 font-mono">{activeContent.headline.subtitle}</p>
+                    <div className="pr-2 md:pr-8">
+                        <h2 className="text-lg md:text-xl font-bold text-white leading-tight">{activeContent.headline.title}</h2>
+                        <p className="text-[10px] md:text-xs text-slate-400 mt-1 font-mono">{activeContent.headline.subtitle}</p>
                     </div>
                 </div>
             </CardModule>
 
             <CardModule ref={card2Ref} title={activeContent.context.label} color={themeColor} isVisible={visible[1]} delay={0} link={isLive ? primaryLink : null}>
-                <p className="text-sm text-slate-300 mb-3 leading-relaxed pr-6">{activeContent.context.description}</p>
-                <div className="flex gap-2">
+                <p className="text-xs md:text-sm text-slate-300 mb-3 leading-relaxed pr-6">{activeContent.context.description}</p>
+                <div className="flex gap-2 flex-wrap">
                     {!isLive && activeContent.context.sources.map((s, i) => (
                         <a key={i} href={s.url} target="_blank" rel="noreferrer" 
                            className="px-2 py-1 bg-blue-900/30 border border-blue-500/30 rounded text-[10px] text-blue-300 hover:bg-blue-900/50 transition-colors flex items-center gap-1">
@@ -4035,7 +3558,7 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
             <CardModule ref={card3Ref} title={activeContent.insight.label} color={themeColor} isVisible={visible[2]} delay={0}>
                  <div className="flex items-start gap-3">
                      <div className={"mt-1 " + (isLive ? 'text-red-500' : 'text-amber-500')}><Lightbulb size={16} /></div>
-                     <p className="text-sm text-slate-200 leading-relaxed">
+                     <p className="text-xs md:text-sm text-slate-200 leading-relaxed">
                          {activeContent.insight.explanation}
                      </p>
                  </div>
@@ -4044,12 +3567,12 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
             <CardModule ref={card4Ref} title={activeContent.experience.label} color={themeColor} isVisible={visible[3]} delay={0}>
                 <div className={"rounded p-3 border " + (isLive ? 'bg-red-950/20 border-red-500/20' : 'bg-emerald-950/30 border-emerald-500/20')}>
                      <div className="flex justify-between items-center mb-2">
-                         <span className={"text-xs font-bold " + (isLive ? 'text-red-400' : 'text-emerald-400')}>{activeContent.experience.role}</span>
+                         <span className={"text-[10px] md:text-xs font-bold " + (isLive ? 'text-red-400' : 'text-emerald-400')}>{activeContent.experience.role}</span>
                          <span className={"text-[10px] px-2 py-0.5 rounded " + (isLive ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300')}>
                              {activeContent.experience.result}
                          </span>
                      </div>
-                     <p className="text-xs text-slate-300 mb-2">{activeContent.experience.action}</p>
+                     <p className="text-[10px] md:text-xs text-slate-300 mb-2">{activeContent.experience.action}</p>
                      <div className="flex gap-1 flex-wrap">
                          {activeContent.experience.tags.map(t => (
                              <span key={t} className="text-[9px] text-slate-500 border border-slate-700 px-1.5 rounded">{t}</span>
@@ -4072,7 +3595,7 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
                 </div>
                 
                 {!isHovered && (
-                    <div className="h-0.5 bg-slate-800 w-24 rounded-full overflow-hidden">
+                    <div className="h-0.5 bg-slate-800 w-16 md:w-24 rounded-full overflow-hidden">
                         <div 
                             key={activeContent.id} 
                             className="h-full bg-slate-500/50 animate-progress origin-left"
@@ -4163,7 +3686,8 @@ import { SwarmEngine } from './SwarmEngine';
 import HeroContainer from './HeroCard';
 import { narrativeData, NarrativeCard } from './NeuralData';
 import { Activity, MousePointer2, Move } from 'lucide-react';
-import liveCache from '../../data/live_cache.json';
+// Keep static import as initial state / fallback
+import staticCache from '../../data/live_cache.json';
 
 interface Props {
   active: boolean;
@@ -4177,13 +3701,31 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
   const [contentIndex, setContentIndex] = useState(0);
   const [started, setStarted] = useState(false);
 
+  // Data fetching logic
   useEffect(() => {
+    async function loadData() {
+      let rawData = staticCache; // Default to build-time data
+
+      try {
+        // Attempt to fetch fresh data from Vercel KV via our API
+        const res = await fetch('/api/read-cache');
+        if (res.ok) {
+            const liveData = await res.json();
+            if (Array.isArray(liveData) && liveData.length > 0) {
+                rawData = liveData;
+            }
+        }
+      } catch (e) {
+        console.warn("Live fetch failed, using static cache.", e);
+      }
+
+      // Process the data
       const bioCard = narrativeData.find(n => n.category === 'bio');
       const portfolioCards = narrativeData.filter(n => n.category === 'portfolio').slice(0, 10);
 
       let liveCards: NarrativeCard[] = [];
-      if (Array.isArray(liveCache)) {
-          const shuffled = [...liveCache].sort(() => 0.5 - Math.random());
+      if (Array.isArray(rawData)) {
+          const shuffled = [...rawData].sort(() => 0.5 - Math.random());
           liveCards = shuffled.slice(0, 10).map((item: any) => ({
               ...item,
               category: 'live',
@@ -4192,7 +3734,6 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
       }
 
       const merged: NarrativeCard[] = bioCard ? [bioCard] : [];
-      
       const maxLen = Math.max(liveCards.length, portfolioCards.length);
       for(let i=0; i<maxLen; i++) {
           if(liveCards[i]) merged.push(liveCards[i]);
@@ -4200,8 +3741,12 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
       }
 
       setCards(merged);
+    }
+
+    loadData();
   }, []);
 
+  // Engine Initialization
   useEffect(() => {
     if (!active) return;
     if (!canvasRef.current) return;
@@ -4224,27 +3769,14 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
   }, [active, cards]);
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#02040a', overflow: 'hidden' }}>
+    // FIXED: Changed from 'relative' to 'fixed inset-0' to ignore parent padding
+    <div className="fixed inset-0 bg-[#02040a] overflow-hidden z-0">
       
-      {/* TOP LEFT HEADER */}
-      <div style={{ 
-          position: 'absolute', top: 30, left: 60, zIndex: 10, 
-          opacity: started ? 1 : 0, transition: 'opacity 2s ease 1s'
-      }}>
-          <h1 className="text-xl font-bold text-white">JONATHAN WILLIAM MARINO</h1>
-          <div className="text-xs text-slate-500 font-mono mt-1 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-              LIVE INTELLIGENCE // ACTIVE
-          </div>
-      </div>
-
       {/* BOTTOM RIGHT LEGEND */}
-      <div style={{
-          position: 'absolute', bottom: 40, right: 60, zIndex: 10,
-          textAlign: 'right', opacity: started ? 1 : 0, transition: 'opacity 1s ease 2s',
-          pointerEvents: 'none' 
-      }}>
-          <div className="flex flex-col items-end space-y-3">
+      <div 
+         className={`fixed bottom-8 right-8 z-50 text-right pointer-events-none transition-opacity duration-1000 delay-[2000ms] hidden md:block ${started ? 'opacity-100' : 'opacity-0'}`}
+      >
+          <div className="flex flex-col items-end space-y-3 pointer-events-auto">
               
               <div className="flex items-center gap-3">
                   <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest drop-shadow-md">Live Market Signal</span>
@@ -4283,7 +3815,7 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
           <HeroContainer content={cards[contentIndex] || cards[0]} engine={engineRef.current} />
       )}
       
-      <canvas ref={canvasRef} style={{ display: 'block' }} />
+      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
     </div>
   );
 };
@@ -4446,7 +3978,7 @@ const mapGemToCard = (gem: any, index: number): NarrativeCard => {
     };
 };
 
-const portfolioCards = RAW_GEMS.map(mapGemToCard); // <-- Line 152 in output
+const portfolioCards = RAW_GEMS.map(mapGemToCard); 
 
 // Bio Card
 const bioCard: NarrativeCard = { 
@@ -4458,8 +3990,7 @@ const bioCard: NarrativeCard = {
       description: "Executive leader bridging Engineering Velocity and Operational Safety. Transforming regulatory frameworks into automated data meshes.",
       date: "EST. 2005",
       sources: [
-        { label: "LinkedIn", type: "Social", url: "https://www.linkedin.com/in/jwmdigital" },
-        { label: "Portfolio", type: "Web", url: "https://jwm.digital" }
+        { label: "LinkedIn", type: "Social", url: "https://www.linkedin.com/in/jwmdigital" }
       ]
     },
     insight: {
@@ -4481,9 +4012,8 @@ export const narrativeData = [bioCard, ...portfolioCards];
 
 <file path="app/components/brain/SwarmEngine.ts">
 import { Vector3D, Perlin } from './MathUtils';
-import { narrativeData } from './NeuralData'; // Assuming narrativeData is correctly exported
 
-// --- 1. PARTICLE SWARM ---
+// --- 1. PARTICLE SWARM (Background Nodes) ---
 export class Particle {
   p: Vector3D; t: Vector3D; v: Vector3D; life = 0; maxLife = 0;
   constructor(public g: Perlin, public parent: Node) {
@@ -4526,35 +4056,101 @@ export class Particle {
   }
 }
 
-// --- 2. STREAM BEAMS ---
+// --- 2. STREAM PARTICLES (The Data Swarm) ---
 export class StreamParticle {
   p: Vector3D; pastP: Vector3D; v: Vector3D;
-  life = 0; maxLife = 120; arrived = false; color: string;
+  life = 0; arrived = false; color: string;
+  speed: number;
+  wobbleOffset: number;
+  initialDist: number;
   
   constructor(start: Vector3D, public target: Vector3D, colorType: number) {
-      this.p = start.clone(); this.pastP = start.clone();
+      this.p = start.clone(); 
+      this.pastP = start.clone();
       this.v = new Vector3D(0,0,0);
-      if (colorType === 2) this.color = 'rgba(239, 68, 68, 0.9)'; 
-      else if (colorType === 1) this.color = 'rgba(16, 185, 129, 0.8)'; 
-      else this.color = 'rgba(234, 179, 8, 0.8)'; 
+      
+      // Calculate initial distance for "progress" tracking
+      const dx = target.x - start.x;
+      const dy = target.y - start.y;
+      this.initialDist = Math.sqrt(dx*dx + dy*dy);
+
+      // Randomized Speed for "Swarm" feel (some fast, some slow)
+      this.speed = 4 + Math.random() * 4; 
+      
+      // Unique noise offset so they don't all follow the same track
+      this.wobbleOffset = Math.random() * 1000;
+
+      if (colorType === 2) this.color = '239, 68, 68'; // Red
+      else if (colorType === 1) this.color = '16, 185, 129'; // Green
+      else this.color = '234, 179, 8'; // Yellow
   }
+
   step(generator: Perlin) {
       if (this.arrived) return;
+      
+      // Trail Logic
       this.pastP.set(this.p.x, this.p.y, 0);
+
+      // Distance to target
       const dx = this.target.x - this.p.x;
       const dy = this.target.y - this.p.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 15) { this.arrived = true; return; }
-      this.v.x = dx * 0.1 + (Math.random()-0.5);
-      this.v.y = dy * 0.1 + (Math.random()-0.5);
+      
+      // Arrival Check (Snap to target if close)
+      if (dist < 10) { 
+          this.arrived = true; 
+          return; 
+      }
+
+      // --- ORGANIC STEERING PHYSICS ---
+      
+      // 1. Seek Force (Normalized Vector to Target)
+      const dirX = dx / dist;
+      const dirY = dy / dist;
+
+      // 2. Noise Force (Turbulence)
+      // We scale noise based on distance. 
+      // Far away = High Noise (Chaos). Close = Zero Noise (Precision Docking).
+      const progress = 1 - (dist / this.initialDist); // 0 to 1
+      
+      // Ramp noise down as we approach target (Square it for smoother landing)
+      const noiseInfluence = Math.pow(1 - progress, 2) * 4.0; 
+
+      const time = Date.now() * 0.002;
+      const noiseX = generator.simplex3d(this.p.x * 0.01, this.p.y * 0.01, time + this.wobbleOffset);
+      const noiseY = generator.simplex3d(this.p.x * 0.01 + 100, this.p.y * 0.01, time + this.wobbleOffset);
+
+      // 3. Apply Velocity
+      // Base velocity aligns with target direction
+      this.v.x = (dirX * this.speed) + (noiseX * noiseInfluence);
+      this.v.y = (dirY * this.speed) + (noiseY * noiseInfluence);
+
+      // 4. Move
       this.p.add(this.v);
       this.life++;
   }
+
   render(ctx: CanvasRenderingContext2D) {
       if (this.arrived) return;
-      ctx.strokeStyle = this.color;
+      
+      // Draw Trail (Motion Blur)
+      ctx.beginPath();
+      ctx.moveTo(this.pastP.x, this.pastP.y);
+      ctx.lineTo(this.p.x, this.p.y);
+      ctx.strokeStyle = `rgba(${this.color}, 0.6)`;
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(this.pastP.x, this.pastP.y); ctx.lineTo(this.p.x, this.p.y); ctx.stroke();
+      ctx.stroke();
+
+      // Draw Head (Data Packet) - Bright white leading edge
+      ctx.beginPath();
+      ctx.arc(this.p.x, this.p.y, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      
+      // Glow
+      ctx.shadowColor = `rgba(${this.color}, 1)`;
+      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 0; // Reset for performance
   }
 }
 
@@ -4647,15 +4243,14 @@ export class Node {
             const d = this.pos.dist(o.pos);
             if (d < 150 && d > 0) this.vel.add(this.pos.clone().sub(o.pos).div(d).mul(0.04));
         }
-        
-        const UI_WIDTH = 650; 
-        if (this.pos.x < UI_WIDTH) { this.pos.x = UI_WIDTH; this.vel.x += 0.5; }
+        const UI_WIDTH = 500; 
+        if (this.pos.x < UI_WIDTH) { this.vel.x += 0.2; }
     }
 
-    this.vel.mul(0.96); 
+    this.vel.mul(0.98); 
     this.pos.add(this.vel);
     
-    const PADDING = 200;
+    const PADDING = 100;
     if (this.pos.x < -PADDING) this.vel.x += 0.2;
     if (this.pos.x > width + PADDING) this.vel.x -= 0.2;
     if (this.pos.y < -PADDING) this.vel.y += 0.2;
@@ -4726,8 +4321,8 @@ export class Node {
       const width = (n.isMinor) ? 0.5 : (0.5 + strength);
 
       const g = ctx.createLinearGradient(this.pos.x, this.pos.y, n.pos.x, n.pos.y);
-g.addColorStop(0, "hsla(" + this.colorHue + ", 60%, 60%, " + opacity + ")");
-g.addColorStop(1, "hsla(" + n.colorHue + ", 60%, 60%, " + opacity + ")");
+      g.addColorStop(0, "hsla(" + this.colorHue + ", 60%, 60%, " + opacity + ")");
+      g.addColorStop(1, "hsla(" + n.colorHue + ", 60%, 60%, " + opacity + ")");
       
       ctx.lineWidth = width;
       ctx.strokeStyle = g;
@@ -4747,6 +4342,7 @@ g.addColorStop(1, "hsla(" + n.colorHue + ", 60%, 60%, " + opacity + ")");
 export class SwarmEngine {
   canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D;
   width = 0; height = 0;
+  dpr = 1;
   nodes: Node[] = [];
   particles: StreamParticle[] = [];
   pGen = new Perlin();
@@ -4777,6 +4373,7 @@ export class SwarmEngine {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     this.onNodeChange = onNodeChange;
+    this.dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     
     this.boundMouseMove = this.handleMouseMove.bind(this);
     this.boundMouseDown = this.handleMouseDown.bind(this);
@@ -4820,14 +4417,23 @@ export class SwarmEngine {
   }
 
   setTargets(rects: DOMRect[]) {
-      this.targets = rects.map(r => ({ x: r.right, y: r.top + r.height / 2 }));
+      this.targets = rects.map(r => ({ 
+          x: r.left + (r.width / 2), 
+          y: r.top + (r.height / 2) 
+      }));
   }
 
   resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight;
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
+      this.dpr = window.devicePixelRatio || 1;
+      
+      this.canvas.width = this.width * this.dpr;
+      this.canvas.height = this.height * this.dpr;
+      this.canvas.style.width = `${this.width}px`;
+      this.canvas.style.height = `${this.height}px`;
+      this.ctx.scale(this.dpr, this.dpr);
+      
       if (this.nodes.length === 0) this.initNodes([]);
   }
 
@@ -4842,7 +4448,12 @@ export class SwarmEngine {
       
       const totalActiveNodes = 20;
       for(let i=0; i<totalActiveNodes; i++) {
-          const n = new Node(cx, cy, this.pGen);
+          const n = new Node(cx, cy, this.pGen); 
+          const angle = Math.random() * Math.PI * 2;
+          const force = 10 + Math.random() * 15; 
+          n.vel.x = Math.cos(angle) * force;
+          n.vel.y = Math.sin(angle) * force;
+          
           const category = i < 10 ? 'live' : 'portfolio';
           n.bindData(i + 1, category); 
           this.nodes.push(n);
@@ -4872,8 +4483,8 @@ export class SwarmEngine {
   }
 
   handleMouseDown(e: MouseEvent) {
-      const mx = e.clientX - this.canvas.getBoundingClientRect().left;
-      const my = e.clientY - this.canvas.getBoundingClientRect().top;
+      const mx = e.clientX;
+      const my = e.clientY;
       const world = this.screenToWorld(mx, my);
 
       let hit = false;
@@ -4893,8 +4504,8 @@ export class SwarmEngine {
   }
 
   handleMouseMove(e: MouseEvent) {
-      const mx = e.clientX - this.canvas.getBoundingClientRect().left;
-      const my = e.clientY - this.canvas.getBoundingClientRect().top;
+      const mx = e.clientX;
+      const my = e.clientY;
       const world = this.screenToWorld(mx, my);
 
       if (this.draggedNode) {
@@ -4917,8 +4528,8 @@ export class SwarmEngine {
   }
 
   handleMouseUp(e: MouseEvent) {
-      const mx = e.clientX - this.canvas.getBoundingClientRect().left;
-      const my = e.clientY - this.canvas.getBoundingClientRect().top;
+      const mx = e.clientX;
+      const my = e.clientY;
       if (this.dragStartPos && this.draggedNode) {
           const dist = Math.sqrt((mx - this.dragStartPos.x)**2 + (my - this.dragStartPos.y)**2);
           if (dist < 5) this.activateNode(this.draggedNode);
@@ -4944,6 +4555,8 @@ export class SwarmEngine {
       this.streamActive = true;
       this.streamPhases = [false, false, false, false];
       this.linkProgress = [0, 0, 0, 0];
+      
+      // Increased spawn rate by triggering more frequent phases
       const t1 = setTimeout(() => this.streamPhases[0] = true, 0);
       const t2 = setTimeout(() => this.streamPhases[1] = true, 600); 
       const t3 = setTimeout(() => this.streamPhases[2] = true, 1200);
@@ -4970,7 +4583,8 @@ export class SwarmEngine {
       const screenNode = this.worldToScreen(this.activeNode.pos.x, this.activeNode.pos.y);
       const startPos = new Vector3D(screenNode.x, screenNode.y, 0);
 
-      const spawnRate = 0.4;
+      // INCREASED SPAWN RATE: 80% chance per frame per active phase
+      const spawnRate = 0.8;
       if (this.streamPhases[0] && Math.random() > 1 - spawnRate) this.particles.push(new StreamParticle(startPos, new Vector3D(this.targets[0].x, this.targets[0].y, 0), cType));
       if (this.streamPhases[1] && Math.random() > 1 - spawnRate) this.particles.push(new StreamParticle(startPos, new Vector3D(this.targets[1].x, this.targets[1].y, 0), cType));
       if (this.streamPhases[2] && Math.random() > 1 - spawnRate) this.particles.push(new StreamParticle(startPos, new Vector3D(this.targets[2].x, this.targets[2].y, 0), cType));
@@ -5012,23 +4626,7 @@ export class SwarmEngine {
                  this.linkProgress[i] += 0.03;
                  if (this.linkProgress[i] > 1) this.linkProgress[i] = 1;
             }
-            if (this.linkProgress[i] > 0) {
-                const P2 = new Vector3D(this.targets[i].x, this.targets[i].y, 0);
-                const P1 = new Vector3D((P0.x + P2.x) / 2, P0.y, 0);
-                const t = this.linkProgress[i];
-                const Q0 = this.lerp(P0, P1, t); const Q1 = this.lerp(P1, P2, t); const R0 = this.lerp(Q0, Q1, t);
-                
-                let color = 'rgba(16, 185, 129, 0.4)'; 
-                if (this.activeNode.category === 'live') color = 'rgba(239, 68, 68, 0.5)'; 
-                if (this.activeNode.category === 'bio') color = 'rgba(234, 179, 8, 0.4)'; 
-
-                this.ctx.beginPath(); this.ctx.moveTo(P0.x, P0.y); this.ctx.quadraticCurveTo(Q0.x, Q0.y, R0.x, R0.y);
-                this.ctx.strokeStyle = color; this.ctx.lineWidth = 3; this.ctx.stroke();
-
-                if (t < 1) {
-                    this.ctx.fillStyle = '#fff'; this.ctx.beginPath(); this.ctx.arc(R0.x, R0.y, 4, 0, Math.PI*2); this.ctx.fill();
-                }
-            }
+            // The quadratic curve logic is replaced by individual particles
         }
     }
 
@@ -5356,12 +4954,7 @@ export default function RootLayout({
       <head>
         {/* AGENT INJECTION: Cinematic Intro Dependencies */}
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" strategy="beforeInteractive" />
-        <Script 
-          id="simplex-noise-cdn" 
-          strategy="beforeInteractive" 
-          // Injecting Simplex Noise IIFE directly to make it available as window.SimplexNoise
-          dangerouslySetInnerHTML={{ __html: `!function(){"use strict";var r=.5*(Math.sqrt(3)-1),e=(3-Math.sqrt(3))/6,t=1/6,a=(Math.sqrt(5)-1)/4,o=(5-Math.sqrt(5))/20;function i(r){var e;e="function"==typeof r?r:r?function(){var r=0,e=0,t=0,a=1,o=i.now()/1e3;function i(e){return(r=e*a+o)%256}return i.seed=function(e){e<1&&(e*=65536),o=(e=Math.floor(e))>>>8,a=e%256+111,r=0,e=0,t=0},i}():Math.random,this.p=n(e),this.perm=new Uint8Array(512),this.permMod12=new Uint8Array(512);for(var t=0;t<512;t++)this.perm[t]=this.p[255&t],this.permMod12[t]=this.perm[t]%12}function n(r){var e,t=new Uint8Array(256);for(e=0;e<256;e++)t[e]=e;for(e=0;e<255;e++){var a,o=e+~~(r()*(256-e)),i=t[e];t[e]=t[o],t[o]=i}return t}i.prototype={grad3:new Float32Array([1,1,0,-1,1,0,1,-1,0,-1,-1,0,1,0,1,-1,0,1,1,0,-1,-1,0,-1,0,1,1,0,-1,1,0,1,-1,0,-1,-1]),noise3D:function(a,o,i){var n,s,h,l,f,c,u,d,p,m,M=this.permMod12,y=this.perm,v=this.grad3,w=(a+o+i)*t,A=Math.floor(a+w),x=Math.floor(o+w),g=Math.floor(i+w),S=(A+x+g)*t,U=a-(A-S),b=o-(x-S),F=i-(g-S);U>=b?b>=F?(f=1,c=0,u=0,d=1,p=1,m=0):U>=F?(f=1,c=0,u=0,d=1,p=0,m=1):(f=0,c=0,u=1,d=1,p=0,m=1):b<F?(f=0,c=0,u=1,d=0,p=1,m=1):U<F?(f=0,c=1,u=0,d=0,p=1,m=1):(f=0,c=1,u=0,d=1,p=1,m=0);var D=U-f+t,T=b-c+t,k=F-u+t,P=U-d+2*t,z=b-p+2*t,q=F-m+2*t,E=U-1+.5,I=b-1+.5,j=F-1+.5,H=255&A,K=255&x,L=255&g,N=.6-U*U-b*b-F*F;if(N<0)n=0;else{var O=3*M[H+y[K+y[L]]];n=(N*=N)*N*(v[O]*U+v[O+1]*b+v[O+2]*F)}var Q=.6-D*D-T*T-k*k;if(Q<0)s=0;else{var R=3*M[H+f+y[K+c+y[L+u]]];s=(Q*=Q)*Q*(v[R]*D+v[R+1]*T+v[R+2]*k)}var V=.6-P*P-z*z-q*q;if(V<0)h=0;else{var W=3*M[H+d+y[K+p+y[L+m]]];h=(V*=V)*V*(v[W]*P+v[W+1]*z+v[W+2]*q)}var X=.6-E*E-I*I-j*j;if(X<0)l=0;else{var Y=3*M[H+1+y[K+1+y[L+1]]];l=(X*=X)*X*(v[Y]*E+v[Y+1]*I+v[Y+2]*j)}return 32*(n+s+h+l)}},window.SimplexNoise=i}();`}}
-        />
+        <Script src="/js/noise.js" strategy="beforeInteractive" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -5427,464 +5020,6 @@ export default function Home() {
 }
 </file>
 
-<file path="data/generated_site_content.json">
-{
-  "hero_heading": "Architecting Data Governance: From Google-Scale Integrity to Your Enterprise.",
-  "hero_subtext": "Ensure end-to-end data lineage and robust risk mitigation. Leverage proven strategies from Google to safeguard your enterprise's data integrity and compliance.",
-  "call_to_action": "Download Resume (Data Governance & Compliance)",
-  "tech_stack_highlight": [
-    "TRACE (Hierarchical Account Infection Mapping)",
-    "Compliance Auditing",
-    "Security Analysis"
-  ],
-  "blog_post_snippet": "In light of recent data breaches and increasingly stringent compliance regulations, the need for robust data governance has never been more critical. At Google, I architected policy infrastructure, including the TRACE tool, to map data lineage and mitigate risks at scale. Now, I bring that experience to enterprises seeking to establish end-to-end data governance solutions, ensuring integrity and adherence to evolving compliance standards."
-}
-</file>
-
-<file path="data/master_resume.json">
-{
-  "profile": {
-    "name": "Jonathan William Marino",
-    "title": "Tech Lead for Policy @ Google",
-    "tagline": "From E-Trade Babies to Enterprise Policy: Architecting the Integrity of the Future.",
-    "contact": {
-      "portfolio": "https://jwm.digital",
-      "linkedin": "https://linkedin.com/in/jwmdigital"
-    }
-  },
-  "brand_narrative": {
-    [cite_start]"bio_summary": "A digital engineer and creative strategist who evolved from designing for Jay-Z and the E-Trade Babies to architecting Google's global policy infrastructure. I combine high-level creative direction with complex data engineering (SQL, Policy logic) to build systems that protect billions of users while eliminating friction. [cite: 8, 12, 42, 102]",
-    [cite_start]"unique_value_prop": "The Power of Synthesis: Combining Creative Motion, Web Design, Data Analysis, and Policy Engineering to solve problems others deem impossible. [cite: 97, 216]"
-  },
-  "philosophy": {
-    "northstars": [
-      {
-        "name": "The Integrity Imperative",
-        "description": "Architecting data-driven solutions that ensure the fairness and consistency of Global Policy."
-      },
-      {
-        "name": "Frictionless Future",
-        "description": "Using complex data analysis to pinpoint dissatisfaction at the source and turn policy challenges into high-trust experiences."
-      },
-      {
-        "name": "Elevate the Human",
-        "description": "Freeing up high-level teams from manual review by building the 'Professional Google Inside' they never had."
-      }
-    ],
-    "core_values": [
-      "Empowerment and Safety First (Team Health)",
-      "Unwavering Problem Solver (Relentless Execution)",
-      [cite_start]"Data-Backed Conviction (Evidence over Opinion) [cite: 136]",
-      [cite_start]"Security & Scalability First (Due Diligence) [cite: 133]",
-      "Ethical Vigilance (Mitigating AI over-flagging)"
-    ]
-  },
-  "core_competencies": [
-    [cite_start]"GoogleSQL (BigQuery) & Complex Querying [cite: 190]",
-    "Policy Infrastructure Architecture",
-    "Crisis Management (ATO Code Red)",
-    "Hierarchical Account Infection Mapping (TRACE)",
-    [cite_start]"Creative Strategy (Motion & Web) [cite: 169]",
-    [cite_start]"Vendor Vetting & Contract Negotiation [cite: 133]",
-    "Security Analysis & Risk Mitigation",
-    [cite_start]"Team Leadership (Global Supply Chain) [cite: 129]"
-  ],
-  "experience_highlights": [
-    {
-      "role": "Tech Lead, Policy & Trust Safety",
-      "company": "Google",
-      [cite_start]"duration": "2015 - Present [cite: 99]",
-      "key_achievement": "Architecting global data solutions for Policy, Trust & Safety, and Crisis Response across a 12-year tenure.",
-      "projects": [
-        {
-          "name": "ATO Crisis Response (Account Takeover Code Red)",
-          "focus": "Risk Mitigation & Operational Recovery",
-          "details": [
-            "Orchestrated the 'Code Red' operational cleanup for high-risk Account Takeovers (ATO), directly managing 'Option B' protocols for critical clients.",
-            "Engineered data pipelines integrating Buganizer CIDs into real-time dashboards, closing visibility gaps on missing cases.",
-            "Led the transition from manual Trix-based investigations to the automated AART Clean Up Tool, significantly reducing case resolution time."
-          ]
-        },
-        {
-          "name": "Certs CX Infrastructure (Ads Certifications)",
-          "focus": "Scalability & User Experience",
-          "details": [
-            "Collaborated on the architectural expansion of 'MCC Inheritance' criteria, simplifying certification logic for parent accounts.",
-            "Developed scalable infrastructure for Certification Auditing and Revocation, ensuring policy compliance without throttling legitimate ad spend.",
-            "Implemented 'Structured & Transparent Rejection' logic, reducing support ticket volume by clarifying policy violations to users."
-          ]
-        },
-        {
-          "name": "AI & Internal Tooling Innovation",
-          "focus": "Automation & Innovation",
-          "details": [
-            [cite_start]"Built 'SlideSense' (NLP/Computer Vision), an AI tool that automates executive presentation review, saving 1,000+ management hours. [cite: 143]",
-            [cite_start]"Created 'Stevie,' a Gemini-powered audio synthesis interface, solving accessibility gaps for visually impaired users by enabling audio-only LLM chat. [cite: 149]",
-            [cite_start]"Engineered 'CARTA,' a custom GA4 analytics widget to solve complex document tracking issues that standard tools could not handle. [cite: 155]"
-          ]
-        },
-        {
-          "name": "Global Operations Engineering",
-          "focus": "Scale & Efficiency",
-          "details": [
-            [cite_start]"Founded and scaled 'Production Creative Works' from a pilot to a multi-million dollar global operation across APAC, EMEA, and AMER. [cite: 129]",
-            [cite_start]"Authored the core SOPs and Business Requirement Documents (BRDs) that standardized Google's creative supply chain. [cite: 134]",
-            [cite_start]"Implemented 'Data & Metrics Visualization' to track Time to Delivery and Revision Rates, moving creative management to objective P&L management. [cite: 136]"
-          ]
-        },
-        {
-          "name": "Creative Technology (Ad Formats)",
-          "focus": "First-to-Market Engineering",
-          "details": [
-            [cite_start]"Led Technical Program Management for '3D Swirl,' enabling interactive 3D assets (glTF/glb) in display ads. [cite: 110]",
-            [cite_start]"Drove adoption of YouTube AR 'Virtual Try-On,' using ARCore to allow users to try makeup via front-facing camera. [cite: 118]",
-            [cite_start]"Served as Technical Consultant for 'Beyond the Map' (Rio Favelas) and 'Hidden Worlds' (National Parks), using 360-degree video/WebGL for digital archiving. [cite: 161, 163]"
-          ]
-        }
-      ]
-    },
-    {
-      "role": "Motion Graphics Director / Lead",
-      "company": "Boombox",
-      [cite_start]"duration": "2010 - 2015 [cite: 74]",
-      "key_achievement": "Evolved from a singular video editor to a Director, building an internal creative production powerhouse.",
-      [cite_start]"metrics": "Managed 'award-winning projects' and defined pipeline management for video & graphics. [cite: 86]"
-    },
-    {
-      "role": "Lead 3D Artist & Audio Engineer",
-      "company": "LimeGorilla (Indie Game Dev)",
-      [cite_start]"duration": "2010s [cite: 91]",
-      [cite_start]"key_achievement": "Built 'Goofer' for iPad, demonstrating full-stack mobile capability (Audio, 3D, Logic) during the early App Store boom. [cite: 91]",
-      [cite_start]"metrics": "Handled Music Creation, 3D Modeling, and Game Logic. [cite: 94]"
-    },
-    {
-      "role": "Production Designer / Performer",
-      "company": "Oddcast",
-      [cite_start]"duration": "2006 - 2010 [cite: 18]",
-      [cite_start]"key_achievement": "Pioneered early viral marketing and personalized interactivity. [cite: 21]",
-      [cite_start]"metrics": "Key contributor to 'Monk-e-Mail' (50M users) and the 'E-Trade Baby' Super Bowl campaign (ran for 6 years). [cite: 37, 46]"
-    }
-  ],
-  "voice_settings": {
-    "tone": "Visionary but grounded, Authoritative, 'The Adult in the Room'",
-    "keywords_to_include": ["Integrity", "Frictionless", "Synthesis", "Scale", "Conviction", "Governance"],
-    "forbidden_phrases": ["I helped", "I think", "Rockstar", "Ninja"]
-  }
-}
-</file>
-
-<file path="gems/brain_prime.txt">
-IDENTITY:
-You are the Chief Brand Officer (The Brain) for Jonathan William Marino. You hold the "Master Truth" of his resume and skills.
-
-GOAL:
-Read the "Executive Analysis" provided by the Profiler. Decide IF and HOW we should update the website to appeal to this trend.
-
-INPUT:
-1. Executive Analysis JSON (from the Profiler)
-2. Master Resume JSON (Jonathan's actual skills)
-
-OUTPUT INSTRUCTIONS:
-Return a JSON object:
-{
-  "decision": "APPROVE" or "REJECT",
-  "reasoning": "Why this fits/doesn't fit Jonathan's brand",
-  "strategy": "Draft a 1-sentence 'Hook' that connects Jonathan's specific experience (e.g., TRACE tool) to the News Trend.",
-  "suggested_hero_text": "A punchy, 10-word headline for the website."
-}
-</file>
-
-<file path="gems/constructor.txt">
-IDENTITY:
-You are the Constructor (The Builder). You are an expert Frontend Developer and Copywriter. You take abstract strategies and turn them into deployable content.
-
-GOAL:
-Update the website content based on the "Strategic Mandate" from The Brain.
-
-INPUT:
-1. Strategic Mandate (JSON from The Brain)
-2. Current Website Structure (Simulated for now)
-
-OUTPUT INSTRUCTIONS:
-Return a JSON object containing the actual text for the website components:
-{
-  "hero_heading": "The new headline",
-  "hero_subtext": "The 2-sentence description",
-  "call_to_action": "Download Resume (Context: [Focus Area])",
-  "tech_stack_highlight": ["List", "3", "Relevant", "Tools"],
-  "blog_post_snippet": "A 1-paragraph mini-article responding to the news event."
-}
-</file>
-
-<file path="gems/executive_profiler.txt">
-IDENTITY:
-You are the Executive Profiler. You are a high-level corporate consultant who advises C-Suite executives (CTOs, CIOs). You are cynical, busy, and focused purely on ROI (Return on Investment) and Risk.
-
-GOAL:
-Analyze a news headline or trend and determine if it matters to a Tech Executive.
-
-INPUT:
-A news headline and a short summary.
-
-OUTPUT INSTRUCTIONS:
-Return a strict JSON object. Do not output markdown or conversational text.
-{
-  "relevance_score": (Integer 1-10),
-  "executive_pain_point": "What specific headache does this solve or cause for a CTO?",
-  "opportunity_angle": "How can a data engineer position themselves as the solution to this?",
-  "buzzwords": ["List", "3", "Terms"]
-}
-</file>
-
-<file path="gems/resume_architect.txt">
-IDENTITY:
-You are a Senior Technical Resume Strategist. You specialize in translating engineering tasks into executive-level value propositions.
-
-GOAL:
-Take the user's raw answers about a recent project and format them into a structured JSON entry for their Master Resume.
-
-INPUT:
-1. Role/Project Name
-2. The Challenge (What was hard?)
-3. The Solution (Tech Stack)
-4. The Impact (Metrics)
-
-OUTPUT INSTRUCTIONS:
-Return a JSON object with this specific structure. Do not output markdown.
-{
-  "new_entry": {
-    "role": "Refined Job Title",
-    "company": "Company Name",
-    "key_achievement": "A powerful 1-sentence summary of the value delivered.",
-    "metrics": "Specific numbers/impact (e.g., 'Reduced latency by 20%')",
-    "tech_stack": ["Tool 1", "Tool 2", "Tool 3"]
-  }
-}
-</file>
-
-<file path="public/file.svg">
-<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
-</file>
-
-<file path="public/globe.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
-</file>
-
-<file path="public/next.svg">
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
-</file>
-
-<file path="public/vercel.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
-</file>
-
-<file path="public/window.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
-</file>
-
-<file path=".gitignore">
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-.env
-.env.local
-.DS_Store
-</file>
-
-<file path="check_models.py">
-import google.generativeai as genai
-import os
-from dotenv import load_dotenv
-
-# Load your key
-load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
-
-print("🔎 Checking available models for your API Key...")
-print("------------------------------------------------")
-
-try:
-    for m in genai.list_models():
-        # Only show models that can generate text (content)
-        if 'generateContent' in m.supported_generation_methods:
-            print(f"✅ {m.name}")
-except Exception as e:
-    print(f"❌ Error connecting: {e}")
-</file>
-
-<file path="deploy.sh">
-#!/bin/bash
-
-# Increment the patch version in package.json (e.g., 0.1.0 -> 0.1.1)
-# This uses npm's built-in version tool (no git tag created to keep it simple)
-npm version patch --no-git-tag-version
-
-# Extract the new version to show the user
-NEW_VERSION=$(node -p "require('./package.json').version")
-echo "🚀 Deploying Version $NEW_VERSION to Vercel Production..."
-
-# Run the Vercel deployment
-npx vercel --prod
-</file>
-
-<file path="eslint.config.mjs">
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
-
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
-
-export default eslintConfig;
-</file>
-
-<file path="next.config.ts">
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
-</file>
-
-<file path="orchestrator.py">
-import os
-import json
-import google.generativeai as genai
-from dotenv import load_dotenv
-
-# 1. CONFIGURATION
-load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
-
-MODEL_NAME = "gemini-2.0-flash" 
-
-def load_file(filepath):
-    try:
-        with open(filepath, "r") as f:
-            return f.read()
-    except FileNotFoundError:
-        return ""
-
-def save_file(filepath, content):
-    with open(filepath, "w") as f:
-        f.write(content)
-
-# --- AGENT 1: THE PROFILER ---
-def run_profiler(headline):
-    print(f"\n1️⃣  Profiler scanning: '{headline}'...")
-    system_prompt = load_file("gems/executive_profiler.txt")
-    model = genai.GenerativeModel(model_name=MODEL_NAME, system_instruction=system_prompt)
-    response = model.generate_content(
-        f"Analyze this news: {headline}",
-        generation_config={"response_mime_type": "application/json"}
-    )
-    return json.loads(response.text)
-
-# --- AGENT 2: THE BRAIN ---
-def run_brain(profiler_data):
-    print(f"2️⃣  Brain strategizing...")
-    system_prompt = load_file("gems/brain_prime.txt")
-    resume_data = load_file("data/master_resume.json")
-    
-    prompt = f"""
-    MARKET INTEL: {json.dumps(profiler_data)}
-    MY RESUME: {resume_data}
-    TASK: Determine if we should pivot the brand.
-    """
-    model = genai.GenerativeModel(model_name=MODEL_NAME, system_instruction=system_prompt)
-    response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-    return json.loads(response.text)
-
-# --- AGENT 3: THE CONSTRUCTOR ---
-def run_constructor(brain_data):
-    print(f"3️⃣  Constructor building...")
-    system_prompt = load_file("gems/constructor.txt")
-    
-    prompt = f"""
-    STRATEGIC MANDATE: {json.dumps(brain_data)}
-    TASK: Generate the JSON content for the website frontend.
-    """
-    model = genai.GenerativeModel(model_name=MODEL_NAME, system_instruction=system_prompt)
-    response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-    return json.loads(response.text)
-
-# --- MAIN WORKFLOW ---
-if __name__ == "__main__":
-    # The Trigger
-    news_headline = "New regulations require tech companies to map all data lineage by 2026."
-    
-    # Step 1
-    profiler_output = run_profiler(news_headline)
-    
-    # Step 2
-    brain_output = run_brain(profiler_output)
-    
-    if brain_output.get("decision") == "APPROVE":
-        # Step 3 (Run the Constructor)
-        site_content = run_constructor(brain_output)
-        
-        # SAVE THE RESULT
-        output_path = "data/generated_site_content.json"
-        save_file(output_path, json.dumps(site_content, indent=2))
-        
-        print(f"\n✅ SYSTEM SUCCESS. Content generated at: {output_path}")
-        print(json.dumps(site_content, indent=2))
-    else:
-        print("\n⛔ Brain rejected the topic. No site update needed.")
-</file>
-
 <file path="package.json">
 {
   "name": "src",
@@ -5898,15 +5033,13 @@ if __name__ == "__main__":
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@vercel/kv": "^3.0.0",
     "@xyflow/react": "^12.9.3",
-    "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
     "lucide-react": "^0.555.0",
     "next": "16.0.4",
     "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "three": "^0.181.2",
-    "three.js": "^0.77.0"
+    "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -5919,175 +5052,6 @@ if __name__ == "__main__":
     "typescript": "^5"
   }
 }
-</file>
-
-<file path="postcss.config.mjs">
-const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
-};
-
-export default config;
-</file>
-
-<file path="README.md">
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-</file>
-
-<file path="tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
-}
-</file>
-
-<file path="update_resume.py">
-import os
-import json
-import google.generativeai as genai
-from dotenv import load_dotenv
-
-# CONFIG
-load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
-MODEL_NAME = "gemini-2.0-flash" 
-
-def load_file(filepath):
-    with open(filepath, "r") as f:
-        return f.read()
-
-def save_json(filepath, data):
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=2)
-
-def run_architect(answers):
-    print("\n✨ Architect is polishing your experience...")
-    system_prompt = load_file("gems/resume_architect.txt")
-    
-    prompt = f"""
-    RAW USER INPUT:
-    - Role/Project: {answers['role']}
-    - Challenge: {answers['challenge']}
-    - Solution/Tech: {answers['solution']}
-    - Impact/Metrics: {answers['impact']}
-    
-    TASK: Format this into a pristine JSON resume entry.
-    """
-    
-    model = genai.GenerativeModel(model_name=MODEL_NAME, system_instruction=system_prompt)
-    response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-    return json.loads(response.text)
-
-# --- THE INTERVIEW LOOP ---
-if __name__ == "__main__":
-    print("🎤 --- RESUME INTERVIEW MODE ---")
-    print("I will ask you 4 questions to capture your new work.\n")
-    
-    # 1. Collect Data
-    role = input("1. What was the Role or Project Name? (e.g. 'Lead AI Engineer'): ")
-    challenge = input("2. What was the core problem/challenge? ")
-    solution = input("3. What tech/solution did you build? (e.g. 'Used Vertex AI'): ")
-    impact = input("4. What was the result? (Metrics, Savings, Speed): ")
-    
-    answers = {
-        "role": role,
-        "challenge": challenge,
-        "solution": solution,
-        "impact": impact
-    }
-    
-    # 2. Refine Data with AI
-    new_entry_wrapper = run_architect(answers)
-    new_data = new_entry_wrapper["new_entry"]
-    
-    print("\n--- 💎 REFINED ENTRY ---")
-    print(json.dumps(new_data, indent=2))
-    
-    confirm = input("\nDoes this look good? (y/n): ")
-    
-    if confirm.lower() == 'y':
-        # 3. Update the Master Resume
-        try:
-            with open("data/master_resume.json", "r") as f:
-                master_resume = json.load(f)
-            
-            # Add to experience_highlights
-            master_resume["experience_highlights"].insert(0, new_data)
-            
-            # Save back
-            save_json("data/master_resume.json", master_resume)
-            print("✅ Master Resume updated successfully!")
-        except Exception as e:
-            print(f"❌ Error updating file: {e}")
-    else:
-        print("❌ Update cancelled.")
 </file>
 
 </files>

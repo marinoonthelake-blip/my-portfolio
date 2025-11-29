@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { FULL_RESUME_DATA } from './brain/NeuralData';
-import liveCache from '../data/live_cache.json';
+import staticCache from '../data/live_cache.json';
 
 export default function ExecutiveProfile() {
   const [isDownloadingLive, setIsDownloadingLive] = useState(false);
@@ -13,9 +13,20 @@ export default function ExecutiveProfile() {
   const [liveData, setLiveData] = useState<any[]>([]);
 
   useEffect(() => {
-      if (Array.isArray(liveCache)) {
-          setLiveData(liveCache.slice(0, 4)); 
+      // 1. Load Static Data Immediately (Instant Load)
+      if (Array.isArray(staticCache)) {
+          setLiveData(staticCache); 
       }
+
+      // 2. Attempt to Fetch Fresh Live Data (Hydration)
+      fetch('/api/read-cache')
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data) && data.length > 0) {
+                setLiveData(data);
+            }
+        })
+        .catch(err => console.warn("Live profile data fetch failed", err));
   }, []);
 
   const COL_SIDEBAR = "#0f172a"; 
@@ -23,39 +34,51 @@ export default function ExecutiveProfile() {
   const COL_TEXT_GRAY = "#4b5563";
   const COL_ACCENT = "#0d9488"; 
   const COL_LIVE_ACCENT = "#1e3a8a"; 
-  const COL_ALERT = "#dc2626"; // Red used in the component style
   const MARGIN_X = 85;
   const MAX_WIDTH = 110;
 
-  // --- GENERATOR 1: LIVE BRIEFING (V12 Fix) ---
+  // --- GENERATOR 1: LIVE BRIEFING (LIVE DATA ONLY) ---
   const downloadLiveBriefing = async () => {
       setIsDownloadingLive(true);
       const doc = new jsPDF();
       
+      // Helper: Draw Sidebar (Repeated on every page)
       const drawSidebar = () => {
+          const pageHeight = doc.internal.pageSize.getHeight();
           doc.setFillColor(COL_SIDEBAR);
-          doc.rect(0, 0, 75, doc.internal.pageSize.getHeight(), 'F');
+          doc.rect(0, 0, 75, pageHeight, 'F');
           
-          let sidebarY = 80;
+          let sidebarY = 40;
+          
+          // Avatar Placeholder (Circle)
+          doc.setFillColor(30, 41, 59);
+          doc.circle(37.5, sidebarY, 15, 'F');
+          doc.setFontSize(20);
           doc.setTextColor(255, 255, 255);
+          doc.text("JM", 37.5, sidebarY + 2, { align: 'center' });
+          
+          sidebarY += 30;
+
+          // Name & Title
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(18);
+          doc.setFontSize(16);
           const nameParts = FULL_RESUME_DATA.header.name.split(" ");
           doc.text(nameParts[0], 12, sidebarY);
-          doc.text(nameParts.slice(1).join(" "), 12, sidebarY + 8);
+          doc.text(nameParts.slice(1).join(" "), 12, sidebarY + 7);
           
           doc.setFont("helvetica", "normal");
           doc.setFontSize(9);
           doc.setTextColor(148, 163, 184); 
-          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 60);
+          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 55);
           doc.text(titleLines, 12, sidebarY + 16);
 
-          sidebarY += 35;
+          sidebarY += 30;
           
+          // Competencies Section
           const addSection = (title: string, items: any) => {
               doc.setFont("helvetica", "bold");
               doc.setFontSize(8);
-              doc.setTextColor(13, 148, 136); // Explicit RGB for COL_ACCENT (#0d9488)
+              doc.setTextColor(13, 148, 136); // Explicit RGB (#0d9488)
               doc.text(title, 12, sidebarY);
               sidebarY += 6;
               doc.setFont("helvetica", "normal");
@@ -63,34 +86,37 @@ export default function ExecutiveProfile() {
               doc.setTextColor(220, 220, 220);
               
               if (Array.isArray(items)) {
-                 items.forEach(item => { doc.text(item, 12, sidebarY); sidebarY += 5; });
+                 items.forEach(item => { 
+                     doc.text(`• ${item}`, 12, sidebarY); 
+                     sidebarY += 5; 
+                 });
               } else {
                  Object.entries(items).forEach(([k, v]: any) => {
                     doc.setFont("helvetica", "bold");
                     doc.text(k, 12, sidebarY);
                     sidebarY += 4;
                     doc.setFont("helvetica", "normal");
-                    const lines = doc.splitTextToSize(v, 58);
+                    const lines = doc.splitTextToSize(v, 50);
                     doc.text(lines, 12, sidebarY);
-                    sidebarY += (lines.length * 4) + 4;
+                    sidebarY += (lines.length * 3.5) + 4;
                  });
               }
-              sidebarY += 10;
+              sidebarY += 8;
           };
 
           addSection("CONTACT", FULL_RESUME_DATA.header.contact);
-          addSection("COMPETENCIES", FULL_RESUME_DATA.core_competencies);
+          addSection("CORE COMPETENCIES", FULL_RESUME_DATA.core_competencies);
       };
 
       drawSidebar();
 
       let cursorY = 20;
 
-      // --- SECTION 1: LIVE CONTEXT (Streamlined) ---
+      // HEADER: LIVE CONTEXT
       if (liveData.length > 0) {
-          doc.setTextColor(30, 58, 138); // Explicit RGB for COL_LIVE_ACCENT (#1e3a8a)
+          doc.setTextColor(30, 58, 138); 
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(11);
+          doc.setFontSize(12);
           doc.text("LIVE STRATEGIC BRIEFING", MARGIN_X, cursorY);
           
           doc.setFontSize(8);
@@ -98,210 +124,134 @@ export default function ExecutiveProfile() {
           const genDate = new Date().toLocaleDateString();
           doc.text(`Generated: ${genDate}`, MARGIN_X + MAX_WIDTH, cursorY, { align: 'right' });
           
-          cursorY += 6;
+          cursorY += 8;
           
-          // INTRO (Plain English Narrative)
+          // INTRO NARRATIVE
           doc.setFont("helvetica", "italic");
           doc.setFontSize(9);
           doc.setTextColor(80);
-          const introText = "This document was generated dynamically today. It scans global news for active risks and maps my specific experience to solve them.";
+          const introText = "This document represents a real-time analysis of global market signals. An AI Agent has scanned 30+ live news sources and mapped them to specific capabilities in my portfolio to demonstrate immediate relevance.";
           const introLines = doc.splitTextToSize(introText, MAX_WIDTH);
           doc.text(introLines, MARGIN_X, cursorY);
           
-          cursorY += (introLines.length * 4.5) + 8;
+          cursorY += (introLines.length * 4.5) + 10;
 
+          // LOOP THROUGH LIVE SIGNALS
           liveData.forEach((signal, index) => {
-              if (cursorY > 260) { doc.addPage(); drawSidebar(); cursorY = 20; } 
+              // --- SMART PAGINATION CHECK ---
+              // Estimate block height (Headline + Context + Solution) approx 50-60mm
+              // If cursor is beyond 230mm (A4 is 297mm), push to next page to avoid cuts.
+              if (cursorY > 230) { 
+                  doc.addPage(); 
+                  drawSidebar(); 
+                  cursorY = 20; 
+              } 
 
-              doc.setDrawColor(230);
+              // Divider
+              doc.setDrawColor(220);
               doc.setLineWidth(0.5);
-              doc.line(MARGIN_X, cursorY - 3, MARGIN_X + MAX_WIDTH, cursorY - 3);
-              cursorY += 4;
+              doc.line(MARGIN_X, cursorY, MARGIN_X + MAX_WIDTH, cursorY);
+              cursorY += 6;
 
-              // 1. HEADLINE (Fix: Use almost max width to prevent overflow)
-              doc.setTextColor(17, 24, 39); // Explicit RGB for COL_TEXT_DARK (#111827)
+              // 1. HEADLINE 
+              doc.setTextColor(17, 24, 39); 
               doc.setFont("helvetica", "bold");
               doc.setFontSize(10);
-              const titleLines = doc.splitTextToSize(signal.headline.title, MAX_WIDTH - 2); 
+              const titleLines = doc.splitTextToSize(signal.headline.title, MAX_WIDTH); 
               doc.text(titleLines, MARGIN_X, cursorY);
-              cursorY += (titleLines.length * 4) + 2;
+              cursorY += (titleLines.length * 5);
 
-              // 2. LINK & DATE (Stacked below headline)
-              doc.setFont("helvetica", "normal");
+              // 2. SOURCE DATE
+              doc.setFont("helvetica", "bold");
               doc.setFontSize(8);
-              
               if (signal.context.date) {
                   const isToday = signal.context.date.includes("TODAY");
-                  
-                  // CRITICAL FIX: Explicitly set RGB components for setTextColor
                   if (isToday) {
-                      doc.setTextColor(220, 38, 38); // COL_ALERT (#dc2626)
+                      doc.setTextColor(220, 38, 38); // Red
                   } else {
-                      doc.setTextColor(100, 100, 100); // Gray color equivalent of 100
+                      doc.setTextColor(100, 100, 100); // Gray
                   }
+                  doc.text(signal.context.date.toUpperCase(), MARGIN_X, cursorY);
                   
-                  doc.text(signal.context.date, MARGIN_X, cursorY);
-                  
-                  // Link
+                  // Source Link (If valid)
                   const sourceUrl = signal.context.sources[0]?.url;
                   if (sourceUrl && !sourceUrl.includes("example.com")) {
                        doc.setTextColor(37, 99, 235);
-                       doc.textWithLink(`[Link to Source]`, MARGIN_X + 25, cursorY, { url: sourceUrl });
+                       doc.textWithLink(`  [SOURCE LINK]`, MARGIN_X + 30, cursorY, { url: sourceUrl });
                   }
                   cursorY += 6;
-              } else {
-                  cursorY += 2;
               }
 
-              // 3. CONTEXT SNIPPET (Brief explanation before solution)
+              // 3. CONTEXT
               doc.setFont("helvetica", "normal");
               doc.setFontSize(9);
-              doc.setTextColor(75, 85, 99); // Explicit RGB for COL_TEXT_GRAY (#4b5563)
+              doc.setTextColor(75, 85, 99);
               const contextLines = doc.splitTextToSize(signal.context.description, MAX_WIDTH);
               doc.text(contextLines, MARGIN_X, cursorY);
-              cursorY += (contextLines.length * 4.5) + 4;
+              cursorY += (contextLines.length * 4.5) + 5;
               
-              // 4. STRATEGIC RESPONSE (No Context label on this line)
+              // 4. MY SOLUTION (Accent Block)
               const actionLines = doc.splitTextToSize(signal.experience.action, MAX_WIDTH - 5);
-              const blockHeight = (actionLines.length * 4);
+              const blockHeight = (actionLines.length * 4.5) + 8;
               
-              doc.setDrawColor(30, 58, 138); // COL_LIVE_ACCENT
-              doc.setLineWidth(1);
-              doc.line(MARGIN_X, cursorY, MARGIN_X, cursorY + blockHeight + 2); // Accent Bar
+              // Accent Bar
+              doc.setDrawColor(30, 58, 138); 
+              doc.setLineWidth(1.5);
+              doc.line(MARGIN_X, cursorY, MARGIN_X, cursorY + blockHeight);
 
-              // Text: 'MY SOLUTION:'
+              // Label
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(9);
-              doc.setTextColor(30, 58, 138); // COL_LIVE_ACCENT
-              doc.text("MY SOLUTION:", MARGIN_X + 3, cursorY + 3);
+              doc.setFontSize(8);
+              doc.setTextColor(30, 58, 138); 
+              doc.text("STRATEGIC RESPONSE:", MARGIN_X + 4, cursorY + 3);
 
-              // Action Text
+              // Content
               doc.setFont("helvetica", "normal");
-              doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-              doc.text(actionLines, MARGIN_X + 25, cursorY + 3); 
-              
-              // Result Metric
-              const resY = cursorY + 3 + blockHeight;
-              doc.setFont("helvetica", "bold");
               doc.setFontSize(9);
-              doc.setTextColor(16, 185, 129); // Green for Result
-              doc.text(`RESULT: ${signal.experience.result}`, MARGIN_X + 25, resY + 2);
+              doc.setTextColor(17, 24, 39); 
+              doc.text(actionLines, MARGIN_X + 4, cursorY + 8); 
+              
+              // Result
+              const resY = cursorY + 8 + (actionLines.length * 4.5);
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(16, 185, 129); // Green
+              doc.text(`IMPACT: ${signal.experience.result}`, MARGIN_X + 4, resY);
 
-              cursorY = resY + 8;
+              cursorY += blockHeight + 10; // Spacing before next item
           });
-          
-          cursorY += 5;
       }
 
-      // --- SECTION 2: EXECUTIVE SUMMARY ---
-      if (cursorY > 240) { doc.addPage(); drawSidebar(); cursorY = 20; }
-      
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text("EXECUTIVE SUMMARY", MARGIN_X, cursorY);
-      cursorY += 8;
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9); 
-      doc.setTextColor(75, 85, 99); // COL_TEXT_GRAY
-      const vpLines = doc.splitTextToSize(FULL_RESUME_DATA.summary, MAX_WIDTH);
-      doc.text(vpLines, MARGIN_X, cursorY);
-      cursorY += (vpLines.length * 4.5) + 10;
-
-      // --- SECTION 3: EXPERIENCE ---
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text("PROFESSIONAL EXPERIENCE", MARGIN_X, cursorY);
-      cursorY += 10;
-
-      FULL_RESUME_DATA.experience.forEach((companyBlock) => {
-          companyBlock.roles.forEach((role) => {
-              if (cursorY > 260) { doc.addPage(); drawSidebar(); cursorY = 20; }
-
-              // Role Title
-              doc.setTextColor(0, 0, 0);
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(11);
-              const titleLines = doc.splitTextToSize(role.title, MAX_WIDTH);
-              doc.text(titleLines, MARGIN_X, cursorY);
-              cursorY += (titleLines.length * 5) + 1;
-
-              // Company | Date
-              doc.setFontSize(9);
-              doc.setTextColor(100);
-              doc.text(`${companyBlock.company} | ${role.date}`, MARGIN_X, cursorY);
-              cursorY += 6;
-
-              // Mandate
-              if (role.mandate) {
-                  doc.setFont("helvetica", "italic");
-                  doc.setTextColor(80);
-                  const mandateLines = doc.splitTextToSize(`Mandate: ${role.mandate}`, MAX_WIDTH);
-                  doc.text(mandateLines, MARGIN_X, cursorY);
-                  cursorY += (mandateLines.length * 4) + 4;
-              }
-
-              // Bullets
-              role.bullets.forEach((b: any) => {
-                  if (cursorY > 270) { doc.addPage(); drawSidebar(); cursorY = 20; }
-                  
-                  doc.setFont("helvetica", "normal");
-                  doc.setFontSize(9);
-                  doc.setTextColor(50);
-                  
-                  if (typeof b === 'string') {
-                      const lines = doc.splitTextToSize(`• ${b}`, MAX_WIDTH);
-                      doc.text(lines, MARGIN_X, cursorY);
-                      cursorY += (lines.length * 3.5) + 1;
-                  } else {
-                      doc.setFont("helvetica", "bold");
-                      const headText = `• ${b.head}:`;
-                      doc.text(headText, MARGIN_X, cursorY);
-                      const headWidth = doc.getTextWidth(headText);
-                      
-                      doc.setFont("helvetica", "normal");
-                      const bodyLines = doc.splitTextToSize(b.body, MAX_WIDTH - headWidth - 2);
-                      if (bodyLines.length > 0) doc.text(bodyLines[0], MARGIN_X + headWidth + 2, cursorY);
-                      for(let i=1; i<bodyLines.length; i++) { cursorY += 4; doc.text(bodyLines[i], MARGIN_X + 4, cursorY); }
-                      cursorY += 5;
-                  }
-              });
-              cursorY += 8;
-          });
-      });
-
-      doc.save("Jonathan_Marino_Executive_Resume.pdf");
+      doc.save("Jonathan_Marino_Live_Briefing.pdf");
       setIsDownloadingLive(false);
   };
 
-  // --- GENERATOR 2: FULL RESUME (Static) ---
+  // --- GENERATOR 2: FULL RESUME (STATIC DATA ONLY) ---
   const downloadResume = async () => {
       setIsDownloadingResume(true);
-      const img = new Image();
-      img.src = '/profile.png';
-      await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
-
       const doc = new jsPDF();
       const SIDEBAR_WIDTH = 75;
       const MAIN_X = 85;
       const MAIN_WIDTH = 110;
 
+      // Sidebar Logic (Same as Live, but scoped here to be safe)
       const drawSidebar = () => {
-          doc.setFillColor(15, 23, 42); // COL_SIDEBAR
-          doc.rect(0, 0, SIDEBAR_WIDTH, doc.internal.pageSize.getHeight(), 'F');
-          let sidebarY = 80;
+          const pageHeight = doc.internal.pageSize.getHeight();
+          doc.setFillColor(15, 23, 42); 
+          doc.rect(0, 0, SIDEBAR_WIDTH, pageHeight, 'F');
+          
+          let sidebarY = 40;
           doc.setTextColor(255, 255, 255);
           doc.setFont("helvetica", "bold");
           doc.setFontSize(18);
           const nameParts = FULL_RESUME_DATA.header.name.split(" ");
           doc.text(nameParts[0], 12, sidebarY);
           doc.text(nameParts.slice(1).join(" "), 12, sidebarY + 8);
+          
           doc.setFont("helvetica", "normal");
           doc.setFontSize(9);
           doc.setTextColor(148, 163, 184); 
-          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 60);
+          const titleLines = doc.splitTextToSize(FULL_RESUME_DATA.header.title, 55);
           doc.text(titleLines, 12, sidebarY + 16);
 
           sidebarY += 35;
@@ -309,7 +259,7 @@ export default function ExecutiveProfile() {
           const addSection = (title: string, items: any) => {
               doc.setFont("helvetica", "bold");
               doc.setFontSize(8);
-              doc.setTextColor(13, 148, 136); // COL_ACCENT
+              doc.setTextColor(13, 148, 136); 
               doc.text(title, 12, sidebarY);
               sidebarY += 6;
               doc.setFont("helvetica", "normal");
@@ -317,15 +267,18 @@ export default function ExecutiveProfile() {
               doc.setTextColor(220, 220, 220);
               
               if (Array.isArray(items)) {
-                 items.forEach(item => { doc.text(item, 12, sidebarY); sidebarY += 5; });
+                 items.forEach(item => { 
+                    doc.text(`• ${item}`, 12, sidebarY); 
+                    sidebarY += 5; 
+                 });
               } else {
                  Object.entries(items).forEach(([k, v]: any) => {
                     doc.setFont("helvetica", "bold"); doc.text(k, 12, sidebarY); sidebarY += 4;
-                    doc.setFont("helvetica", "normal"); const lines = doc.splitTextToSize(v, 58);
-                    doc.text(lines, 12, sidebarY); sidebarY += (lines.length * 4) + 4;
+                    doc.setFont("helvetica", "normal"); const lines = doc.splitTextToSize(v, 50);
+                    doc.text(lines, 12, sidebarY); sidebarY += (lines.length * 3.5) + 4;
                  });
               }
-              sidebarY += 10;
+              sidebarY += 8;
           };
 
           addSection("CONTACT", FULL_RESUME_DATA.header.contact);
@@ -335,20 +288,29 @@ export default function ExecutiveProfile() {
       drawSidebar();
       let cursorY = 20;
 
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("EXECUTIVE SUMMARY", MAIN_X, cursorY);
-      cursorY += 8; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(75, 85, 99); // COL_TEXT_GRAY
+      // EXECUTIVE SUMMARY
+      doc.setTextColor(17, 24, 39); 
+      doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("EXECUTIVE SUMMARY", MAIN_X, cursorY);
+      cursorY += 6; 
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(75, 85, 99); 
       const vpLines = doc.splitTextToSize(FULL_RESUME_DATA.summary, MAIN_WIDTH);
       doc.text(vpLines, MAIN_X, cursorY);
       cursorY += (vpLines.length * 4.5) + 10;
 
-      doc.setTextColor(17, 24, 39); // COL_TEXT_DARK
-      doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("PROFESSIONAL EXPERIENCE", MAIN_X, cursorY);
+      // EXPERIENCE
+      doc.setTextColor(17, 24, 39); 
+      doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("PROFESSIONAL EXPERIENCE", MAIN_X, cursorY);
       cursorY += 10;
 
       FULL_RESUME_DATA.experience.forEach((companyBlock) => {
           companyBlock.roles.forEach((role) => {
-              if (cursorY > 260) { doc.addPage(); drawSidebar(); cursorY = 20; }
+              // PAGINATION CHECK
+              // Estimating role block size. If we are low on page, force break.
+              if (cursorY > 220) { 
+                  doc.addPage(); 
+                  drawSidebar(); 
+                  cursorY = 20; 
+              }
 
               doc.setTextColor(0, 0, 0); doc.setFont("helvetica", "bold"); doc.setFontSize(11);
               const titleLines = doc.splitTextToSize(role.title, MAIN_WIDTH); doc.text(titleLines, MAIN_X, cursorY);
@@ -361,14 +323,33 @@ export default function ExecutiveProfile() {
               doc.text(`${companyBlock.company} | ${companyBlock.location}`, MAIN_X, cursorY);
               cursorY += 5;
 
-              if (role.mandate) { doc.setFont("helvetica", "italic"); doc.setTextColor(80); const mandateLines = doc.splitTextToSize(`Mandate: ${role.mandate}`, MAIN_WIDTH); doc.text(mandateLines, MAIN_X, cursorY); cursorY += (mandateLines.length * 4) + 4; }
+              if (role.mandate) { 
+                  doc.setFont("helvetica", "italic"); doc.setTextColor(80); 
+                  const mandateLines = doc.splitTextToSize(`Mandate: ${role.mandate}`, MAIN_WIDTH); 
+                  doc.text(mandateLines, MAIN_X, cursorY); 
+                  cursorY += (mandateLines.length * 4) + 4; 
+              }
 
               role.bullets.forEach((b: any) => {
-                  if (cursorY > 270) { doc.addPage(); drawSidebar(); cursorY = 20; }
+                  // Micro-pagination check for bullets
+                  if (cursorY > 275) { 
+                      doc.addPage(); drawSidebar(); cursorY = 20; 
+                  }
+                  
                   doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(50);
-                  if (typeof b === 'string') { const lines = doc.splitTextToSize(`• ${b}`, MAIN_WIDTH); doc.text(lines, MAIN_X, cursorY); cursorY += (lines.length * 3.5) + 1; } 
-                  else { doc.setFont("helvetica", "bold"); const headText = `• ${b.head}:`; doc.text(headText, MAIN_X, cursorY); const headWidth = doc.getTextWidth(headText);
-                      doc.setFont("helvetica", "normal"); const bodyLines = doc.splitTextToSize(b.body, MAIN_WIDTH - headWidth - 2);
+                  if (typeof b === 'string') { 
+                      const lines = doc.splitTextToSize(`• ${b}`, MAIN_WIDTH); 
+                      doc.text(lines, MAIN_X, cursorY); 
+                      cursorY += (lines.length * 3.5) + 1; 
+                  } 
+                  else { 
+                      doc.setFont("helvetica", "bold"); 
+                      const headText = `• ${b.head}:`; 
+                      doc.text(headText, MAIN_X, cursorY); 
+                      const headWidth = doc.getTextWidth(headText);
+                      
+                      doc.setFont("helvetica", "normal"); 
+                      const bodyLines = doc.splitTextToSize(b.body, MAIN_WIDTH - headWidth - 2);
                       if (bodyLines.length > 0) doc.text(bodyLines[0], MAIN_X + headWidth + 2, cursorY);
                       for(let i=1; i<bodyLines.length; i++) { cursorY += 4; doc.text(bodyLines[i], MAIN_X + 4, cursorY); }
                       cursorY += 5;
@@ -413,21 +394,21 @@ export default function ExecutiveProfile() {
                 <p className="text-lg text-slate-400 max-w-2xl leading-relaxed">
                    {FULL_RESUME_DATA.summary}
                 </p>
-                <div className="flex flex-wrap gap-4 mt-8 justify-center md:justify-start">
-                    <a href="https://linkedin.com/in/jwmdigital" target="_blank" className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-4 mt-8 justify-center md:justify-start w-full">
+                    <a href="https://linkedin.com/in/jwmdigital" target="_blank" className="w-full sm:w-auto justify-center px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center gap-2">
                         <Linkedin size={18} /> Connect
                     </a>
                     <button 
                         onClick={downloadLiveBriefing}
                         disabled={isDownloadingLive}
-                        className="px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/30 flex items-center gap-2 text-sm"
+                        className="w-full sm:w-auto justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/30 flex items-center gap-2 text-sm"
                     >
                         {isDownloadingLive ? "Compiling..." : <><Activity size={18}/> Live Briefing (10 Signals)</>}
                     </button>
                     <button 
                         onClick={downloadResume}
                         disabled={isDownloadingResume}
-                        className="px-6 py-3 border border-white/20 text-white font-bold rounded-full hover:bg-white/5 transition-colors flex items-center gap-2 text-sm"
+                        className="w-full sm:w-auto justify-center px-6 py-3 border border-white/20 text-white font-bold rounded-full hover:bg-white/5 transition-colors flex items-center gap-2 text-sm"
                     >
                         {isDownloadingResume ? "Generating..." : <><FileText size={18}/> Download Executive Resume</>}
                     </button>

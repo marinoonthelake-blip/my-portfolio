@@ -3,7 +3,8 @@ import { SwarmEngine } from './SwarmEngine';
 import HeroContainer from './HeroCard';
 import { narrativeData, NarrativeCard } from './NeuralData';
 import { Activity, MousePointer2, Move } from 'lucide-react';
-import liveCache from '../../data/live_cache.json';
+// Keep static import as initial state / fallback
+import staticCache from '../../data/live_cache.json';
 
 interface Props {
   active: boolean;
@@ -17,13 +18,31 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
   const [contentIndex, setContentIndex] = useState(0);
   const [started, setStarted] = useState(false);
 
+  // Data fetching logic
   useEffect(() => {
+    async function loadData() {
+      let rawData = staticCache; // Default to build-time data
+
+      try {
+        // Attempt to fetch fresh data from Vercel KV via our API
+        const res = await fetch('/api/read-cache');
+        if (res.ok) {
+            const liveData = await res.json();
+            if (Array.isArray(liveData) && liveData.length > 0) {
+                rawData = liveData;
+            }
+        }
+      } catch (e) {
+        console.warn("Live fetch failed, using static cache.", e);
+      }
+
+      // Process the data
       const bioCard = narrativeData.find(n => n.category === 'bio');
       const portfolioCards = narrativeData.filter(n => n.category === 'portfolio').slice(0, 10);
 
       let liveCards: NarrativeCard[] = [];
-      if (Array.isArray(liveCache)) {
-          const shuffled = [...liveCache].sort(() => 0.5 - Math.random());
+      if (Array.isArray(rawData)) {
+          const shuffled = [...rawData].sort(() => 0.5 - Math.random());
           liveCards = shuffled.slice(0, 10).map((item: any) => ({
               ...item,
               category: 'live',
@@ -32,7 +51,6 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
       }
 
       const merged: NarrativeCard[] = bioCard ? [bioCard] : [];
-      
       const maxLen = Math.max(liveCards.length, portfolioCards.length);
       for(let i=0; i<maxLen; i++) {
           if(liveCards[i]) merged.push(liveCards[i]);
@@ -40,8 +58,12 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
       }
 
       setCards(merged);
+    }
+
+    loadData();
   }, []);
 
+  // Engine Initialization
   useEffect(() => {
     if (!active) return;
     if (!canvasRef.current) return;
@@ -64,27 +86,14 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
   }, [active, cards]);
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#02040a', overflow: 'hidden' }}>
+    // FIXED: Changed from 'relative' to 'fixed inset-0' to ignore parent padding
+    <div className="fixed inset-0 bg-[#02040a] overflow-hidden z-0">
       
-      {/* TOP LEFT HEADER */}
-      <div style={{ 
-          position: 'absolute', top: 30, left: 60, zIndex: 10, 
-          opacity: started ? 1 : 0, transition: 'opacity 2s ease 1s'
-      }}>
-          <h1 className="text-xl font-bold text-white">JONATHAN WILLIAM MARINO</h1>
-          <div className="text-xs text-slate-500 font-mono mt-1 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-              LIVE INTELLIGENCE // ACTIVE
-          </div>
-      </div>
-
       {/* BOTTOM RIGHT LEGEND */}
-      <div style={{
-          position: 'absolute', bottom: 40, right: 60, zIndex: 10,
-          textAlign: 'right', opacity: started ? 1 : 0, transition: 'opacity 1s ease 2s',
-          pointerEvents: 'none' 
-      }}>
-          <div className="flex flex-col items-end space-y-3">
+      <div 
+         className={`fixed bottom-8 right-8 z-50 text-right pointer-events-none transition-opacity duration-1000 delay-[2000ms] hidden md:block ${started ? 'opacity-100' : 'opacity-0'}`}
+      >
+          <div className="flex flex-col items-end space-y-3 pointer-events-auto">
               
               <div className="flex items-center gap-3">
                   <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest drop-shadow-md">Live Market Signal</span>
@@ -123,7 +132,7 @@ export const NeuralBackground: React.FC<Props> = ({ active }) => {
           <HeroContainer content={cards[contentIndex] || cards[0]} engine={engineRef.current} />
       )}
       
-      <canvas ref={canvasRef} style={{ display: 'block' }} />
+      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
     </div>
   );
 };

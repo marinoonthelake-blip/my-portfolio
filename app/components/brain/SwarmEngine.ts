@@ -1,7 +1,6 @@
 import { Vector3D, Perlin } from './MathUtils';
-import { narrativeData } from './NeuralData'; // Assuming narrativeData is correctly exported
 
-// --- 1. PARTICLE SWARM ---
+// --- 1. PARTICLE SWARM (Background Nodes) ---
 export class Particle {
   p: Vector3D; t: Vector3D; v: Vector3D; life = 0; maxLife = 0;
   constructor(public g: Perlin, public parent: Node) {
@@ -44,35 +43,101 @@ export class Particle {
   }
 }
 
-// --- 2. STREAM BEAMS ---
+// --- 2. STREAM PARTICLES (The Data Swarm) ---
 export class StreamParticle {
   p: Vector3D; pastP: Vector3D; v: Vector3D;
-  life = 0; maxLife = 120; arrived = false; color: string;
+  life = 0; arrived = false; color: string;
+  speed: number;
+  wobbleOffset: number;
+  initialDist: number;
   
   constructor(start: Vector3D, public target: Vector3D, colorType: number) {
-      this.p = start.clone(); this.pastP = start.clone();
+      this.p = start.clone(); 
+      this.pastP = start.clone();
       this.v = new Vector3D(0,0,0);
-      if (colorType === 2) this.color = 'rgba(239, 68, 68, 0.9)'; 
-      else if (colorType === 1) this.color = 'rgba(16, 185, 129, 0.8)'; 
-      else this.color = 'rgba(234, 179, 8, 0.8)'; 
+      
+      // Calculate initial distance for "progress" tracking
+      const dx = target.x - start.x;
+      const dy = target.y - start.y;
+      this.initialDist = Math.sqrt(dx*dx + dy*dy);
+
+      // Randomized Speed for "Swarm" feel (some fast, some slow)
+      this.speed = 4 + Math.random() * 4; 
+      
+      // Unique noise offset so they don't all follow the same track
+      this.wobbleOffset = Math.random() * 1000;
+
+      if (colorType === 2) this.color = '239, 68, 68'; // Red
+      else if (colorType === 1) this.color = '16, 185, 129'; // Green
+      else this.color = '234, 179, 8'; // Yellow
   }
+
   step(generator: Perlin) {
       if (this.arrived) return;
+      
+      // Trail Logic
       this.pastP.set(this.p.x, this.p.y, 0);
+
+      // Distance to target
       const dx = this.target.x - this.p.x;
       const dy = this.target.y - this.p.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 15) { this.arrived = true; return; }
-      this.v.x = dx * 0.1 + (Math.random()-0.5);
-      this.v.y = dy * 0.1 + (Math.random()-0.5);
+      
+      // Arrival Check (Snap to target if close)
+      if (dist < 10) { 
+          this.arrived = true; 
+          return; 
+      }
+
+      // --- ORGANIC STEERING PHYSICS ---
+      
+      // 1. Seek Force (Normalized Vector to Target)
+      const dirX = dx / dist;
+      const dirY = dy / dist;
+
+      // 2. Noise Force (Turbulence)
+      // We scale noise based on distance. 
+      // Far away = High Noise (Chaos). Close = Zero Noise (Precision Docking).
+      const progress = 1 - (dist / this.initialDist); // 0 to 1
+      
+      // Ramp noise down as we approach target (Square it for smoother landing)
+      const noiseInfluence = Math.pow(1 - progress, 2) * 4.0; 
+
+      const time = Date.now() * 0.002;
+      const noiseX = generator.simplex3d(this.p.x * 0.01, this.p.y * 0.01, time + this.wobbleOffset);
+      const noiseY = generator.simplex3d(this.p.x * 0.01 + 100, this.p.y * 0.01, time + this.wobbleOffset);
+
+      // 3. Apply Velocity
+      // Base velocity aligns with target direction
+      this.v.x = (dirX * this.speed) + (noiseX * noiseInfluence);
+      this.v.y = (dirY * this.speed) + (noiseY * noiseInfluence);
+
+      // 4. Move
       this.p.add(this.v);
       this.life++;
   }
+
   render(ctx: CanvasRenderingContext2D) {
       if (this.arrived) return;
-      ctx.strokeStyle = this.color;
+      
+      // Draw Trail (Motion Blur)
+      ctx.beginPath();
+      ctx.moveTo(this.pastP.x, this.pastP.y);
+      ctx.lineTo(this.p.x, this.p.y);
+      ctx.strokeStyle = `rgba(${this.color}, 0.6)`;
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(this.pastP.x, this.pastP.y); ctx.lineTo(this.p.x, this.p.y); ctx.stroke();
+      ctx.stroke();
+
+      // Draw Head (Data Packet) - Bright white leading edge
+      ctx.beginPath();
+      ctx.arc(this.p.x, this.p.y, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      
+      // Glow
+      ctx.shadowColor = `rgba(${this.color}, 1)`;
+      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 0; // Reset for performance
   }
 }
 
@@ -165,15 +230,14 @@ export class Node {
             const d = this.pos.dist(o.pos);
             if (d < 150 && d > 0) this.vel.add(this.pos.clone().sub(o.pos).div(d).mul(0.04));
         }
-        
-        const UI_WIDTH = 650; 
-        if (this.pos.x < UI_WIDTH) { this.pos.x = UI_WIDTH; this.vel.x += 0.5; }
+        const UI_WIDTH = 500; 
+        if (this.pos.x < UI_WIDTH) { this.vel.x += 0.2; }
     }
 
-    this.vel.mul(0.96); 
+    this.vel.mul(0.98); 
     this.pos.add(this.vel);
     
-    const PADDING = 200;
+    const PADDING = 100;
     if (this.pos.x < -PADDING) this.vel.x += 0.2;
     if (this.pos.x > width + PADDING) this.vel.x -= 0.2;
     if (this.pos.y < -PADDING) this.vel.y += 0.2;
@@ -244,8 +308,8 @@ export class Node {
       const width = (n.isMinor) ? 0.5 : (0.5 + strength);
 
       const g = ctx.createLinearGradient(this.pos.x, this.pos.y, n.pos.x, n.pos.y);
-g.addColorStop(0, "hsla(" + this.colorHue + ", 60%, 60%, " + opacity + ")");
-g.addColorStop(1, "hsla(" + n.colorHue + ", 60%, 60%, " + opacity + ")");
+      g.addColorStop(0, "hsla(" + this.colorHue + ", 60%, 60%, " + opacity + ")");
+      g.addColorStop(1, "hsla(" + n.colorHue + ", 60%, 60%, " + opacity + ")");
       
       ctx.lineWidth = width;
       ctx.strokeStyle = g;
@@ -265,6 +329,7 @@ g.addColorStop(1, "hsla(" + n.colorHue + ", 60%, 60%, " + opacity + ")");
 export class SwarmEngine {
   canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D;
   width = 0; height = 0;
+  dpr = 1;
   nodes: Node[] = [];
   particles: StreamParticle[] = [];
   pGen = new Perlin();
@@ -290,16 +355,19 @@ export class SwarmEngine {
   boundMouseDown: (e: MouseEvent) => void;
   boundMouseUp: (e: MouseEvent) => void;
   boundWheel: (e: WheelEvent) => void;
+  boundTouchMove: (e: TouchEvent) => void;
 
   constructor(canvas: HTMLCanvasElement, onNodeChange: (idx: number) => void, initialData: any[]) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     this.onNodeChange = onNodeChange;
+    this.dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     
     this.boundMouseMove = this.handleMouseMove.bind(this);
     this.boundMouseDown = this.handleMouseDown.bind(this);
     this.boundMouseUp = this.handleMouseUp.bind(this);
     this.boundWheel = this.handleWheel.bind(this);
+    this.boundTouchMove = this.handleTouchMove.bind(this);
     
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -307,6 +375,7 @@ export class SwarmEngine {
     canvas.addEventListener('mousedown', this.boundMouseDown);
     window.addEventListener('mouseup', this.boundMouseUp);
     canvas.addEventListener('wheel', this.boundWheel, { passive: false });
+    canvas.addEventListener('touchmove', this.boundTouchMove, { passive: false });
     
     this.initNodes(initialData);
     this.startTime = Date.now();
@@ -337,15 +406,35 @@ export class SwarmEngine {
       this.camera.zoom = newZoom;
   }
 
+  handleTouchMove(e: TouchEvent) {
+    if (e.touches.length > 0) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        this.handleMouseMove({
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        } as MouseEvent);
+    }
+  }
+
   setTargets(rects: DOMRect[]) {
-      this.targets = rects.map(r => ({ x: r.right, y: r.top + r.height / 2 }));
+      this.targets = rects.map(r => ({ 
+          x: r.left + (r.width / 2), 
+          y: r.top + (r.height / 2) 
+      }));
   }
 
   resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight;
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
+      this.dpr = window.devicePixelRatio || 1;
+      
+      this.canvas.width = this.width * this.dpr;
+      this.canvas.height = this.height * this.dpr;
+      this.canvas.style.width = `${this.width}px`;
+      this.canvas.style.height = `${this.height}px`;
+      this.ctx.scale(this.dpr, this.dpr);
+      
       if (this.nodes.length === 0) this.initNodes([]);
   }
 
@@ -360,7 +449,12 @@ export class SwarmEngine {
       
       const totalActiveNodes = 20;
       for(let i=0; i<totalActiveNodes; i++) {
-          const n = new Node(cx, cy, this.pGen);
+          const n = new Node(cx, cy, this.pGen); 
+          const angle = Math.random() * Math.PI * 2;
+          const force = 10 + Math.random() * 15; 
+          n.vel.x = Math.cos(angle) * force;
+          n.vel.y = Math.sin(angle) * force;
+          
           const category = i < 10 ? 'live' : 'portfolio';
           n.bindData(i + 1, category); 
           this.nodes.push(n);
@@ -390,8 +484,8 @@ export class SwarmEngine {
   }
 
   handleMouseDown(e: MouseEvent) {
-      const mx = e.clientX - this.canvas.getBoundingClientRect().left;
-      const my = e.clientY - this.canvas.getBoundingClientRect().top;
+      const mx = e.clientX;
+      const my = e.clientY;
       const world = this.screenToWorld(mx, my);
 
       let hit = false;
@@ -411,8 +505,8 @@ export class SwarmEngine {
   }
 
   handleMouseMove(e: MouseEvent) {
-      const mx = e.clientX - this.canvas.getBoundingClientRect().left;
-      const my = e.clientY - this.canvas.getBoundingClientRect().top;
+      const mx = e.clientX;
+      const my = e.clientY;
       const world = this.screenToWorld(mx, my);
 
       if (this.draggedNode) {
@@ -435,8 +529,8 @@ export class SwarmEngine {
   }
 
   handleMouseUp(e: MouseEvent) {
-      const mx = e.clientX - this.canvas.getBoundingClientRect().left;
-      const my = e.clientY - this.canvas.getBoundingClientRect().top;
+      const mx = e.clientX;
+      const my = e.clientY;
       if (this.dragStartPos && this.draggedNode) {
           const dist = Math.sqrt((mx - this.dragStartPos.x)**2 + (my - this.dragStartPos.y)**2);
           if (dist < 5) this.activateNode(this.draggedNode);
@@ -462,6 +556,8 @@ export class SwarmEngine {
       this.streamActive = true;
       this.streamPhases = [false, false, false, false];
       this.linkProgress = [0, 0, 0, 0];
+      
+      // Increased spawn rate by triggering more frequent phases
       const t1 = setTimeout(() => this.streamPhases[0] = true, 0);
       const t2 = setTimeout(() => this.streamPhases[1] = true, 600); 
       const t3 = setTimeout(() => this.streamPhases[2] = true, 1200);
@@ -488,7 +584,8 @@ export class SwarmEngine {
       const screenNode = this.worldToScreen(this.activeNode.pos.x, this.activeNode.pos.y);
       const startPos = new Vector3D(screenNode.x, screenNode.y, 0);
 
-      const spawnRate = 0.4;
+      // INCREASED SPAWN RATE: 80% chance per frame per active phase
+      const spawnRate = 0.8;
       if (this.streamPhases[0] && Math.random() > 1 - spawnRate) this.particles.push(new StreamParticle(startPos, new Vector3D(this.targets[0].x, this.targets[0].y, 0), cType));
       if (this.streamPhases[1] && Math.random() > 1 - spawnRate) this.particles.push(new StreamParticle(startPos, new Vector3D(this.targets[1].x, this.targets[1].y, 0), cType));
       if (this.streamPhases[2] && Math.random() > 1 - spawnRate) this.particles.push(new StreamParticle(startPos, new Vector3D(this.targets[2].x, this.targets[2].y, 0), cType));
@@ -530,23 +627,7 @@ export class SwarmEngine {
                  this.linkProgress[i] += 0.03;
                  if (this.linkProgress[i] > 1) this.linkProgress[i] = 1;
             }
-            if (this.linkProgress[i] > 0) {
-                const P2 = new Vector3D(this.targets[i].x, this.targets[i].y, 0);
-                const P1 = new Vector3D((P0.x + P2.x) / 2, P0.y, 0);
-                const t = this.linkProgress[i];
-                const Q0 = this.lerp(P0, P1, t); const Q1 = this.lerp(P1, P2, t); const R0 = this.lerp(Q0, Q1, t);
-                
-                let color = 'rgba(16, 185, 129, 0.4)'; 
-                if (this.activeNode.category === 'live') color = 'rgba(239, 68, 68, 0.5)'; 
-                if (this.activeNode.category === 'bio') color = 'rgba(234, 179, 8, 0.4)'; 
-
-                this.ctx.beginPath(); this.ctx.moveTo(P0.x, P0.y); this.ctx.quadraticCurveTo(Q0.x, Q0.y, R0.x, R0.y);
-                this.ctx.strokeStyle = color; this.ctx.lineWidth = 3; this.ctx.stroke();
-
-                if (t < 1) {
-                    this.ctx.fillStyle = '#fff'; this.ctx.beginPath(); this.ctx.arc(R0.x, R0.y, 4, 0, Math.PI*2); this.ctx.fill();
-                }
-            }
+            // The quadratic curve logic is replaced by individual particles
         }
     }
 
@@ -561,6 +642,7 @@ export class SwarmEngine {
       this.canvas.removeEventListener('mousedown', this.boundMouseDown);
       window.removeEventListener('mouseup', this.boundMouseUp);
       this.canvas.removeEventListener('wheel', this.boundWheel); 
+      this.canvas.removeEventListener('touchmove', this.boundTouchMove);
       cancelAnimationFrame(this.reqId);
       this.streamTimers.forEach(clearTimeout);
   }
