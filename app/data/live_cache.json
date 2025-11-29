@@ -1,0 +1,362 @@
+[
+  {
+    "id": "LIVE_GEN_01",
+    "category": "live",
+    "headline": {
+      "title": "India Enacts Landmark Data Protection Act, Echoing Global Standards",
+      "subtitle": "Digital Sovereignty & Strategic Risk"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "India has officially rolled out its Digital Personal Data Protection (DPDP) Act, establishing a comprehensive legal framework for data privacy and aligning with global benchmarks like the EU's GDPR to foster a secure digital economy.",
+      "date": "LIVE - TODAY",
+      "sources": [
+        {
+          "label": "CoinGeek",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGX5UceEUBZ4mO2Je7tq9r-8-PZgFSnFONrSBuvO4WiryZbLajrS05vxktXBy6uzrRVd2LrQqmWIwJGDU6n0dqhnHipz17bGOL2e_8hTX_5ohH78QJ-A1vwHgCw-o9-NV19N-rIbI5mhOd8jFYe_SPHI0_hfL3hsHbApp9z907teaxdrSuu4ftXIIbnTWr3Gy4q"
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Navigating complex global data privacy regulations and ensuring a single platform adheres to diverse local laws (e.g., China, EU, now India) without fracturing the product requires deep expertise in legal tech and data architecture."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Solved the puzzle of global fragmentation by engineering systems that allow a single platform to respect local laws in China and the EU without fracturing the product.",
+      "result": "Digital Sovereignty",
+      "tags": [
+        "Digital Sovereignty",
+        "Data Governance",
+        "Compliance"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_02",
+    "category": "live",
+    "headline": {
+      "title": "European Digital Sovereignty Summit Reinforces Regional Autonomy",
+      "subtitle": "Strategic Risk & Governance"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "A summit on European Digital Sovereignty in Berlin on November 18, 2025, brought together over 900 policymakers and industry leaders to strengthen Europe's resilience against technological dependencies and foster innovative solutions.",
+      "date": "November 18, 2025",
+      "sources": [
+        {
+          "label": "Élysée",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHsJkc88fXnPikfsc0g8oUU6BWNZj4Am20bf0kP29chjoG92MdwP7L1h-79SuB2MPy5E61AiGS-uvCSVTIgiVRSQ2v1GSXc7gIximghoEYpWcWpW4KNeFHd4Q2ntKIToKcE8y_O7jC8aHyEdjwfhm5WQiQjFpsireI0gWk68YSRHsiwHU7w1G7jLcR8QYM5rDt75XK4yAnhbR6pD1Pzxnrv1VGciafkeskKMgWOmmj4mDOeBsQQc1MD7vCJyYMS3iUxVlW4qQqps5-1_XWMePQIRCbTqEzED8zykWT6G6LCag=="
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Translating ambitious digital sovereignty goals into actionable strategies requires complex data architectures that can enforce policy across diverse systems while maintaining operational efficiency and global interoperability."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Built the 'Global Policy Data Mesh,' turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage.",
+      "result": "100% Compliance",
+      "tags": [
+        "Digital Sovereignty",
+        "Data Mesh",
+        "Regulatory Compliance"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_03",
+    "category": "live",
+    "headline": {
+      "title": "AI Governance Matures: Shifting from Idealism to Operational Discipline",
+      "subtitle": "AI Safety & Governance"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "In 2025, responsible AI has moved from theoretical discussions to broad acceptance as a management discipline, with organizations focusing on structured governance, sharper guardrails, and tougher executive accountability.",
+      "date": "November 26, 2025",
+      "sources": [
+        {
+          "label": "People Matters",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFJEVeAtGYKlhl1yL6f0taqYh9Nde1bt3eUS3NbqXERnUELKEzKbmwU7Zyz0W3Wifwj66SXllH4GBAukJJdDaksRZU-Lt9cXeK1SHZcFUojN-ej3KTV3DAFV7r7wxThCVlh3GxVRo0Ze_NycMhewyRVEFz9axgBWwTVB6E-lWUAF8uqT2nft-V_6TZ-m80e9m-7hL2Yf6HNKszJoecH5nZMnnrrmKEr5ONZUswiwTeR45PwQkcVkUAxYMndmYLHmvMl2VxDIbtfiNj6"
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Operationalizing AI safety requires embedding governance throughout the data lifecycle, from model training to deployment, demanding 'safety nets' that protect against false positives and maintain human trust."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Designed 'Safety Nets' that allow AI to scale without destroying value. Intercepted false positives to protect revenue and restore human trust in the algorithm.",
+      "result": "$5M+ in revenue",
+      "tags": [
+        "AI Safety",
+        "AI Governance",
+        "Risk Management"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_04",
+    "category": "live",
+    "headline": {
+      "title": "Cloud Cost Optimization Emerges as Key for Competitive Growth Amid Rising Spending",
+      "subtitle": "Cloud FinOps & Efficiency"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "Global spending on public cloud services is projected to exceed $1 trillion by 2028, but studies reveal over 30% of cloud spending is wasted, making cloud cost optimization a critical strategy for competitive growth.",
+      "date": "November 11, 2025",
+      "sources": [
+        {
+          "label": "Sreeram Krishnamoorthy",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEYesC2ilryBe753UrW9Ozq4SNNTAOVmfntQxqVndgKll_Z400HzgGW1l5RxgRjfyMJDuPDCeTTnz0r8XKiI2kms_Wo4btvcmwSz1kN7Uri98QpRIbcUyMMIAkjxMlPg6v6McI725ErzFvt_l1kgYrsuhu8A88VokFToX2_B7QDKlcFgsfRr3xA9qKZlZiP0MWscBHf-u0a8knnM0eRK12NIgU8m_SxjoCge8IIwIFp"
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Effectively managing cloud spend requires not just cost-cutting, but strategic governance and an understanding of compute power as a finite creative resource, to ensure efficiency drives innovation rather than stifles it."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Treated compute power as a finite creative resource. Implemented governance that saved money per year, proving that efficiency drives innovation.",
+      "result": "$500k/year",
+      "tags": [
+        "Cloud FinOps",
+        "Cost Optimization",
+        "Efficiency"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_05",
+    "category": "live",
+    "headline": {
+      "title": "IFS and Boston Dynamics Unveil Autonomous AI-Robotics System for Industrial Operations",
+      "subtitle": "Operational Automation"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "IFS and Boston Dynamics have partnered to launch an autonomous AI-robotics system that connects robots with enterprise data, aiming to revolutionize field operations by improving safety, efficiency, and uptime in industrial settings.",
+      "date": "November 27, 2025",
+      "sources": [
+        {
+          "label": "IFS",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFuNh9HpreO8NKmdCkm3lUp0GRveuQWZ91N6WwylQXPfz8bpP6Z9eG38Qn7p-06VDJocfqtFqKa_w1X7c6BnoXQPC8KTWKTY0JQHKUQbKXZcGtuY8yZxTAjJXdUs8SjUIb3isF53yHY3WMBP6QxxdpzbS0Vaw4cxyiaf8fvAWxFJJyNoPQ_RiHDNtN7158eYuxhPAlqfZiXtyf48J_Uqwun8QveARP9gA6yFQcDYB8EloaQez12Ln2k"
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Implementing advanced automation requires reclaiming human potential from mundane tasks and strategically re-allocating talent to focus on higher-value activities like strategy and innovation."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Reclaimed human potential by automating the mundane (Executive Review), allowing top talent to focus on strategy.",
+      "result": "1,000+ hours",
+      "tags": [
+        "Automation",
+        "Efficiency",
+        "Process Optimization"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_06",
+    "category": "live",
+    "headline": {
+      "title": "Predictive Analytics Unlocks Next-Gen Customer Experience Excellence",
+      "subtitle": "Customer Experience Engineering"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "In 2025, predictive analytics is crucial for unlocking customer experience excellence, with AI-driven insights powering hyper-personalized interactions and achieving over 40% productivity gains in customer service.",
+      "date": "November 22, 2025",
+      "sources": [
+        {
+          "label": "CX Quest",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFX4zi5wgDihHA2hKMnPTa4BOq5J-Xj76xkwglo1gFh2ksNMlOhyW00NnyrHYvSPnoCfzoFAOGRN8B3ujJZ95Jww-4PMb1u3Tza4qaLdjUxzqZ0iXRUBq-31GAchz01sEbvocPgRYlfmA94GlvwMwNhfzVeegFxwNBTrUfXx6ZXwNVeECn8mlvrNuvD927BSLMHPDZQLw=="
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Achieving frictionless customer journeys requires anticipating problems before they arise, necessitating sophisticated predictive analytics models that can translate historical patterns into actionable foresight."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Used predictive analytics to solve problems before they happened, eliminating support tickets and creating a frictionless user journey.",
+      "result": "300,000 support tickets",
+      "tags": [
+        "Predictive Analytics",
+        "Customer Experience",
+        "AI"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_07",
+    "category": "live",
+    "headline": {
+      "title": "November Regulatory Roundup Highlights Tightening Oversight on AI, AML, and Geopolitics",
+      "subtitle": "Strategic Risk & Governance"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "The November 2025 regulatory roundup indicates a global trend of tightening compliance oversight, with a focus on AI governance, Anti-Money Laundering (AML), and geopolitical risk convergence.",
+      "date": "November 11, 2025",
+      "sources": [
+        {
+          "label": "FinScan",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEOk6s1iWuwfr2CnnIKyjXHztwVWg73v0OJv6sVGxwAazOAsdcl9vTewksUl6YmLsPN265gqHT5p2Os8WdPJ-rH8bSy5SNyRbJDuS3FKc19hmU-mgD42OvFrGi7xzR7lEeczNyfzToFkVD8_jfh5zGbVIfMWdhhuHyDj_IG6UNs-ZzJALmeSsZly-E-ahYHIbVhDs_MzcspbJpy5IjE1VsgyzHME-FnI-iG0UVONeo="
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "The convergence of technology, financial crime, and global tensions creates a complex compliance landscape, demanding robust, data-driven governance programs to transform regulatory friction into competitive velocity."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Built the 'Global Policy Data Mesh,' turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage.",
+      "result": "100% Compliance",
+      "tags": [
+        "Regulatory Compliance",
+        "Risk Management",
+        "Data Governance"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_08",
+    "category": "live",
+    "headline": {
+      "title": "Supply Chain Innovation 2025: Resilience in the Face of Global Turmoil",
+      "subtitle": "Global Supply Chain"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "The 2025 Supply Chain Innovation Award highlights how companies are prioritizing innovation and resilience to navigate ongoing turmoil and uncertainty afflicting global trade and supply chains, leveraging AI and automation.",
+      "date": "November 3, 2025",
+      "sources": [
+        {
+          "label": "SupplyChainBrain",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHkcpkK4aAWWwCrQjWys-RN3AVN2YcqFfE3w_vL2OJ5rDM8lLAosmPwogDaq0WyC7zDYL1r4zrKRtH3eGajUYG-RXoZd-fNGM68y_aLEmM0CNIQQVJXMo4OSJ_LdoUMRqHXQ8ZbpsM_QxbaPh2BZfE5Y0w42KWFiqPzj4aDW7Oc4dM7d3WlATyU0OMZSsU8c6W4IHsGadoElllxV_G7VXxrIwpaXOA4w=="
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Building truly borderless and secure vendor frameworks to accelerate talent acquisition requires deep expertise in overcoming geopolitical complexities and fragmented global talent pools."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Engineered a borderless, secure vendor framework that allowed the business to tap into global talent pools faster than before.",
+      "result": "6 weeks faster",
+      "tags": [
+        "Supply Chain",
+        "Global Strategy",
+        "Vendor Management"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_09",
+    "category": "live",
+    "headline": {
+      "title": "EU Digital Omnibus Proposes GDPR and AI Act Reforms for Simplified Regulation",
+      "subtitle": "Data Architecture & Strategic Risk"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "The European Commission's Digital Omnibus proposals aim to simplify and modernize the EU's digital regulatory framework, including reforms to GDPR, NIS2, the Data Act, and the AI Act.",
+      "date": "November 24, 2025",
+      "sources": [
+        {
+          "label": "Hogan Lovells",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHtbNkIjZolanMxxN8uyxqJSKSpFolNY5-MZSPj6XMTFmciO6gU2G1Ogh2plbJ-Kcg5_8S-yC1h3t4GwebjCniYl5a0nmRuW7ARRHWlKNAtsbxWp3bq8krNsAAWvuhHLqALcPoeKwIU4zeJLzlgCZ_E3Okk5ocbKUP0darylGT77RdjnYnPuJP5OJko5LlSTW-pZ__goOSrPhYl"
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Fragmented data silos hinder effective compliance and real-time decision-making, requiring unification into a 'Single Source of Truth' to navigate evolving regulations and empower leadership."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Unified fragmented silos into a 'Single Source of Truth,' giving leadership the real-time clarity needed to make bold, future-facing decisions.",
+      "result": "Single Source of Truth",
+      "tags": [
+        "Data Architecture",
+        "Data Governance",
+        "Regulatory Compliance"
+      ]
+    },
+    "icon": "Activity"
+  },
+  {
+    "id": "LIVE_GEN_10",
+    "category": "live",
+    "headline": {
+      "title": "Bangladesh Prioritizes Ethical AI Governance with National Readiness Report",
+      "subtitle": "AI Safety & Governance"
+    },
+    "context": {
+      "label": "Market Context",
+      "description": "Bangladesh launched its first national Artificial Intelligence Readiness Assessment (RAM) Report to guide ethical, inclusive, and human-centered AI governance, emphasizing data protection, cybersecurity, and skill development.",
+      "date": "November 20, 2025",
+      "sources": [
+        {
+          "label": "UNESCO",
+          "type": "News",
+          "url": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHT5rr_pm3Kwhh9pwS1VV69AJHaF3qKvBMWXk5lfr2GYIlq8BIXGQ4nOxzVdh5LaZ_5Z0v7ldTwyWUcg7hHIiaJDxhpoZQYYIvYELSU_RjG8FxGh32cRH8WiWSuzLMP3iWJBZTFEaqd2qAIRkLk67Jt0gbwLYR626gcC04cQe8Kj0cQNrYod5BJX7OFpgom-6Eypnx7OsKrD7oH6fVxeOR5IsxLG79kTZhUEjFXekMWO0PO5oTuxI9uklSK9g=="
+        }
+      ]
+    },
+    "insight": {
+      "label": "Friction",
+      "explanation": "Scaling AI ethically and inclusively requires not just technical prowess but also robust governance frameworks and 'safety nets' to prevent value destruction and ensure public trust."
+    },
+    "experience": {
+      "label": "Strategic Response",
+      "role": "Tech Strategy Lead & Data Scientist",
+      "action": "Designed 'Safety Nets' that allow AI to scale without destroying value. Intercepted false positives to protect revenue and restore human trust in the algorithm.",
+      "result": "$5M+ in revenue",
+      "tags": [
+        "AI Ethics",
+        "AI Governance",
+        "Data Protection"
+      ]
+    },
+    "icon": "Activity"
+  }
+]

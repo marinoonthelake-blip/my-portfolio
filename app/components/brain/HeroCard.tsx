@@ -1,195 +1,263 @@
-import React, { useEffect, useState, forwardRef } from 'react';
-import { HeroContent } from './NeuralData';
+import React, { useEffect, useState, useRef, forwardRef } from 'react';
+import { 
+  Fingerprint, ExternalLink, Lightbulb, User, Pause, Activity, Calendar, MousePointer2, PauseCircle, Play
+} from 'lucide-react';
+import { NarrativeCard } from './NeuralData';
+import { SwarmEngine } from './SwarmEngine';
 
-interface HeroCardProps {
-  content: HeroContent;
-  onDeparticlize: () => void;
-  onCycleComplete: () => void;
-}
-
-const HeroCard = forwardRef<HTMLDivElement, HeroCardProps>(({ content, onDeparticlize, onCycleComplete }, ref) => {
-  const [displayedTitle, setDisplayedTitle] = useState("");
-  const [displayedDesc, setDisplayedDesc] = useState("");
-  
-  const [opacity, setOpacity] = useState(0);
-  const [scale, setScale] = useState(0.8);
-  const [blur, setBlur] = useState(20);
-  const [showContent, setShowContent] = useState(false);
-  const [metricsVisible, setMetricsVisible] = useState(false);
-  const [stackVisible, setStackVisible] = useState<boolean[]>([]);
-
-  const randomChar = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&"[Math.floor(Math.random() * 36)];
-
-  useEffect(() => {
-    // RESET
-    setOpacity(0); setScale(0.9); setBlur(30); setShowContent(false); 
-    setDisplayedTitle(""); setDisplayedDesc(""); 
-    setMetricsVisible(false); setStackVisible([]);
-
-    let frame = 0; 
-    let reqId: number;
-    const fullTitle = content.title;
-    const fullDesc = content.description;
-    
-    const introDuration = 100; 
-    const typingDuration = fullDesc.length * 1.5; // SLOWER TYPING
-    // MASSIVE READ PAUSE FOR LIVE CARDS (8s) vs Static (5s)
-    const readPause = content.isLive ? 800 : 500; 
-    const exitDuration = 80; 
-    
-    const totalDuration = introDuration + typingDuration + readPause + exitDuration;
-    const closeStart = totalDuration - exitDuration;
-
-    const animLoop = () => {
-      frame++;
-      if (frame < introDuration) {
-        const p = frame / introDuration;
-        const ease = 1 - Math.pow(1 - p, 3);
-        setOpacity(ease); setScale(0.95 + (ease * 0.05)); setBlur(20 - (ease * 20)); 
-      } 
-      if (frame === 60) setShowContent(true);
-
-      if (frame > 60 && frame < 160) {
-          const p = (frame - 60) / 100;
-          const len = Math.floor(p * fullTitle.length);
-          setDisplayedTitle(fullTitle.substring(0, len) + randomChar());
-      } else if (frame === 160) {
-          setDisplayedTitle(fullTitle);
-      }
-
-      if (frame > 160 && frame < closeStart) {
-          const p = (frame - 160) * 1.0; 
-          if (p < fullDesc.length) {
-             const clean = fullDesc.substring(0, Math.floor(p));
-             setDisplayedDesc(clean + randomChar());
-          } else {
-             setDisplayedDesc(fullDesc);
-             setMetricsVisible(true);
-             const stackStart = 160 + (fullDesc.length / 1.0) + 20;
-             if (frame > stackStart) {
-                const sIdx = Math.floor((frame - stackStart) / 15); 
-                if (content.stack && sIdx < content.stack.length) {
-                    setStackVisible(prev => { const next = [...prev]; next[sIdx] = true; return next; });
-                }
-             }
-          }
-      }
-
-      if (frame > closeStart) {
-          const p = (frame - closeStart) / exitDuration;
-          setOpacity(1 - p); setBlur(p * 20); setScale(1 + (p * 0.02)); 
-          if (frame === Math.floor(closeStart) + 1) onDeparticlize();
-          if (frame >= Math.floor(totalDuration)) { onCycleComplete(); return; }
-      }
-      reqId = requestAnimationFrame(animLoop);
-    };
-    reqId = requestAnimationFrame(animLoop);
-    return () => cancelAnimationFrame(reqId);
-  }, [content, onDeparticlize, onCycleComplete]);
-
-  return (
-    <div 
-      id="hero-card" 
-      style={{
-        position: 'absolute', top: '50%', left: '5%', transform: `translateY(-50%) scale(${scale})`, 
-        width: 'min(85vw, 700px)', height: 'auto', minHeight: '450px', maxHeight: '85vh',
-        opacity: opacity, filter: `blur(${blur}px)`, zIndex: 20, pointerEvents: 'none', userSelect: 'none', transition: 'box-shadow 0.5s ease'
-      }}
-    >
-      <div style={{
-        width: '100%', height: '100%',
-        background: 'rgba(5, 15, 30, 0.95)', 
-        border: content.isLive ? '1px solid rgba(255, 80, 80, 0.5)' : '1px solid rgba(77, 238, 234, 0.2)', 
-        borderRight: content.isLive ? '4px solid rgba(255, 80, 80, 0.8)' : '4px solid rgba(77, 238, 234, 0.6)', 
-        borderRadius: '12px',
-        padding: '0', 
-        display: 'flex', flexDirection: 'column', position: 'relative',
-        boxShadow: content.isLive ? '0 0 80px rgba(255,0,0,0.2)' : '0 0 100px rgba(0,0,0,0.8)'
-      }}>
-         
-         {/* LIVE HEADER (RED) */}
-         {content.isLive && (
-           <div className="w-full bg-red-950/50 border-b border-red-500/30 p-4 flex flex-col gap-2 rounded-t-xl pointer-events-auto">
-              <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                     <span className="animate-pulse w-2 h-2 rounded-full bg-red-500"></span>
-                     <span className="text-[10px] font-mono text-red-400 uppercase tracking-widest">Live Intelligence</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-gray-500">{content.sourceDate}</span>
-              </div>
-              
-              {/* ARTICLE INFO */}
-              <div>
-                  <a href={content.sourceUrl} target="_blank" className="text-lg font-bold text-white hover:text-red-400 transition-colors block truncate">
-                    {content.articleTitle} ↗
-                  </a>
-                  <p className="text-xs text-gray-400 mt-1 font-mono border-l-2 border-gray-700 pl-2 italic">
-                    {content.articleSummary}
-                  </p>
-              </div>
-           </div>
-         )}
-
-         <div style={{ padding: '40px', opacity: showContent ? 1 : 0, transition: 'opacity 0.5s', display: 'flex', flexDirection: 'column', height: '100%' }}>
+const CardModule = forwardRef(({ title, children, color, isVisible, delay, glow, date, link }: any, ref: any) => {
+    return (
+        <div 
+            ref={ref}
+            style={{ 
+                background: `rgba(15, 23, 42, 0.9)`,
+                borderLeft: "4px solid " + color, // FIXED: Used concatenation
+                borderTop: '1px solid rgba(255,255,255,0.05)',
+                borderRight: '1px solid rgba(255,255,255,0.05)',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: '0 12px 12px 0',
+                padding: '20px',
+                marginBottom: '16px',
+                width: '100%',
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateX(0)' : 'translateX(-20px)',
+                transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) " + delay + "ms", // FIXED: Used concatenation
+                boxShadow: isVisible ? "0 4px 30px " + color + (glow ? "40" : "10") : "none", // FIXED: Used concatenation
+                position: 'relative'
+            }}
+        >
+            <div className="flex justify-between items-start mb-2">
+                <div style={{ fontSize: '10px', fontWeight: 700, color: color, textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {glow && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>}
+                    {title}
+                </div>
+                {date && (
+                    <div className={"text-[10px] font-mono flex items-center gap-1 " + (glow ? 'text-red-400' : 'text-slate-500')}>
+                        <Calendar size={10} />
+                        {date}
+                    </div>
+                )}
+            </div>
             
-            {/* PROTOCOL HEADER */}
-            {!content.isLive && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '15px' }}>
-                  <span style={{ fontSize: '12px', color: '#4deeea', fontFamily: 'monospace', letterSpacing: '3px' }}>ID: {content.id}</span>
-                  <span style={{ fontSize: '12px', color: '#74b9ff', fontFamily: 'monospace', letterSpacing: '3px' }}>PROTO: {content.protocol}</span>
-                </div>
+            <div>{children}</div>
+            
+            {link && (
+                <a 
+                    href={link} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="absolute top-4 right-4 group"
+                >
+                    <div className={"p-2 rounded-full transition-all " + (glow ? 'bg-red-500/10 hover:bg-red-500/30 text-red-400' : 'bg-blue-500/10 hover:bg-blue-500/30 text-blue-400')}>
+                        <ExternalLink size={16} />
+                    </div>
+                </a>
             )}
-
-            {/* STRATEGIC RELEVANCE HEADER */}
-            {content.isLive && (
-                <div className="mb-4 mt-2">
-                    <span className="text-xs font-mono text-red-400 uppercase tracking-[0.2em] border-b border-red-500/30 pb-1">Strategic Application</span>
-                </div>
-            )}
-
-            {/* MAIN HEADLINE */}
-            <h2 style={{ 
-              fontSize: 'clamp(24px, 3vw, 42px)', fontWeight: 600, margin: '0 0 20px 0', color: '#fff', 
-              lineHeight: 1.1, fontFamily: 'Segoe UI, sans-serif', letterSpacing: '-0.5px'
-            }}>
-              {displayedTitle}
-            </h2>
-
-            {/* DESCRIPTION (SCROLLABLE) */}
+            
             <div style={{ 
-              fontSize: 'clamp(14px, 1.5vw, 16px)', lineHeight: '1.6', color: '#aaddff', fontWeight: 300,
-              fontFamily: 'monospace', maxWidth: '98%', flexGrow: 1, overflowY: 'auto', paddingRight: '10px',
-              borderLeft: content.isLive ? 'none' : 'none'
-            }}>
-              {displayedDesc}
-            </div>
-
-            {/* FOOTER METRICS */}
-            <div style={{ marginTop: '30px' }}>
-              <div style={{ 
-                 marginBottom: '15px', color: content.isLive ? '#ff6b6b' : '#4deeea', fontSize: '12px', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase',
-                 opacity: metricsVisible ? 1 : 0, transform: metricsVisible ? 'translateY(0)' : 'translateY(10px)', transition: 'all 0.8s ease-out'
-              }}>
-                {content.metrics ? `▶ ${content.metrics}` : ''}
-              </div>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {(content.stack || []).map((tech, i) => (
-                  <span key={i} style={{ 
-                    fontSize: '10px', background: 'rgba(255, 255, 255, 0.05)', color: content.isLive ? '#ff6b6b' : '#4deeea', padding: '5px 10px', 
-                    border: '1px solid rgba(255, 255, 255, 0.1)', fontFamily: 'monospace', borderRadius: '4px',
-                    opacity: stackVisible[i] ? 1 : 0, transform: stackVisible[i] ? 'scale(1)' : 'scale(0.9)', transition: 'all 0.4s ease'
-                  }}>{tech}</span>
-                ))}
-              </div>
-            </div>
-         </div>
-      </div>
-      
-      <div ref={ref} style={{ position: 'absolute', top: '50%', right: '-4px', width: '4px', height: '40px', background: content.isLive ? '#ff6b6b' : '#4deeea', borderRadius: '2px', zIndex: 5 }}></div>
-    </div>
-  );
+                position: 'absolute', top: '50%', right: '-4px', width: '4px', height: '12px', 
+                background: color, borderRadius: '2px', marginTop: '-6px',
+                opacity: isVisible ? 1 : 0, transition: 'opacity 1s'
+            }} />
+        </div>
+    )
 });
 
-HeroCard.displayName = "HeroCard";
-export default HeroCard;
+CardModule.displayName = "CardModule";
+
+interface HeroProps {
+    content: NarrativeCard;
+    engine: SwarmEngine | null;
+}
+
+const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
+    const [activeContent, setActiveContent] = useState<NarrativeCard | null>(null);
+    const [visible, setVisible] = useState([false, false, false, false]);
+    const [isHovered, setIsHovered] = useState(false);
+    
+    const card1Ref = useRef<HTMLDivElement>(null);
+    const card2Ref = useRef<HTMLDivElement>(null);
+    const card3Ref = useRef<HTMLDivElement>(null);
+    const card4Ref = useRef<HTMLDivElement>(null);
+    const isHoveredRef = useRef(false);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+
+    useEffect(() => { isHoveredRef.current = isHovered; }, [isHovered]);
+    
+    useEffect(() => {
+        if (!engine) return;
+        const updateTargets = () => {
+            const refs = [card1Ref, card2Ref, card3Ref, card4Ref];
+            const rects = refs.map(r => r.current?.getBoundingClientRect() || new DOMRect(0,0,0,0));
+            engine.setTargets(rects);
+        };
+        const interval = setInterval(updateTargets, 100);
+        return () => clearInterval(interval);
+    }, [engine, content]);
+
+    // --- STRICT CONTENT SWAPPING LOGIC ---
+    useEffect(() => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        
+        timeoutsRef.current.forEach(clearTimeout);
+        timeoutsRef.current = [];
+
+        if (content.id !== activeContent?.id) {
+            if (!activeContent) {
+                setActiveContent(content);
+                startEnterSequence();
+            } else {
+                startExitSequence().then(() => {
+                    setActiveContent(content);
+                    startEnterSequence();
+                });
+            }
+        }
+    }, [content]);
+
+    const startEnterSequence = () => {
+        setVisible([false, false, false, false]);
+        const t1 = setTimeout(() => setVisible(v => [true, false, false, false]), 100); 
+        const t2 = setTimeout(() => setVisible(v => [true, true, false, false]), 600); 
+        const t3 = setTimeout(() => setVisible(v => [true, true, true, false]), 1100); 
+        const t4 = setTimeout(() => setVisible(v => [true, true, true, true]), 1600);
+        
+        timeoutsRef.current.push(t1, t2, t3, t4);
+        
+        const cycleT = setTimeout(checkCycleCondition, 12000);
+        timerRef.current = cycleT;
+    };
+
+    const startExitSequence = () => {
+        return new Promise<void>(resolve => {
+            setVisible([false, false, false, false]); 
+            const t = setTimeout(resolve, 500); 
+            timeoutsRef.current.push(t);
+        });
+    };
+
+    const checkCycleCondition = () => {
+        if (!isHoveredRef.current) {
+            if (engine) engine.cycleNextNode();
+        } else {
+            const t = setTimeout(checkCycleCondition, 1000);
+            timerRef.current = t;
+        }
+    };
+
+    if (!activeContent) return null;
+
+    const Icon = activeContent.icon || User;
+    let themeColor = '#10b981'; 
+    let isLive = false;
+
+    if (activeContent.category === 'live') {
+        themeColor = '#ef4444'; 
+        isLive = true;
+    } else if (activeContent.category === 'bio') {
+        themeColor = '#eab308'; 
+    }
+
+    const primaryLink = activeContent.context.sources.length > 0 ? activeContent.context.sources[0].url : null;
+
+    return (
+        <div 
+            style={{ 
+                position: 'absolute', top: '50%', left: '60px', width: '500px', transform: 'translateY(-50%)',
+                zIndex: 20, display: 'flex', flexDirection: 'column' 
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <CardModule ref={card1Ref} title={activeContent.category === 'live' ? "LIVE_INTERCEPT" : "IDENTITY_SIGNAL"} color={themeColor} isVisible={visible[0]} delay={0} glow={isLive} date={activeContent.context.date}>
+                <div className="flex items-center gap-3">
+                    <div className={"p-2 rounded border " + (isLive ? 'bg-red-950/50 border-red-500/50' : 'bg-slate-800 border-slate-700')}>
+                        <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="pr-8">
+                        <h2 className="text-xl font-bold text-white leading-tight">{activeContent.headline.title}</h2>
+                        <p className="text-xs text-slate-400 mt-1 font-mono">{activeContent.headline.subtitle}</p>
+                    </div>
+                </div>
+            </CardModule>
+
+            <CardModule ref={card2Ref} title={activeContent.context.label} color={themeColor} isVisible={visible[1]} delay={0} link={isLive ? primaryLink : null}>
+                <p className="text-sm text-slate-300 mb-3 leading-relaxed pr-6">{activeContent.context.description}</p>
+                <div className="flex gap-2">
+                    {!isLive && activeContent.context.sources.map((s, i) => (
+                        <a key={i} href={s.url} target="_blank" rel="noreferrer" 
+                           className="px-2 py-1 bg-blue-900/30 border border-blue-500/30 rounded text-[10px] text-blue-300 hover:bg-blue-900/50 transition-colors flex items-center gap-1">
+                            <ExternalLink size={8}/> {s.label}
+                        </a>
+                    ))}
+                    {isLive && (
+                        <span className="text-[10px] text-red-400 font-mono flex items-center gap-1">
+                            <Activity size={10} /> SOURCE VERIFIED
+                        </span>
+                    )}
+                </div>
+            </CardModule>
+
+            <CardModule ref={card3Ref} title={activeContent.insight.label} color={themeColor} isVisible={visible[2]} delay={0}>
+                 <div className="flex items-start gap-3">
+                     <div className={"mt-1 " + (isLive ? 'text-red-500' : 'text-amber-500')}><Lightbulb size={16} /></div>
+                     <p className="text-sm text-slate-200 leading-relaxed">
+                         {activeContent.insight.explanation}
+                     </p>
+                 </div>
+            </CardModule>
+
+            <CardModule ref={card4Ref} title={activeContent.experience.label} color={themeColor} isVisible={visible[3]} delay={0}>
+                <div className={"rounded p-3 border " + (isLive ? 'bg-red-950/20 border-red-500/20' : 'bg-emerald-950/30 border-emerald-500/20')}>
+                     <div className="flex justify-between items-center mb-2">
+                         <span className={"text-xs font-bold " + (isLive ? 'text-red-400' : 'text-emerald-400')}>{activeContent.experience.role}</span>
+                         <span className={"text-[10px] px-2 py-0.5 rounded " + (isLive ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300')}>
+                             {activeContent.experience.result}
+                         </span>
+                     </div>
+                     <p className="text-xs text-slate-300 mb-2">{activeContent.experience.action}</p>
+                     <div className="flex gap-1 flex-wrap">
+                         {activeContent.experience.tags.map(t => (
+                             <span key={t} className="text-[9px] text-slate-500 border border-slate-700 px-1.5 rounded">{t}</span>
+                         ))}
+                     </div>
+                </div>
+            </CardModule>
+            
+            <div className="mt-4 flex items-center gap-3 animate-in fade-in duration-700 pl-1">
+                <div className={"flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md text-[10px] font-mono tracking-widest uppercase transition-all " + (
+                    isHovered 
+                    ? 'bg-red-500/10 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(220,38,38,0.4)]' 
+                    : 'bg-slate-900/50 border-slate-700/50 text-slate-500'
+                )}>
+                    {isHovered ? (
+                        <><PauseCircle size={12} className="animate-pulse" />System Paused</>
+                    ) : (
+                        <><MousePointer2 size={12} />Hover to Pause</>
+                    )}
+                </div>
+                
+                {!isHovered && (
+                    <div className="h-0.5 bg-slate-800 w-24 rounded-full overflow-hidden">
+                        <div 
+                            key={activeContent.id} 
+                            className="h-full bg-slate-500/50 animate-progress origin-left"
+                        ></div>
+                    </div>
+                )}
+            </div>
+            <style jsx>{`
+                @keyframes progress {
+                    0% { width: 0% }
+                    100% { width: 100% }
+                }
+                .animate-progress {
+                    animation: progress 12s linear forwards;
+                }
+            `}</style>
+        </div>
+    );
+};
+
+export default HeroContainer;

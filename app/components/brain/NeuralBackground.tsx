@@ -1,124 +1,131 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SwarmEngine } from './SwarmEngine';
-import HeroCard from './HeroCard';
-import { neuralData, HeroContent } from './NeuralData';
+import HeroContainer from './HeroCard';
+import { narrativeData, NarrativeCard } from './NeuralData';
+import { Activity, MousePointer2, Move } from 'lucide-react';
+import liveCache from '../../data/live_cache.json';
 
 interface Props {
-  customData: HeroContent[];
+  active: boolean;
 }
 
-const SiteHeader = ({ visible }: { visible: boolean }) => {
-  return (
-    <div style={{
-      position: 'absolute', top: 30, left: 40, 
-      textAlign: 'left', pointerEvents: 'none', zIndex: 10,
-      opacity: visible ? 1 : 0,
-      transform: visible ? 'translateY(0)' : 'translateY(-20px)',
-      transition: 'opacity 1.5s ease, transform 1.5s ease',
-      transitionDelay: '0.5s'
-    }}>
-      <h1 style={{ margin: 0, fontSize: '24px', color: '#4deeea', textShadow: '0 0 25px rgba(77,238,234,0.6)', letterSpacing: '2px' }}>
-        JONATHAN WILLIAM MARINO
-      </h1>
-      <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#74b9ff', letterSpacing: '1px', fontFamily: 'monospace' }}>
-        // DIGITAL_ARCHITECT
-      </p>
-    </div>
-  )
-}
-
-const NeuralBackground: React.FC<Props> = ({ customData }) => {
+export const NeuralBackground: React.FC<Props> = ({ active }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const markerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<SwarmEngine | null>(null);
   
+  const [cards, setCards] = useState<NarrativeCard[]>([]);
   const [contentIndex, setContentIndex] = useState(0);
-  const [showHeader, setShowHeader] = useState(false);
-
-  // Merge Logic
-  const activeData = useMemo(() => {
-    if (customData && customData.length > 0) return customData;
-    return neuralData;
-  }, [customData]);
-
-  const handleDeparticlize = () => {
-    if (engineRef.current) engineRef.current.departiclize();
-  };
-
-  const handleCycleComplete = () => {
-    if (engineRef.current) engineRef.current.cycleNextNode();
-  };
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+      const bioCard = narrativeData.find(n => n.category === 'bio');
+      const portfolioCards = narrativeData.filter(n => n.category === 'portfolio').slice(0, 10);
 
-    const engine = new SwarmEngine(
-        canvasRef.current, 
-        (id) => {
-            const safeIndex = id % activeData.length;
-            setContentIndex(safeIndex);
-            if (id > 0) setShowHeader(true);
-        },
-        activeData.length
-    );
+      let liveCards: NarrativeCard[] = [];
+      if (Array.isArray(liveCache)) {
+          const shuffled = [...liveCache].sort(() => 0.5 - Math.random());
+          liveCards = shuffled.slice(0, 10).map((item: any) => ({
+              ...item,
+              category: 'live',
+              icon: Activity 
+          }));
+      }
+
+      const merged: NarrativeCard[] = bioCard ? [bioCard] : [];
+      
+      const maxLen = Math.max(liveCards.length, portfolioCards.length);
+      for(let i=0; i<maxLen; i++) {
+          if(liveCards[i]) merged.push(liveCards[i]);
+          if(portfolioCards[i]) merged.push(portfolioCards[i]);
+      }
+
+      setCards(merged);
+  }, []);
+
+  useEffect(() => {
+    if (!active) return;
+    if (!canvasRef.current) return;
+    if (cards.length === 0) return;
+
+    const engine = new SwarmEngine(canvasRef.current, (id) => {
+        setContentIndex(id);
+        setStarted(true); 
+    }, cards); 
+    
     engineRef.current = engine;
 
-    if (markerRef.current) {
-      engine.setStreamTarget(markerRef.current.getBoundingClientRect());
-    }
-
-    const handleResize = () => {
-      if (markerRef.current && engineRef.current) {
-        engineRef.current.setStreamTarget(markerRef.current.getBoundingClientRect());
-      }
-    };
+    const handleResize = () => engine.resize();
     window.addEventListener('resize', handleResize);
-
+    
     return () => {
-      window.removeEventListener('resize', handleResize);
-      if (engineRef.current) engineRef.current.dispose();
+        window.removeEventListener('resize', handleResize);
+        engine.dispose();
     };
-  }, [activeData]);
-  
-  useEffect(() => {
-      const timer = setTimeout(() => {
-          if(engineRef.current) engineRef.current.stopStream();
-      }, 2500); 
-      return () => clearTimeout(timer);
-  }, [contentIndex]);
-
-  // SCROLL DOWN LOGIC
-  const handleScroll = () => {
-      document.getElementById('full-dossier')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  }, [active, cards]);
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#02040a', overflow: 'hidden' }}>
-      <SiteHeader visible={showHeader} />
-
-      <HeroCard 
-        ref={markerRef} 
-        content={activeData[contentIndex]} 
-        onDeparticlize={handleDeparticlize} 
-        onCycleComplete={handleCycleComplete} 
-      />
-      <canvas ref={canvasRef} style={{ display: 'block' }} />
       
-      {/* Scroll CTA (New Gentle CTA) */}
-      <div 
-          onClick={handleScroll}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center cursor-pointer transition-opacity duration-300 hover:opacity-100 hover:scale-105"
-          style={{ zIndex: 30 }}
-      >
-        <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-2 shadow-text">SCROLL FOR FULL DOSSIER</p>
-        <svg className="w-6 h-6 text-gray-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+      {/* TOP LEFT HEADER */}
+      <div style={{ 
+          position: 'absolute', top: 30, left: 60, zIndex: 10, 
+          opacity: started ? 1 : 0, transition: 'opacity 2s ease 1s'
+      }}>
+          <h1 className="text-xl font-bold text-white">JONATHAN WILLIAM MARINO</h1>
+          <div className="text-xs text-slate-500 font-mono mt-1 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+              LIVE INTELLIGENCE // ACTIVE
+          </div>
       </div>
-       <style jsx>{`
-            .shadow-text { text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        `}</style>
+
+      {/* BOTTOM RIGHT LEGEND */}
+      <div style={{
+          position: 'absolute', bottom: 40, right: 60, zIndex: 10,
+          textAlign: 'right', opacity: started ? 1 : 0, transition: 'opacity 1s ease 2s',
+          pointerEvents: 'none' 
+      }}>
+          <div className="flex flex-col items-end space-y-3">
+              
+              <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest drop-shadow-md">Live Market Signal</span>
+                  <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse"></div>
+              </div>
+              <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest drop-shadow-md">Proven Capability</span>
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>
+              </div>
+              <div className="flex items-center gap-3 mb-2">
+                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest drop-shadow-md">Core Identity</span>
+                  <div className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div>
+              </div>
+
+              <div className="mt-4 bg-slate-900/80 border-r-2 border-blue-500/50 p-4 rounded-l-xl backdrop-blur-md max-w-xs shadow-2xl">
+                  <p className="text-[10px] text-slate-300 leading-relaxed font-sans border-b border-white/10 pb-3 mb-3">
+                      <strong>SYSTEM STATUS:</strong> Autonomous.<br/>
+                      Engine is mapping live news (Red) to resume skills (Green) in real-time.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-end gap-2 text-blue-400">
+                          <span className="text-[9px] uppercase tracking-widest font-bold">DRAG NODES</span>
+                          <Move size={12} />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 text-slate-400">
+                          <span className="text-[9px] uppercase tracking-widest font-bold">CLICK TO ACTIVATE</span>
+                          <MousePointer2 size={12} />
+                      </div>
+                  </div>
+              </div>
+
+          </div>
+      </div>
+
+      {started && cards.length > 0 && (
+          <HeroContainer content={cards[contentIndex] || cards[0]} engine={engineRef.current} />
+      )}
+      
+      <canvas ref={canvasRef} style={{ display: 'block' }} />
     </div>
   );
-}
+};
 
 export default NeuralBackground;

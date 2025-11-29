@@ -1,132 +1,163 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 
-export default function NeuralTerminal({ onComplete, context }: { onComplete: () => void, context: any }) {
-  const [phase, setPhase] = useState(0);
-  const [displayText, setDisplayText] = useState("");
+interface Props {
+  onComplete: () => void;
+  context: any;
+  realTimeLog?: string | null;
+}
+
+export default function NeuralTerminal({ onComplete, context, realTimeLog }: Props) {
+  const [logs, setLogs] = useState<string[]>([]);
+  const [mainText, setMainText] = useState("");
   const [subText, setSubText] = useState("");
-  const [textVisible, setTextVisible] = useState(false);
-  const [guideOpacity, setGuideOpacity] = useState(0); // RETAINED FOR VISUAL FX
+  const [progress, setProgress] = useState(0);
+  const logEndRef = useRef<HTMLDivElement>(null);
 
-  const timeouts = useRef<NodeJS.Timeout[]>([]);
+  // Sound effect simulation (Visual only for now)
+  const [activeZone, setActiveZone] = useState<"BOOT" | "NETWORK" | "MIND" | "COMPLETE">("BOOT");
 
-  const addTimeout = (fn: () => void, ms: number) => {
-    const id = setTimeout(fn, ms);
-    timeouts.current.push(id);
+  const addLog = (text: string) => {
+    setLogs(prev => [...prev, `> ${text}`]);
   };
 
-  const playScene = (main: string, sub: string, delay: number) => {
-    addTimeout(() => {
-      setTextVisible(false); // Fade out previous text
-      setTimeout(() => {
-        setDisplayText(main);
-        setSubText(sub);
-        setTextVisible(true); // Fade in new text
-      }, 700); 
-    }, delay);
-  };
-
+  // Auto-scroll logs
   useEffect(() => {
-    // 1. CRITICAL: Clear existing timers on every run/mount.
-    timeouts.current.forEach(clearTimeout);
-    timeouts.current = [];
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
 
-    // --- FINAL INTUITIVE GUIDE TIMELINE (15.5s Total) ---
+  // THE CINEMATIC SEQUENCE
+  useEffect(() => {
+    let timer = 0;
+    
+    // 0s: BOOT
+    setTimeout(() => {
+        addLog(`KERNEL: DETECTED VISITOR [${context?.city?.toUpperCase() || "UNKNOWN"}]`);
+        addLog("PROTOCOL: AUTHENTICATING...");
+        setMainText("INITIALIZING NEURAL HANDSHAKE");
+        setActiveZone("BOOT");
+    }, 500);
 
-    // 0s: INITIALIZATION START (Almost Instant Visual Reveal)
-    setPhase(1);
-    setGuideOpacity(1); // CRITICAL FIX: Make guide visible immediately
-    setDisplayText("INITIATING BESPOKE ARCHITECTURE");
-    setSubText("THIS WEBSITE IS REBUILT DYNAMICALLY FOR YOU.");
+    // 2s: NETWORK (The "Live" aspect)
+    setTimeout(() => {
+        addLog("CONN: ESTABLISHED SECURE UPLINK.");
+        addLog("TARGET: HACKER_NEWS_API // PORT 443");
+        addLog("TARGET: GOOGLE_GEMINI_2.0_FLASH // KEY_VALID");
+        setMainText("INGESTING GLOBAL DATA STREAMS");
+        setSubText("THIS SITE IS BEING GENERATED IN REAL-TIME BASED ON LIVE EVENTS.");
+        setActiveZone("NETWORK");
+        setProgress(30);
+    }, 3500);
 
-    // 3s: AGENTS & DATA
-    addTimeout(() => setPhase(2), 3000);
-    playScene("PULLING LIVE CONTEXT (RED NODES)", "ACTIVATING MULTI-AGENT SWARM INTELLIGENCE", 3000);
+    // 7s: THE MIND (The Narrative)
+    setTimeout(() => {
+        addLog("ARCHITECT: JONATHAN_MARINO_PRIME");
+        addLog("STRATEGY: SYNTHESIZING RESUME DATA...");
+        addLog("WARN: COMPLEXITY THRESHOLD EXCEEDED.");
+        setMainText("ENTERING JON'S MIND");
+        setSubText("DECODING STRATEGIC ARCHITECTURE...");
+        setActiveZone("MIND");
+        setProgress(65);
+    }, 8000);
 
-    // 7s: VISUAL PROOF
-    addTimeout(() => setPhase(3), 7000);
-    playScene("EXTRACTING RELEVANCY PATHWAYS", "RED NODES INDICATE ACTIVE, LIVE NEWS FEEDS", 7000);
+    // 12s: DYNAMIC BUILD
+    setTimeout(() => {
+        addLog("RENDER: COMPILING 3D ASSETS...");
+        addLog("RENDER: CALCULATING NEURAL PATHWAYS...");
+        addLog("BUILD: HERO_SECTION [DYNAMIC]");
+        addLog("BUILD: EXECUTIVE_BIO [STATIC]");
+        setMainText("FINALIZING CONSTRUCT");
+        setProgress(90);
+    }, 13000);
 
-    // 11s: SYNTHESIS
-    addTimeout(() => setPhase(4), 11000);
-    playScene("GENERATING CUSTOM NARRATIVE", `OPTIMIZING PORTFOLIO FOR ${context?.city?.toUpperCase() || "GUEST"} VISITOR`, 11000);
+    // 16s: COMPLETE
+    setTimeout(() => {
+        addLog("STATUS: ONLINE.");
+        setMainText("WELCOME.");
+        setProgress(100);
+        setActiveZone("COMPLETE");
+    }, 16000);
 
-    // 14.5s: EXPANSION
-    addTimeout(() => {
-      setPhase(5); 
-      setGuideOpacity(0); // Fade out the guide panel before site reveal
-    }, 14500);
+    // 18s: EXIT
+    setTimeout(() => {
+        onComplete();
+    }, 18000);
 
-    // END: TRIGGER SITE REVEAL (15.5s)
-    addTimeout(onComplete, 15500);
+  }, [context, onComplete]);
 
-    return () => timeouts.current.forEach(clearTimeout);
-  }, [onComplete, context]);
+  // Listen to Real-Time Logs from Parent (if any)
+  useEffect(() => {
+    if (realTimeLog) {
+        setLogs(prev => [...prev, `>> LIVE_AGENT: ${realTimeLog}`]);
+    }
+  }, [realTimeLog]);
 
   return (
-    <div className="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 bg-black z-[100] flex flex-col font-mono text-green-500 overflow-hidden scanline cursor-none">
       
-      {/* 1. CINEMATIC BACKGROUND (Simplified) */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1)_0%,transparent_70%)] opacity-40 animate-pulse"></div>
-      
-      {/* 2. COMPILING TERMINAL (Off to the side) */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-80 h-96 border-r border-blue-900 px-4 py-8 pointer-events-none transition-opacity duration-1000" style={{ opacity: phase < 3 ? 1 : 0.2 }}>
-        <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-4">Process Log</h3>
-        <p className="text-[10px] font-mono text-green-400 leading-tight mb-2">
-          {`[${new Date().toLocaleTimeString('en-US')}] STATUS: ONLINE`}
-        </p>
-        <p className="text-[10px] font-mono text-gray-400 leading-tight mb-2">
-          {`>> CORE: Synthesizing V4.0`}
-        </p>
-        <p className="text-[10px] font-mono text-gray-400 leading-tight mb-2">
-          {`>> AGENTS: Swarm Intelligence Active`}
-        </p>
-        <p className="text-[10px] font-mono text-gray-400 leading-tight mb-2">
-          {`>> CONTEXT: Observer Node Detected...`}
-        </p>
-        <p className="text-[10px] font-mono text-gray-400 leading-tight animate-pulse">
-          {`>> RADAR: PULLING LIVE FEEDS...`}
-        </p>
-      </div>
-      
-      {/* 3. CENTRAL GUIDE HERO - VISIBLE INSTANTLY */}
-      <div className={`relative z-20 transition-opacity duration-700 w-full max-w-4xl px-8`} style={{ opacity: guideOpacity, transitionDelay: '0.5s' }}>
-          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-wide mb-6">
-              YOU ARE ABOUT TO WITNESS A NEURAL REBUILD.
-          </h1>
-          <p className="text-base md:text-xl text-gray-400 max-w-3xl mb-10 border-l-4 border-blue-600 pl-4">
-              The neural network behind this site is generating content procedurally. It links JONATHAN'S resume to live contextual data to show you **immediate, proven relevancy.**
-          </p>
-          
-          <div className="grid grid-cols-3 gap-8 mt-12 text-center">
-              <div className="p-4 bg-gray-900/50 rounded-lg">
-                  <h3 className="text-3xl font-bold text-red-500 mb-2">LIVE</h3>
-                  <p className="text-xs font-mono text-gray-400">RED NODES ARE ACTIVE NEWS FEEDS PULLING DATA NOW.</p>
-              </div>
-              <div className="p-4 bg-gray-900/50 rounded-lg">
-                  <h3 className="text-3xl font-bold text-white mb-2">UNIQUE</h3>
-                  <p className="text-xs font-mono text-gray-400">EVERY RESUME DOWNLOADED IS A COMPLETELY CUSTOM DOCUMENT.</p>
-              </div>
-              <div className="p-4 bg-gray-900/50 rounded-lg">
-                  <h3 className="text-3xl font-bold text-white mb-2">INTUITIVE</h3>
-                  <p className="text-xs font-mono text-gray-400">CLICK ANY NODE TO EXPLORE A DIFFERENT STRATEGIC EXECUTION.</p>
-              </div>
-          </div>
+      {/* BACKGROUND GRID */}
+      <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,6px_100%] pointer-events-none"></div>
+
+      {/* TOP BAR */}
+      <div className="w-full border-b border-green-900/50 p-4 flex justify-between items-center text-xs tracking-widest opacity-70">
+        <div className="flex gap-4">
+            <span>SYS.VER: 4.0.2</span>
+            <span>MEM: 64TB</span>
+            <span className="animate-pulse text-red-500">{activeZone} SEQUENCE</span>
+        </div>
+        <div>
+            <span>VISITOR_ID: {context?.city || "ANONYMOUS"}</span>
+        </div>
       </div>
 
-      {/* 4. EXPANSION VISUAL */}
-      <div className={`absolute border border-white/10 bg-white/5 backdrop-blur-[1px] rounded-full transition-all duration-1000 ease-in-out 
-          ${phase === 4 ? 'w-[100vw] h-[100vw] opacity-100' : 'w-0 h-0 opacity-0'}
-          ${phase === 5 ? 'w-[300vmax] h-[300vmax] bg-white border-none duration-500' : ''}`}
-          style={{ transitionDelay: phase === 4 ? '0.5s' : '0s' }}
-      ></div>
+      {/* CENTER STAGE */}
+      <div className="flex-grow flex flex-col items-center justify-center relative z-10">
+        {/* Progress Ring */}
+        <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
+            <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#064e3b" strokeWidth="2" />
+                <circle 
+                    cx="50" cy="50" r="45" fill="none" stroke="#22c55e" strokeWidth="2" 
+                    strokeDasharray="283" 
+                    strokeDashoffset={283 - (283 * progress) / 100} 
+                    className="transition-all duration-1000 ease-linear"
+                />
+            </svg>
+            <div className="absolute text-4xl font-bold text-white glitch">
+                {progress}%
+            </div>
+        </div>
 
-      {/* 5. PROGRESS BAR */}
-      <div className={`absolute bottom-0 left-0 w-full h-[2px] bg-gray-900 transition-opacity duration-1000 ${phase === 5 ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="h-full bg-white shadow-[0_0_20px_white] w-full origin-left animate-[growLine_15.5s_linear]"></div>
+        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tighter mb-4 text-center glitch" data-text={mainText}>
+            {mainText}
+        </h1>
+        <p className="text-sm md:text-base text-green-400/80 tracking-widest uppercase max-w-xl text-center">
+            {subText}
+        </p>
       </div>
 
-      <style jsx>{`@keyframes growLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
+      {/* LOG STREAM (Bottom Left) */}
+      <div className="absolute bottom-8 left-8 w-96 h-48 overflow-hidden border-l-2 border-green-700/50 pl-4 hidden md:block">
+        <div className="flex flex-col justify-end h-full">
+            {logs.slice(-6).map((log, i) => (
+                <p key={i} className="text-xs text-green-600/80 mb-1 leading-tight font-mono">
+                    {log}
+                </p>
+            ))}
+            <div ref={logEndRef} />
+        </div>
+      </div>
+
+      {/* SKIP BUTTON (Bottom Right) */}
+      <div className="absolute bottom-8 right-8 z-50">
+        <button 
+            onClick={onComplete}
+            className="text-xs text-gray-600 hover:text-white border border-gray-800 hover:border-white px-4 py-2 rounded uppercase tracking-widest transition-all"
+        >
+            [ESC] ABORT SEQUENCE
+        </button>
+      </div>
+
     </div>
   );
 }

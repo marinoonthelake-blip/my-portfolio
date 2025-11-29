@@ -1,6 +1,6 @@
 {
   "name": "src",
-  "version": "0.1.0",
+  "version": "0.1.35",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,9 +10,15 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@xyflow/react": "^12.9.3",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.4",
+    "lucide-react": "^0.555.0",
     "next": "16.0.4",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "three": "^0.181.2",
+    "three.js": "^0.77.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

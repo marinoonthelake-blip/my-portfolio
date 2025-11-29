@@ -5,25 +5,24 @@ export class Vector3D {
   move(dest: Vector3D) { dest.x = this.x; dest.y = this.y; dest.z = this.z; return this; }
   add(other: Vector3D) { this.x += other.x; this.y += other.y; this.z += other.z; return this; }
   sub(other: Vector3D) { this.x -= other.x; this.y -= other.y; this.z -= other.z; return this; }
-  mul(scalar: number) { this.x *= scalar; this.y *= scalar; this.z *= scalar; return this; }
+  mul(scalar: number) { this.x *= scalar; this.y *= scalar; this.y *= scalar; return this; }
   div(scalar: number) { this.x /= scalar; this.y /= scalar; this.z /= scalar; return this; }
   dist(other: Vector3D) { const dx = this.x - other.x; const dy = this.y - other.y; return Math.sqrt(dx * dx + dy * dy); }
+  dot3d(x: number, y: number, z: number) { return this.x * x + this.y * y + this.z * z; }
 }
 
 export class Perlin {
-  perm: number[];
-  grad3: number[][];
+  perm: number[]; grad3: number[][];
   constructor() {
     this.perm = new Array(512);
     this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
     this.init();
   }
   init() {
-    const p = new Array(256);
-    for (let i = 0; i < 256; i++) p[i] = i;
+    const p = new Array(256).fill(0).map((_, i) => i);
     for (let i = 255; i > 0; i--) {
       const r = Math.floor(Math.random() * (i + 1));
-      const t = p[i]; p[i] = p[r]; p[r] = t;
+      [p[i], p[r]] = [p[r], p[i]];
     }
     for (let i = 0; i < 512; i++) this.perm[i] = p[i & 255];
   }
@@ -36,7 +35,7 @@ export class Perlin {
     const X0 = i-t; const Y0 = j-t; const Z0 = k-t;
     const x0 = xin-X0; const y0 = yin-Y0; const z0 = zin-Z0;
     let i1, j1, k1, i2, j2, k2;
-    if(x0>=y0) { if(y0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } else if(x0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; } else { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; } } 
+    if(x0>=y0) { if(y0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } else if(x0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; } else { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; } }
     else { if(y0<z0) { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; } else if(x0<z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; } else { i1=0; j1=1; k1=0; i2=1; j2=1; k2=0; } }
     const x1 = x0 - i1 + G3; const y1 = y0 - j1 + G3; const z1 = z0 - k1 + G3;
     const x2 = x0 - i2 + 2.0*G3; const y2 = y0 - j2 + 2.0*G3; const z2 = z0 - k2 + 2.0*G3;
