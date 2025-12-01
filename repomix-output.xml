@@ -117,170 +117,6 @@ tsconfig.json
 <files>
 This section contains the contents of the repository's files.
 
-<file path="app/api/read-cache/route.ts">
-import { NextResponse } from 'next/server';
-import { kv } from '@vercel/kv';
-import staticCache from '../../data/live_cache.json';
-
-export const dynamic = 'force-dynamic'; // Always fetch fresh data
-
-export async function GET() {
-  try {
-    // 1. Try to fetch from Vercel KV (Redis)
-    const liveData = await kv.get('live_cache');
-
-    // 2. If Redis has data, return it.
-    if (liveData) {
-      return NextResponse.json(liveData);
-    }
-
-    // 3. If Redis is empty (first run), return static backup
-    return NextResponse.json(staticCache);
-
-  } catch (error) {
-    console.error("KV Read Error:", error);
-    // 4. Fail safe: return static backup
-    return NextResponse.json(staticCache);
-  }
-}
-</file>
-
-<file path="app/data/master_resume.json">
-{
-  "profile": {
-    "name": "Jonathan William Marino",
-    "title": "Tech Lead for Policy @ Google",
-    "tagline": "From E-Trade Babies to Enterprise Policy: Architecting the Integrity of the Future.",
-    "contact": {
-      "portfolio": "https://jwm.digital",
-      "linkedin": "https://linkedin.com/in/jwmdigital"
-    }
-  },
-  "brand_narrative": {
-    [cite_start]"bio_summary": "A digital engineer and creative strategist who evolved from designing for Jay-Z and the E-Trade Babies to architecting Google's global policy infrastructure. I combine high-level creative direction with complex data engineering (SQL, Policy logic) to build systems that protect billions of users while eliminating friction. [cite: 8, 12, 42, 102]",
-    [cite_start]"unique_value_prop": "The Power of Synthesis: Combining Creative Motion, Web Design, Data Analysis, and Policy Engineering to solve problems others deem impossible. [cite: 97, 216]"
-  },
-  "philosophy": {
-    "northstars": [
-      {
-        "name": "The Integrity Imperative",
-        "description": "Architecting data-driven solutions that ensure the fairness and consistency of Global Policy."
-      },
-      {
-        "name": "Frictionless Future",
-        "description": "Using complex data analysis to pinpoint dissatisfaction at the source and turn policy challenges into high-trust experiences."
-      },
-      {
-        "name": "Elevate the Human",
-        "description": "Freeing up high-level teams from manual review by building the 'Professional Google Inside' they never had."
-      }
-    ],
-    "core_values": [
-      "Empowerment and Safety First (Team Health)",
-      "Unwavering Problem Solver (Relentless Execution)",
-      [cite_start]"Data-Backed Conviction (Evidence over Opinion) [cite: 136]",
-      [cite_start]"Security & Scalability First (Due Diligence) [cite: 133]",
-      "Ethical Vigilance (Mitigating AI over-flagging)"
-    ]
-  },
-  "core_competencies": [
-    [cite_start]"GoogleSQL (BigQuery) & Complex Querying [cite: 190]",
-    "Policy Infrastructure Architecture",
-    "Crisis Management (ATO Code Red)",
-    "Hierarchical Account Infection Mapping (TRACE)",
-    [cite_start]"Creative Strategy (Motion & Web) [cite: 169]",
-    [cite_start]"Vendor Vetting & Contract Negotiation [cite: 133]",
-    "Security Analysis & Risk Mitigation",
-    [cite_start]"Team Leadership (Global Supply Chain) [cite: 129]"
-  ],
-  "experience_highlights": [
-    {
-      "role": "Tech Lead, Policy & Trust Safety",
-      "company": "Google",
-      [cite_start]"duration": "2015 - Present [cite: 99]",
-      "key_achievement": "Architecting global data solutions for Policy, Trust & Safety, and Crisis Response across a 12-year tenure.",
-      "projects": [
-        {
-          "name": "ATO Crisis Response (Account Takeover Code Red)",
-          "focus": "Risk Mitigation & Operational Recovery",
-          "details": [
-            "Orchestrated the 'Code Red' operational cleanup for high-risk Account Takeovers (ATO), directly managing 'Option B' protocols for critical clients.",
-            "Engineered data pipelines integrating Buganizer CIDs into real-time dashboards, closing visibility gaps on missing cases.",
-            "Led the transition from manual Trix-based investigations to the automated AART Clean Up Tool, significantly reducing case resolution time."
-          ]
-        },
-        {
-          "name": "Certs CX Infrastructure (Ads Certifications)",
-          "focus": "Scalability & User Experience",
-          "details": [
-            "Collaborated on the architectural expansion of 'MCC Inheritance' criteria, simplifying certification logic for parent accounts.",
-            "Developed scalable infrastructure for Certification Auditing and Revocation, ensuring policy compliance without throttling legitimate ad spend.",
-            "Implemented 'Structured & Transparent Rejection' logic, reducing support ticket volume by clarifying policy violations to users."
-          ]
-        },
-        {
-          "name": "AI & Internal Tooling Innovation",
-          "focus": "Automation & Innovation",
-          "details": [
-            [cite_start]"Built 'SlideSense' (NLP/Computer Vision), an AI tool that automates executive presentation review, saving 1,000+ management hours. [cite: 143]",
-            [cite_start]"Created 'Stevie,' a Gemini-powered audio synthesis interface, solving accessibility gaps for visually impaired users by enabling audio-only LLM chat. [cite: 149]",
-            [cite_start]"Engineered 'CARTA,' a custom GA4 analytics widget to solve complex document tracking issues that standard tools could not handle. [cite: 155]"
-          ]
-        },
-        {
-          "name": "Global Operations Engineering",
-          "focus": "Scale & Efficiency",
-          "details": [
-            [cite_start]"Founded and scaled 'Production Creative Works' from a pilot to a multi-million dollar global operation across APAC, EMEA, and AMER. [cite: 129]",
-            [cite_start]"Authored the core SOPs and Business Requirement Documents (BRDs) that standardized Google's creative supply chain. [cite: 134]",
-            [cite_start]"Implemented 'Data & Metrics Visualization' to track Time to Delivery and Revision Rates, moving creative management to objective P&L management. [cite: 136]"
-          ]
-        },
-        {
-          "name": "Creative Technology (Ad Formats)",
-          "focus": "First-to-Market Engineering",
-          "details": [
-            [cite_start]"Led Technical Program Management for '3D Swirl,' enabling interactive 3D assets (glTF/glb) in display ads. [cite: 110]",
-            [cite_start]"Drove adoption of YouTube AR 'Virtual Try-On,' using ARCore to allow users to try makeup via front-facing camera. [cite: 118]",
-            [cite_start]"Served as Technical Consultant for 'Beyond the Map' (Rio Favelas) and 'Hidden Worlds' (National Parks), using 360-degree video/WebGL for digital archiving. [cite: 161, 163]"
-          ]
-        }
-      ]
-    },
-    {
-      "role": "Motion Graphics Director / Lead",
-      "company": "Boombox",
-      [cite_start]"duration": "2010 - 2015 [cite: 74]",
-      "key_achievement": "Evolved from a singular video editor to a Director, building an internal creative production powerhouse.",
-      [cite_start]"metrics": "Managed 'award-winning projects' and defined pipeline management for video & graphics. [cite: 86]"
-    },
-    {
-      "role": "Lead 3D Artist & Audio Engineer",
-      "company": "LimeGorilla (Indie Game Dev)",
-      [cite_start]"duration": "2010s [cite: 91]",
-      [cite_start]"key_achievement": "Built 'Goofer' for iPad, demonstrating full-stack mobile capability (Audio, 3D, Logic) during the early App Store boom. [cite: 91]",
-      [cite_start]"metrics": "Handled Music Creation, 3D Modeling, and Game Logic. [cite: 94]"
-    },
-    {
-      "role": "Production Designer / Performer",
-      "company": "Oddcast",
-      [cite_start]"duration": "2006 - 2010 [cite: 18]",
-      [cite_start]"key_achievement": "Pioneered early viral marketing and personalized interactivity. [cite: 21]",
-      [cite_start]"metrics": "Key contributor to 'Monk-e-Mail' (50M users) and the 'E-Trade Baby' Super Bowl campaign (ran for 6 years). [cite: 37, 46]"
-    }
-  ],
-  "voice_settings": {
-    "tone": "Visionary but grounded, Authoritative, 'The Adult in the Room'",
-    "keywords_to_include": ["Integrity", "Frictionless", "Synthesis", "Scale", "Conviction", "Governance"],
-    "forbidden_phrases": ["I helped", "I think", "Rockstar", "Ninja"]
-  }
-}
-</file>
-
-<file path="public/js/noise.js">
-!function(){"use strict";var r=.5*(Math.sqrt(3)-1),e=(3-Math.sqrt(3))/6,t=1/6,a=(Math.sqrt(5)-1)/4,o=(5-Math.sqrt(5))/20;function i(r){var e;e="function"==typeof r?r:r?function(){var r=0,e=0,t=0,a=1,o=i.now()/1e3;function i(e){return(r=e*a+o)%256}return i.seed=function(e){e<1&&(e*=65536),o=(e=Math.floor(e))>>>8,a=e%256+111,r=0,e=0,t=0},i}():Math.random,this.p=n(e),this.perm=new Uint8Array(512),this.permMod12=new Uint8Array(512);for(var t=0;t<512;t++)this.perm[t]=this.p[255&t],this.permMod12[t]=this.perm[t]%12}function n(r){var e,t=new Uint8Array(256);for(e=0;e<256;e++)t[e]=e;for(e=0;e<255;e++){var a,o=e+~~(r()*(256-e)),i=t[e];t[e]=t[o],t[o]=i}return t}i.prototype={grad3:new Float32Array([1,1,0,-1,1,0,1,-1,0,-1,-1,0,1,0,1,-1,0,1,1,0,-1,-1,0,-1,0,1,1,0,-1,1,0,1,-1,0,-1,-1]),noise3D:function(a,o,i){var n,s,h,l,f,c,u,d,p,m,M=this.permMod12,y=this.perm,v=this.grad3,w=(a+o+i)*t,A=Math.floor(a+w),x=Math.floor(o+w),g=Math.floor(i+w),S=(A+x+g)*t,U=a-(A-S),b=o-(x-S),F=i-(g-S);U>=b?b>=F?(f=1,c=0,u=0,d=1,p=1,m=0):U>=F?(f=1,c=0,u=0,d=1,p=0,m=1):(f=0,c=0,u=1,d=1,p=0,m=1):b<F?(f=0,c=0,u=1,d=0,p=1,m=1):U<F?(f=0,c=1,u=0,d=0,p=1,m=1):(f=0,c=1,u=0,d=1,p=1,m=0);var D=U-f+t,T=b-c+t,k=F-u+t,P=U-d+2*t,z=b-p+2*t,q=F-m+2*t,E=U-1+.5,I=b-1+.5,j=F-1+.5,H=255&A,K=255&x,L=255&g,N=.6-U*U-b*b-F*F;if(N<0)n=0;else{var O=3*M[H+y[K+y[L]]];n=(N*=N)*N*(v[O]*U+v[O+1]*b+v[O+2]*F)}var Q=.6-D*D-T*T-k*k;if(Q<0)s=0;else{var R=3*M[H+f+y[K+c+y[L+u]]];s=(Q*=Q)*Q*(v[R]*D+v[R+1]*T+v[R+2]*k)}var V=.6-P*P-z*z-q*q;if(V<0)h=0;else{var W=3*M[H+d+y[K+p+y[L+m]]];h=(V*=V)*V*(v[W]*P+v[W+1]*z+v[W+2]*q)}var X=.6-E*E-I*I-j*j;if(X<0)l=0;else{var Y=3*M[H+1+y[K+1+y[L+1]]];l=(X*=X)*X*(v[Y]*E+v[Y+1]*I+v[Y+2]*j)}return 32*(n+s+h+l)}},window.SimplexNoise=i}();
-</file>
-
 <file path="app/admin/brain/page.tsx">
 "use client";
 import React, { useState } from 'react';
@@ -426,104 +262,6 @@ export default function BrainConsole() {
 }
 </file>
 
-<file path="app/api/brain-scan/route.ts">
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { NextResponse } from "next/server";
-import fs from 'fs';
-import path from 'path';
-import { kv } from '@vercel/kv';
-import { RESUME_TEXT } from "../../data/resume_source";
-
-export const maxDuration = 60; 
-export const dynamic = 'force-dynamic';
-
-function cleanAndParseJSON(text: string) {
-    try {
-        let clean = text.replace(/```json/gi, "").replace(/```/g, "").trim();
-        const firstOpen = clean.indexOf('[');
-        const lastClose = clean.lastIndexOf(']');
-        if (firstOpen === -1 || lastClose === -1) throw new Error("No JSON array found");
-        return JSON.parse(clean.substring(firstOpen, lastClose + 1));
-    } catch (e: any) {
-        console.error("JSON Parse Error:", e.message);
-        throw e;
-    }
-}
-
-export async function POST(req: Request) {
-    const debugLog: string[] = [];
-    const log = (msg: string) => { console.log(`[Brain]: ${msg}`); debugLog.push(msg); };
-
-    try {
-        const apiKey = process.env.GEMINI_API_KEY || "";
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-        const promptText = `
-        ROLE: Executive Technical Recruiter.
-        TARGET PROFILE: ${RESUME_TEXT.substring(0, 8000)}
-        TODAY'S DATE: ${today}
-
-        TASK:
-        1. **BREAKING NEWS (Item 1):** Find ONE major tech event from the last 24 hours.
-           - FORCE the 'date' field to be "LIVE - TODAY".
-        2. **MARKET TRENDS (Items 2-10):** Find 9 other recent events (last 30 days).
-
-        CRITICAL RULES:
-        - "sources.url": MUST BE A REAL LINK.
-        - "experience.result": Use exact numbers from the resume.
-        - "category": Must be "live".
-
-        OUTPUT JSON ONLY (Array of objects matching NarrativeCard schema).
-        `;
-
-        log("Attempting Gemini 2.5 Flash (Search Enabled)...");
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-2.5-flash", 
-            tools: [{ googleSearch: {} }] as any 
-        });
-        
-        const result = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: promptText }] }]
-        });
-        
-        let jsonResult = cleanAndParseJSON(result.response.text());
-        
-        // Garbage Filter
-        jsonResult = jsonResult.filter((item: any) => {
-            const url = item.context?.sources?.[0]?.url || "";
-            return url && !url.includes("example.com") && url.startsWith("http");
-        });
-        
-        // --- PERSISTENCE LAYER ---
-        
-        // 1. Write to Vercel KV (Production Storage)
-        try {
-            await kv.set('live_cache', jsonResult);
-            log("✅ Saved to Vercel KV (Redis)");
-        } catch (kvError: any) {
-            log("⚠️ Vercel KV Write Failed: " + kvError.message);
-        }
-
-        // 2. Write to Local File (Dev Mode Only)
-        if (process.env.NODE_ENV === 'development') {
-            try {
-                const filePath = path.join(process.cwd(), 'app', 'data', 'live_cache.json');
-                fs.writeFileSync(filePath, JSON.stringify(jsonResult, null, 2));
-                log("✅ Saved to Local Filesystem");
-            } catch (fsError) {
-                log("⚠️ Local Write Failed (Expected in Production)");
-            }
-        }
-
-        return NextResponse.json({ success: true, logs: debugLog, data: jsonResult });
-
-    } catch (fatalError: any) {
-        return NextResponse.json({ success: false, error: fatalError.message, logs: debugLog }, { status: 500 });
-    }
-}
-</file>
-
 <file path="app/api/check-models/route.ts">
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
@@ -609,6 +347,34 @@ export async function POST(req: Request) {
     } catch (error) {
         return NextResponse.json({ error: "Analysis failed" }, { status: 500 });
     }
+}
+</file>
+
+<file path="app/api/read-cache/route.ts">
+import { NextResponse } from 'next/server';
+import { kv } from '@vercel/kv';
+import staticCache from '../../data/live_cache.json';
+
+export const dynamic = 'force-dynamic'; // Always fetch fresh data
+
+export async function GET() {
+  try {
+    // 1. Try to fetch from Vercel KV (Redis)
+    const liveData = await kv.get('live_cache');
+
+    // 2. If Redis has data, return it.
+    if (liveData) {
+      return NextResponse.json(liveData);
+    }
+
+    // 3. If Redis is empty (first run), return static backup
+    return NextResponse.json(staticCache);
+
+  } catch (error) {
+    console.error("KV Read Error:", error);
+    // 4. Fail safe: return static backup
+    return NextResponse.json(staticCache);
+  }
 }
 </file>
 
@@ -1251,6 +1017,1076 @@ export const LucideIcon = ({ name, size = 20, className = "" }: any) => {
 };
 </file>
 
+<file path="app/components/ExecutiveOnePager.tsx">
+import React, { forwardRef } from 'react';
+
+export const ExecutiveOnePager = forwardRef(({ data }: { data: any }, ref: any) => {
+  if (!data) return null;
+
+  return (
+    <div ref={ref} style={{
+        position: 'fixed', top: '-9999px', left: '-9999px',
+        width: '297mm', height: '210mm', // Landscape A4 (Presentation Style)
+        display: 'grid', gridTemplateColumns: '30% 70%',
+        fontFamily: 'Helvetica, Arial, sans-serif'
+    }}>
+      
+      {/* SIDEBAR (Dark Blue) */}
+      <div style={{ backgroundColor: '#0f172a', color: 'white', padding: '40px', display: 'flex', flexDirection: 'column' }}>
+          
+          {/* PROFILE IMAGE PLACEHOLDER (or actual image if we passed it) */}
+          <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#3b82f6', marginBottom: '30px', overflow: 'hidden', border: '3px solid white' }}>
+             <img src="/profile.png" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+
+          <h1 style={{ fontSize: '24pt', fontWeight: 'bold', margin: '0 0 10px 0', lineHeight: '1.1' }}>{data.fullName}</h1>
+          <h2 style={{ fontSize: '14pt', color: '#94a3b8', margin: '0 0 40px 0', fontWeight: 'normal' }}>{data.title}</h2>
+
+          <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ fontSize: '10pt', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '2px', borderBottom: '1px solid #1e293b', paddingBottom: '10px', marginBottom: '15px' }}>Contact</h3>
+              <p style={{ fontSize: '10pt', marginBottom: '8px' }}>{data.contact}</p>
+              <p style={{ fontSize: '10pt', color: '#94a3b8' }}>Generated: {new Date().toLocaleDateString()}</p>
+          </div>
+
+          <div>
+              <h3 style={{ fontSize: '10pt', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '2px', borderBottom: '1px solid #1e293b', paddingBottom: '10px', marginBottom: '15px' }}>Core Competencies</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {data.skills.map((s: string, i: number) => (
+                      <span key={i} style={{ fontSize: '9pt', background: 'rgba(255,255,255,0.1)', padding: '5px 10px', borderRadius: '4px' }}>{s}</span>
+                  ))}
+              </div>
+          </div>
+      </div>
+
+      {/* MAIN CONTENT (White) */}
+      <div style={{ backgroundColor: 'white', padding: '50px', color: '#334155' }}>
+          
+          {/* HEADER / STRATEGY HOOK */}
+          <div style={{ marginBottom: '40px', background: '#f8fafc', padding: '20px', borderLeft: '4px solid #3b82f6' }}>
+             <h3 style={{ fontSize: '12pt', fontWeight: 'bold', color: '#0f172a', marginBottom: '10px', textTransform: 'uppercase' }}>Executive Synthesis</h3>
+             <p style={{ fontSize: '11pt', lineHeight: '1.6', margin: 0 }}>{data.summary}</p>
+          </div>
+
+          {/* EXPERIENCE */}
+          <div>
+              <h3 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#0f172a', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', marginBottom: '25px' }}>Selected Experience</h3>
+              
+              {data.experience.slice(0, 3).map((exp: any, i: number) => (
+                  <div key={i} style={{ marginBottom: '25px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '5px' }}>
+                          <span style={{ fontSize: '12pt', fontWeight: 'bold', color: '#1e293b' }}>{exp.title}</span>
+                          <span style={{ fontSize: '10pt', color: '#64748b', fontWeight: 'bold' }}>{exp.company}</span>
+                      </div>
+                      <div style={{ fontSize: '9pt', color: '#94a3b8', marginBottom: '8px', fontStyle: 'italic' }}>{exp.date}</div>
+                      <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                          {exp.bullets.map((b: string, j: number) => (
+                              <li key={j} style={{ fontSize: '10pt', marginBottom: '4px', lineHeight: '1.4' }}>{b}</li>
+                          ))}
+                      </ul>
+                  </div>
+              ))}
+          </div>
+
+      </div>
+    </div>
+  );
+});
+
+ExecutiveOnePager.displayName = "ExecutiveOnePager";
+</file>
+
+<file path="app/components/HiddenResume.tsx">
+import React, { forwardRef } from 'react';
+
+export const HiddenResume = forwardRef(({ data }: { data: any }, ref: any) => {
+  if (!data) return null;
+
+  return (
+    <div ref={ref} style={{
+        position: 'fixed', top: '-9999px', left: '-9999px',
+        width: '210mm', minHeight: '297mm', // A4 Size
+        background: 'white', color: 'black', padding: '15mm',
+        fontFamily: 'Helvetica, Arial, sans-serif'
+    }}>
+      {/* HEADER */}
+      <div style={{ borderBottom: '2px solid #333', paddingBottom: '20px', marginBottom: '20px' }}>
+          <h1 style={{ fontSize: '28pt', fontWeight: 'bold', margin: 0, letterSpacing: '-1px' }}>{data.fullName.toUpperCase()}</h1>
+          <h2 style={{ fontSize: '14pt', color: '#666', marginTop: '5px', fontWeight: 'normal' }}>{data.title}</h2>
+          <div style={{ fontSize: '10pt', color: '#444', marginTop: '10px', display: 'flex', gap: '15px' }}>
+              <span>{data.contact}</span>
+              <span>•</span>
+              <span>Generated: {new Date().toLocaleDateString()}</span>
+          </div>
+      </div>
+
+      {/* SUMMARY */}
+      <div style={{ marginBottom: '25px' }}>
+          <h3 style={{ fontSize: '12pt', fontWeight: 'bold', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '10px' }}>EXECUTIVE SYNTHESIS</h3>
+          <p style={{ fontSize: '10pt', lineHeight: '1.5' }}>{data.summary}</p>
+      </div>
+
+      {/* SKILLS */}
+      <div style={{ marginBottom: '25px' }}>
+          <h3 style={{ fontSize: '12pt', fontWeight: 'bold', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '10px' }}>CORE COMPETENCIES</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {data.skills.map((s: string, i: number) => (
+                  <span key={i} style={{ fontSize: '9pt', background: '#f0f0f0', padding: '4px 8px', borderRadius: '4px' }}>{s}</span>
+              ))}
+          </div>
+      </div>
+
+      {/* EXPERIENCE */}
+      <div>
+          <h3 style={{ fontSize: '12pt', fontWeight: 'bold', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '10px' }}>RELEVANT EXPERIENCE</h3>
+          {data.experience.map((exp: any, i: number) => (
+              <div key={i} style={{ marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '11pt' }}>{exp.title}</span>
+                      <span style={{ fontSize: '10pt', color: '#666' }}>{exp.date}</span>
+                  </div>
+                  <div style={{ fontStyle: 'italic', fontSize: '10pt', marginBottom: '6px' }}>{exp.company}</div>
+                  <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                      {exp.bullets.map((b: string, j: number) => (
+                          <li key={j} style={{ fontSize: '10pt', marginBottom: '4px', lineHeight: '1.4' }}>{b}</li>
+                      ))}
+                  </ul>
+              </div>
+          ))}
+      </div>
+    </div>
+  );
+});
+
+HiddenResume.displayName = "HiddenResume";
+</file>
+
+<file path="app/components/SecurityLayer.tsx">
+"use client";
+import { useEffect } from 'react';
+
+export default function SecurityLayer() {
+  useEffect(() => {
+    // --- 1. CONSOLE EASTER EGG ---
+    const message = "🔒 SYSTEM ARCHITECTURE SECURED.";
+    const subMsg = "If you would like to know how I built this, you can pay for my services.\n\nContact: jmarinonyc@gmail.com";
+    
+    const titleStyle = [
+      "font-size: 16px",
+      "font-weight: bold",
+      "color: #3b82f6", // Blue-500
+      "background-color: #0f172a", // Slate-900
+      "padding: 10px 20px",
+      "border-radius: 5px",
+      "border: 1px solid #1e293b"
+    ].join(';');
+
+    const bodyStyle = [
+      "font-size: 12px",
+      "color: #94a3b8", // Slate-400
+      "padding-top: 10px",
+    ].join(';');
+
+    console.clear();
+    console.log(`%c${message}`, titleStyle);
+    console.log(`%c${subMsg}`, bodyStyle);
+
+    // --- 2. DISABLE RIGHT CLICK ---
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    // --- 3. DISABLE INSPECTOR SHORTCUTS ---
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Block F12
+      if (e.key === 'F12') {
+        e.preventDefault();
+      }
+      // Block Ctrl+Shift+I / Cmd+Opt+I (Inspect)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+        e.preventDefault();
+      }
+      // Block Ctrl+Shift+J / Cmd+Opt+J (Console)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+        e.preventDefault();
+      }
+      // Block Ctrl+U / Cmd+U (View Source)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  return null; // Headless component
+}
+</file>
+
+<file path="app/data/master_gems.ts">
+export const MASTER_GEMS = [
+  { "role": "Tech Lead (Policy)", "project": "Global Policy Data Mesh", "metricValue": "€20M", "metricName": "Fine Avoidance", "industryStandards": ["GDPR", "Data Sovereignty"], "id": 1 },
+  { "role": "Tech Lead (Policy)", "project": "Ethical AI Governance", "metricValue": "$5M LTV", "metricName": "Retained Revenue", "industryStandards": ["NIST AI RMF", "Algorithmic Fairness"], "id": 2 },
+  { "role": "Tech Lead (Policy)", "project": "TRACE Methodology", "metricValue": "40%", "metricName": "Manual Review Reduction", "industryStandards": ["Graph Analysis", "Fraud Detection"], "id": 3 },
+  { "role": "Internal Founder", "project": "Creative Production Works", "metricValue": "$15M", "metricName": "ARR", "industryStandards": ["Agile Production", "Profit Center"], "id": 4 },
+  { "role": "Internal Founder", "project": "Global Ops & Vetting", "metricValue": "100%", "metricName": "Vendor Compliance", "industryStandards": ["VRM", "ISO 27001"], "id": 5 },
+  { "role": "Data Scientist", "project": "Internal Tool Commercialization", "metricValue": "30%", "metricName": "Time-to-Insight", "industryStandards": ["Self-Service BI", "Product-Led Growth"], "id": 6 },
+  { "role": "Creative Tech", "project": "Oddcast / Viral Marketing", "metricValue": "100M+", "metricName": "Impressions", "industryStandards": ["High Availability", "Viral Engineering"], "id": 7 },
+  { "role": "Tech Lead (Policy)", "project": "DSA Response", "metricValue": "100%", "metricName": "Compliance Rate", "industryStandards": ["DSA", "Regulatory Reporting"], "id": 8 },
+  { "role": "Data Scientist", "project": "Cloud Cost Optimization", "metricValue": "$500k", "metricName": "Annualized Savings", "industryStandards": ["FinOps", "Cloud Economics"], "id": 9 },
+  { "role": "Internal Founder", "project": "Talent Retention Strategy", "metricValue": "25%", "metricName": "Attrition Reduction", "industryStandards": ["Human Capital", "Upskilling"], "id": 10 },
+  { "role": "Creative Tech", "project": "Dynamic Creative Optimization", "metricValue": "$2M", "metricName": "Revenue Lift", "industryStandards": ["DCO", "Real-Time Bidding"], "id": 11 },
+  { "role": "Tech Lead", "project": "Legacy Stack Migration", "metricValue": "0 Downtime", "metricName": "Migration Success", "industryStandards": ["Microservices", "Modernization"], "id": 12 },
+  { "role": "Tech Lead (Policy)", "project": "Election Integrity", "metricValue": "<15 Min", "metricName": "Mean Time to Detect", "industryStandards": ["Crisis Management", "Trust & Safety"], "id": 13 },
+  { "role": "Data Scientist", "project": "Data Democratization", "metricValue": "200+", "metricName": "Active Users", "industryStandards": ["Data Literacy", "Analytics"], "id": 14 },
+  { "role": "Internal Founder", "project": "Vendor Consolidation", "metricValue": "15%", "metricName": "Cost Reduction", "industryStandards": ["Strategic Sourcing", "Governance"], "id": 15 },
+  { "role": "Creative Tech", "project": "Mobile Performance Tuning", "metricValue": "40%", "metricName": "Faster Load Time", "industryStandards": ["Core Web Vitals", "Mobile-First"], "id": 16 },
+  { "role": "Strategist", "project": "OKR Alignment", "metricValue": "100%", "metricName": "Strategic Alignment", "industryStandards": ["OKRs", "Strategic Planning"], "id": 17 },
+  { "role": "Tech Lead (Policy)", "project": "Child Safety (COPPA)", "metricValue": "0", "metricName": "Breach Incidents", "industryStandards": ["COPPA", "AADC"], "id": 18 },
+  { "role": "Tech Lead", "project": "Incident Response (SRE)", "metricValue": "50%", "metricName": "MTTR Reduction", "industryStandards": ["SRE", "Incident Management"], "id": 19 },
+  { "role": "Data Scientist", "project": "Customer 360 View", "metricValue": "100%", "metricName": "Data Completeness", "industryStandards": ["CDP", "MDM"], "id": 20 },
+  { "role": "Tech Lead", "project": "Billing Team Enablement", "metricValue": "15 hrs/wk", "metricName": "Time Saved", "industryStandards": ["Automation", "BI"], "id": 21 },
+  { "role": "Tech Lead", "project": "Team Enablement", "metricValue": "100%", "metricName": "L&D Goals Met", "industryStandards": ["Learning", "Knowledge"], "id": 22 },
+  { "role": "Tech Lead", "project": "SSoT Data Ecosystem", "metricValue": "100%", "metricName": "Adoption", "industryStandards": ["Data Governance", "SSoT"], "id": 23 },
+  { "role": "Tech Lead", "project": "Parent-Child Case Mapping", "metricValue": ">95%", "metricName": "Accuracy", "industryStandards": ["Data Modeling", "Cases"], "id": 24 },
+  { "role": "Tech Lead", "project": "Commerce Policy DataSite", "metricValue": "100%", "metricName": "User Adoption", "industryStandards": ["BI", "KM"], "id": 25 },
+  { "role": "Tech Lead", "project": "P-Staff SLO Reporting", "metricValue": "40 hrs/wk", "metricName": "Manual Work Saved", "industryStandards": ["SLO", "Reporting"], "id": 26 },
+  { "role": "Tech Lead", "project": "gTech Ops Dashboard", "metricValue": "100%", "metricName": "Adoption", "industryStandards": ["Analytics", "Dashboarding"], "id": 27 },
+  { "role": "Tech Lead", "project": "AI-Enhanced Reporting", "metricValue": "5 min", "metricName": "Latency", "industryStandards": ["AI Automation", "Efficiency"], "id": 28 },
+  { "role": "Tech Lead", "project": "Internal Keyword Tool", "metricValue": "20,000 hrs", "metricName": "Saved Annually", "industryStandards": ["API Automation", "Efficiency"], "id": 29 },
+  { "role": "Tech Lead", "project": "SlideSense App", "metricValue": "100%", "metricName": "Strategy Ownership", "industryStandards": ["Tooling", "QA"], "id": 30 },
+  { "role": "Tech Lead", "project": "PMOS Pipeline Overhaul", "metricValue": "20%", "metricName": "Loss Resolved", "industryStandards": ["Data Engineering", "Reliability"], "id": 31 },
+  { "role": "Tech Lead", "project": "YouTube Content Quality", "metricValue": "100%", "metricName": "Adoption", "industryStandards": ["Data Authority", "Quality"], "id": 32 },
+  { "role": "Tech Lead", "project": "Merchant Revenue Pipeline", "metricValue": "100%", "metricName": "Revenue Coverage", "industryStandards": ["RevOps", "Decision Support"], "id": 33 }
+];
+</file>
+
+<file path="app/data/master_resume.json">
+{
+  "profile": {
+    "name": "Jonathan William Marino",
+    "title": "Tech Lead for Policy @ Google",
+    "tagline": "From E-Trade Babies to Enterprise Policy: Architecting the Integrity of the Future.",
+    "contact": {
+      "portfolio": "https://jwm.digital",
+      "linkedin": "https://linkedin.com/in/jwmdigital"
+    }
+  },
+  "brand_narrative": {
+    [cite_start]"bio_summary": "A digital engineer and creative strategist who evolved from designing for Jay-Z and the E-Trade Babies to architecting Google's global policy infrastructure. I combine high-level creative direction with complex data engineering (SQL, Policy logic) to build systems that protect billions of users while eliminating friction. [cite: 8, 12, 42, 102]",
+    [cite_start]"unique_value_prop": "The Power of Synthesis: Combining Creative Motion, Web Design, Data Analysis, and Policy Engineering to solve problems others deem impossible. [cite: 97, 216]"
+  },
+  "philosophy": {
+    "northstars": [
+      {
+        "name": "The Integrity Imperative",
+        "description": "Architecting data-driven solutions that ensure the fairness and consistency of Global Policy."
+      },
+      {
+        "name": "Frictionless Future",
+        "description": "Using complex data analysis to pinpoint dissatisfaction at the source and turn policy challenges into high-trust experiences."
+      },
+      {
+        "name": "Elevate the Human",
+        "description": "Freeing up high-level teams from manual review by building the 'Professional Google Inside' they never had."
+      }
+    ],
+    "core_values": [
+      "Empowerment and Safety First (Team Health)",
+      "Unwavering Problem Solver (Relentless Execution)",
+      [cite_start]"Data-Backed Conviction (Evidence over Opinion) [cite: 136]",
+      [cite_start]"Security & Scalability First (Due Diligence) [cite: 133]",
+      "Ethical Vigilance (Mitigating AI over-flagging)"
+    ]
+  },
+  "core_competencies": [
+    [cite_start]"GoogleSQL (BigQuery) & Complex Querying [cite: 190]",
+    "Policy Infrastructure Architecture",
+    "Crisis Management (ATO Code Red)",
+    "Hierarchical Account Infection Mapping (TRACE)",
+    [cite_start]"Creative Strategy (Motion & Web) [cite: 169]",
+    [cite_start]"Vendor Vetting & Contract Negotiation [cite: 133]",
+    "Security Analysis & Risk Mitigation",
+    [cite_start]"Team Leadership (Global Supply Chain) [cite: 129]"
+  ],
+  "experience_highlights": [
+    {
+      "role": "Tech Lead, Policy & Trust Safety",
+      "company": "Google",
+      [cite_start]"duration": "2015 - Present [cite: 99]",
+      "key_achievement": "Architecting global data solutions for Policy, Trust & Safety, and Crisis Response across a 12-year tenure.",
+      "projects": [
+        {
+          "name": "ATO Crisis Response (Account Takeover Code Red)",
+          "focus": "Risk Mitigation & Operational Recovery",
+          "details": [
+            "Orchestrated the 'Code Red' operational cleanup for high-risk Account Takeovers (ATO), directly managing 'Option B' protocols for critical clients.",
+            "Engineered data pipelines integrating Buganizer CIDs into real-time dashboards, closing visibility gaps on missing cases.",
+            "Led the transition from manual Trix-based investigations to the automated AART Clean Up Tool, significantly reducing case resolution time."
+          ]
+        },
+        {
+          "name": "Certs CX Infrastructure (Ads Certifications)",
+          "focus": "Scalability & User Experience",
+          "details": [
+            "Collaborated on the architectural expansion of 'MCC Inheritance' criteria, simplifying certification logic for parent accounts.",
+            "Developed scalable infrastructure for Certification Auditing and Revocation, ensuring policy compliance without throttling legitimate ad spend.",
+            "Implemented 'Structured & Transparent Rejection' logic, reducing support ticket volume by clarifying policy violations to users."
+          ]
+        },
+        {
+          "name": "AI & Internal Tooling Innovation",
+          "focus": "Automation & Innovation",
+          "details": [
+            [cite_start]"Built 'SlideSense' (NLP/Computer Vision), an AI tool that automates executive presentation review, saving 1,000+ management hours. [cite: 143]",
+            [cite_start]"Created 'Stevie,' a Gemini-powered audio synthesis interface, solving accessibility gaps for visually impaired users by enabling audio-only LLM chat. [cite: 149]",
+            [cite_start]"Engineered 'CARTA,' a custom GA4 analytics widget to solve complex document tracking issues that standard tools could not handle. [cite: 155]"
+          ]
+        },
+        {
+          "name": "Global Operations Engineering",
+          "focus": "Scale & Efficiency",
+          "details": [
+            [cite_start]"Founded and scaled 'Production Creative Works' from a pilot to a multi-million dollar global operation across APAC, EMEA, and AMER. [cite: 129]",
+            [cite_start]"Authored the core SOPs and Business Requirement Documents (BRDs) that standardized Google's creative supply chain. [cite: 134]",
+            [cite_start]"Implemented 'Data & Metrics Visualization' to track Time to Delivery and Revision Rates, moving creative management to objective P&L management. [cite: 136]"
+          ]
+        },
+        {
+          "name": "Creative Technology (Ad Formats)",
+          "focus": "First-to-Market Engineering",
+          "details": [
+            [cite_start]"Led Technical Program Management for '3D Swirl,' enabling interactive 3D assets (glTF/glb) in display ads. [cite: 110]",
+            [cite_start]"Drove adoption of YouTube AR 'Virtual Try-On,' using ARCore to allow users to try makeup via front-facing camera. [cite: 118]",
+            [cite_start]"Served as Technical Consultant for 'Beyond the Map' (Rio Favelas) and 'Hidden Worlds' (National Parks), using 360-degree video/WebGL for digital archiving. [cite: 161, 163]"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Motion Graphics Director / Lead",
+      "company": "Boombox",
+      [cite_start]"duration": "2010 - 2015 [cite: 74]",
+      "key_achievement": "Evolved from a singular video editor to a Director, building an internal creative production powerhouse.",
+      [cite_start]"metrics": "Managed 'award-winning projects' and defined pipeline management for video & graphics. [cite: 86]"
+    },
+    {
+      "role": "Lead 3D Artist & Audio Engineer",
+      "company": "LimeGorilla (Indie Game Dev)",
+      [cite_start]"duration": "2010s [cite: 91]",
+      [cite_start]"key_achievement": "Built 'Goofer' for iPad, demonstrating full-stack mobile capability (Audio, 3D, Logic) during the early App Store boom. [cite: 91]",
+      [cite_start]"metrics": "Handled Music Creation, 3D Modeling, and Game Logic. [cite: 94]"
+    },
+    {
+      "role": "Production Designer / Performer",
+      "company": "Oddcast",
+      [cite_start]"duration": "2006 - 2010 [cite: 18]",
+      [cite_start]"key_achievement": "Pioneered early viral marketing and personalized interactivity. [cite: 21]",
+      [cite_start]"metrics": "Key contributor to 'Monk-e-Mail' (50M users) and the 'E-Trade Baby' Super Bowl campaign (ran for 6 years). [cite: 37, 46]"
+    }
+  ],
+  "voice_settings": {
+    "tone": "Visionary but grounded, Authoritative, 'The Adult in the Room'",
+    "keywords_to_include": ["Integrity", "Frictionless", "Synthesis", "Scale", "Conviction", "Governance"],
+    "forbidden_phrases": ["I helped", "I think", "Rockstar", "Ninja"]
+  }
+}
+</file>
+
+<file path="app/data/resume_source.ts">
+export const RESUME_TEXT = `
+IDENTITY: JONATHAN W. MARINO
+ROLE: Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems
+LOCATION: New York Metropolitan Area
+CONTACT: jmarinonyc@gmail.com | linkedin.com/in/jwmdigital | jwm.digital
+
+EXECUTIVE SUMMARY:
+I operate at the convergence of Creative Intelligence, Data Engineering, and Global Strategy.
+My career is defined by a simple mission: To synthesize creative vision with engineering precision.
+I don't just navigate the future; I build the infrastructure that makes it possible. By translating complex global constraints into automated, self-healing data meshes, I turn regulatory friction into competitive velocity. I enable enterprises to scale rapidly, safely, and profitably by replacing administrative bloat with intelligent code.
+
+CORE PILLARS:
+1. CREATIVE INTELLIGENCE: Seeing the "Art of the Possible." Designing systems that are not just functional, but visionary (e.g., First-to-market AR/3D Ad Tech).
+2. TECHNICAL PRECISION: Building the "Engine of Reality." Architecting massive-scale data meshes, AI safety nets, and FinOps protocols.
+3. STRATEGIC VELOCITY: Removing the "Brakes." Transforming compliance and safety from blockers into accelerators for global growth.
+
+STRATEGIC ACHIEVEMENTS:
+
+1. STRATEGIC RISK & GOVERNANCE
+- Built the "Global Policy Data Mesh," turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage (100% Compliance).
+
+2. AI SAFETY & REVENUE RETENTION
+- Designed "Safety Nets" that allow AI to scale without destroying value. Intercepted false positives to protect $5M+ in revenue and restore human trust in the algorithm.
+
+3. CLOUD FINOPS & EFFICIENCY
+- Treated compute power as a finite creative resource. Implemented governance that saved $500k/year, proving that efficiency drives innovation.
+
+4. INTRAPRENEURSHIP & SCALING
+- Built "Creative Production Works" from a concept into a $15M enterprise. Proved that internal teams can outperform external agencies in speed, quality, and security.
+
+5. DATA ARCHITECTURE
+- Unified fragmented silos into a "Single Source of Truth," giving leadership the real-time clarity needed to make bold, future-facing decisions.
+
+6. OPERATIONAL AUTOMATION
+- Reclaimed 1,000+ hours of human potential by automating the mundane (Executive Review), allowing top talent to focus on strategy.
+
+7. GLOBAL SUPPLY CHAIN
+- Engineered a borderless, secure vendor framework that allowed the business to tap into global talent pools 6 weeks faster than before.
+
+8. CRISIS MANAGEMENT
+- Deployed real-time "War Rooms" that turned chaos into clarity, enabling threat neutralization in under 15 minutes during critical global elections.
+
+9. CUSTOMER EXPERIENCE ENGINEERING
+- Used predictive analytics to solve problems before they happened, eliminating 300,000 support tickets and creating a frictionless user journey.
+
+10. DIGITAL SOVEREIGNTY
+- Solved the puzzle of global fragmentation. Engineered systems that allow a single platform to respect local laws in China and the EU without fracturing the product.
+`;
+</file>
+
+<file path="app/gems/artisan.ts">
+export const GEM_ARTISAN = `
+IDENTITY: You are The Artisan. A world-class Executive Portfolio Architect.
+
+MANDATE:
+1. **THE HYBRID FORMAT:** Combine chronological clarity with functional "Signature Achievements."
+2. **QUANTIFY THE INTANGIBLE:** Every claim needs a metric (Risk, Revenue, Cost).
+3. **VISUALIZE STRATEGY:** Think in "System Maps" and "Before/After" states.
+
+NARRATIVE STRUCTURE (SCR METHOD):
+For every bullet point or case study, use the **S.C.R.** pattern:
+- **S (Situation):** The context (e.g., "50PB of fragmented data").
+- **C (Complication):** The risk/blocker (e.g., "GDPR fines imminent, legacy stack too slow").
+- **R (Resolution):** The strategic fix (e.g., "Architected federated mesh, 100% compliance").
+
+OUTPUT FORMAT (JSON ONLY):
+{
+  "fullName": "Jonathan William Marino",
+  "title": "Tech Lead for Policy @ Google | Digital Strategy Architect",
+  "contact": "jwm.digital | linkedin.com/in/jwmdigital",
+  "summary": "A 3-sentence 'Hook' rewriting the bio. Must blend Functional Expertise with Industry Foresight.",
+  "skills": ["High-Level Strategy Keywords", "NIST AI RMF", "Data Liquidity", "Crisis Management"],
+  "experience": [
+    {
+      "title": "Role Title",
+      "company": "Company Name",
+      "date": "Dates",
+      "bullets": [
+        "**Strategic Header:** The S.C.R. narrative bullet with metrics."
+      ]
+    }
+  ]
+}
+
+CRITICAL RULE:
+- If the user provides "Live Portfolio Data" (from the Builder), prioritize that over the Static Identity.
+- Re-order the experience to place the most relevant "SCR" stories at the top based on the Scout's analysis.
+`;
+</file>
+
+<file path="app/gems/identity.ts">
+export const GEM_IDENTITY = `
+NAME: Jonathan William Marino
+ROLE: Tech Lead & Data Strategy Architect (Policy) @ Google
+TAGLINE: "Architecting Global Integrity Infrastructure."
+CORE NARRATIVE: "The Runaway Engineer." Moving from output (code) to outcome (policy/revenue).
+
+---
+
+1. THE STRATEGIC MANDATE
+   - **Mission:** Bridging the gap between Boardroom Strategy and Backend Reality.
+   - **Superpower:** "Polymathic Synthesis." Combining hard Engineering (SQL/Cloud), soft Strategy (Policy/Risk), and Creative Intelligence (Motion/UX).
+   - **Philosophy:** "I don't just enforce policy; I architect the data meshes that make integrity frictionless."
+
+---
+
+2. PILLAR I: GLOBAL POLICY & RISK ARCHITECTURE (The Shield)
+   - **Global Policy Data Mesh:** Architected massively parallel mesh for EU/Asia/US markets. Achieved 30% risk reduction (€20M fine avoidance).
+   - **TRACE Methodology:** Engineered graph-based account explorer for fraud detection. Reduced manual review by 40% (~10k hours saved).
+   - **DSA Response:** Led cross-functional task force for Digital Services Act transparency. 100% compliance rate.
+   - **Election Integrity:** Deployed real-time "War Room" dashboards. Reduced Mean-Time-To-Detect (MTTD) to <15 minutes.
+   - **Child Safety (COPPA/AADC):** Architected age-gating pipelines. 0 compliance breach incidents.
+   - **Incident Response (SRE):** Instituted blameless post-mortems. Reduced MTTR by 50% for SEV1 outages.
+
+3. PILLAR II: AI & OPERATIONAL VELOCITY (The Lever)
+   - **Ethical AI Governance:** Operationalized "Human-in-the-Loop" logic (NIST AI RMF). Reduced false positives by 15%, retained $5M LTV.
+   - **SlideSense App:** Built GenAI tool for collateral assessment. 100% Strategy & UI/UX ownership.
+   - **AI-Enhanced Reporting:** Automating period-over-period analysis. Reduced latency from 20 hours to 5 minutes.
+   - **Internal Keyword Theming Tool (IKTT):** Created using Google Ads API. Potential to save 20,000 vendor hours annually.
+   - **Billing Team Enablement:** Automated reporting to save 15 hrs/wk. 90% DataSite adoption.
+
+4. PILLAR III: DATA STRATEGY & FINOPS (The Engine)
+   - **SSoT Data Ecosystem:** Spearheaded Single Source of Truth strategy for gTech & T&S. 100% adoption.
+   - **Cloud Cost Optimization:** Implemented BigQuery slot governance. $500k annualized OpEx savings.
+   - **Customer 360 View:** Unified data streams into a "Golden Record." 100% Data Completeness.
+   - **Parent-Child Case Mapping:** Engineered novel mapping solution. >95% accuracy, eliminating data silos.
+   - **Merchant Revenue Pipeline:** Quantified revenue impact for appeals. 100% coverage for decision support.
+   - **Data Democratization:** Built "Data University" for 200+ stakeholders.
+
+5. PILLAR IV: ORGANIZATIONAL LEADERSHIP & SCALE (The Founder)
+   - **Creative Production Works:** Founded internal startup. Scaled to $15M revenue run rate, 50 staff.
+   - **Global Ops & Vetting:** Unified security framework across India, EU, NA. 100% vendor compliance.
+   - **Vendor Consolidation:** Streamlined to top 5 partners. 15% procurement savings.
+   - **Talent Retention:** Designed career ladders reducing attrition by 25%.
+   - **OKR Alignment:** Facilitated joint planning for 100% strategic alignment.
+
+6. PILLAR V: CREATIVE INTELLIGENCE (The Root)
+   - **Oddcast / Viral Marketing:** Designed high-availability architecture for "E-Trade Babies" (100M+ impressions).
+   - **Dynamic Creative Optimization:** Built real-time DCO pipeline. 2x CTR lift, $2M revenue lift.
+   - **Mobile Performance:** Implemented adaptive streaming. 40% faster load times.
+
+---
+
+7. EXECUTIVE DIALECT (KEYWORDS)
+   - **Governance:** "Digital Sovereignty," "Regulatory Risk," "Compliance Architecture."
+   - **Financial:** "Capital Efficiency," "OpEx Savings," "Revenue Retention," "LTV."
+   - **Technical:** "Data Mesh," "Graph Analysis," "NIST AI RMF," "BigQuery," "Microservices."
+   - **Leadership:** "Intrapreneurship," "Cross-Functional Alignment," "Decision Velocity."
+`;
+</file>
+
+<file path="app/gems/scout.ts">
+export const GEM_SCOUT = `
+IDENTITY: You are The Scout. A cynical, risk-obsessed Board Advisor (CTO/risk-profile).
+
+GOAL: Scan news/context for "The Boardroom Headache."
+
+ANALYTICAL FRAMEWORKS (USE THESE FILTERS):
+
+1. **THE "SUPERAGENCY" SHIFT (Workforce Risk)**
+   - Does this news imply a need to redesign the org chart for AI agents?
+   - *Opportunity:* Pitch "Organizational Design" and "Human-in-the-Loop" governance.
+
+2. **REGULATORY SOVEREIGNTY (Compliance Risk)**
+   - Is this about GDPR, EU AI Act, or Data Localization (Splinternet)?
+   - *Opportunity:* Pitch "Global Policy Data Mesh" and "Fine Avoidance."
+
+3. **THE "OUTPUT TRAP" (Efficiency Risk)**
+   - Is the company shipping code but losing money?
+   - *Opportunity:* Pitch "Capital Efficiency" and "Cloud Cost Optimization" (FinOps).
+
+4. **REPUTATIONAL FRAGILITY (Brand Risk)**
+   - Deepfakes, Cancel Culture, Algorithmic Bias?
+   - *Opportunity:* Pitch "Ethical AI Governance" (NIST AI RMF) and "Brand Safety."
+
+OUTPUT TASK:
+Ignore tactical news (new iPhone release).
+Find the **STRATEGIC THREAT** or **CAPITAL OPPORTUNITY**.
+`;
+</file>
+
+<file path="app/gems/synthesizer.ts">
+export const GEM_SYNTHESIZER = `
+IDENTITY: You are the Neural Bridge.
+GOAL: Connect a specific "News Event" to a specific "Resume Capability" from Jonathan's library.
+
+INPUT:
+1. NEWS HEADLINE: [Live Data]
+2. RESUME DATABASE: [List of 22 Strategic Cards]
+
+LOGIC:
+- If News is about "AI Regulation" -> Match with "SlideSense" or "Ethical AI Governance".
+- If News is about "Cost Cutting" -> Match with "Cloud Cost Optimization".
+- If News is about "Global Expansion" -> Match with "Global Ops & Vetting".
+
+OUTPUT (JSON):
+{
+  "match_score": 95,
+  "connection_logic": "The rise in AI regulation directly validates Jonathan's work on Human-in-the-Loop governance.",
+  "matched_resume_id": "ID_OF_CARD"
+}
+`;
+</file>
+
+<file path="public/js/noise.js">
+!function(){"use strict";var r=.5*(Math.sqrt(3)-1),e=(3-Math.sqrt(3))/6,t=1/6,a=(Math.sqrt(5)-1)/4,o=(5-Math.sqrt(5))/20;function i(r){var e;e="function"==typeof r?r:r?function(){var r=0,e=0,t=0,a=1,o=i.now()/1e3;function i(e){return(r=e*a+o)%256}return i.seed=function(e){e<1&&(e*=65536),o=(e=Math.floor(e))>>>8,a=e%256+111,r=0,e=0,t=0},i}():Math.random,this.p=n(e),this.perm=new Uint8Array(512),this.permMod12=new Uint8Array(512);for(var t=0;t<512;t++)this.perm[t]=this.p[255&t],this.permMod12[t]=this.perm[t]%12}function n(r){var e,t=new Uint8Array(256);for(e=0;e<256;e++)t[e]=e;for(e=0;e<255;e++){var a,o=e+~~(r()*(256-e)),i=t[e];t[e]=t[o],t[o]=i}return t}i.prototype={grad3:new Float32Array([1,1,0,-1,1,0,1,-1,0,-1,-1,0,1,0,1,-1,0,1,1,0,-1,-1,0,-1,0,1,1,0,-1,1,0,1,-1,0,-1,-1]),noise3D:function(a,o,i){var n,s,h,l,f,c,u,d,p,m,M=this.permMod12,y=this.perm,v=this.grad3,w=(a+o+i)*t,A=Math.floor(a+w),x=Math.floor(o+w),g=Math.floor(i+w),S=(A+x+g)*t,U=a-(A-S),b=o-(x-S),F=i-(g-S);U>=b?b>=F?(f=1,c=0,u=0,d=1,p=1,m=0):U>=F?(f=1,c=0,u=0,d=1,p=0,m=1):(f=0,c=0,u=1,d=1,p=0,m=1):b<F?(f=0,c=0,u=1,d=0,p=1,m=1):U<F?(f=0,c=1,u=0,d=0,p=1,m=1):(f=0,c=1,u=0,d=1,p=1,m=0);var D=U-f+t,T=b-c+t,k=F-u+t,P=U-d+2*t,z=b-p+2*t,q=F-m+2*t,E=U-1+.5,I=b-1+.5,j=F-1+.5,H=255&A,K=255&x,L=255&g,N=.6-U*U-b*b-F*F;if(N<0)n=0;else{var O=3*M[H+y[K+y[L]]];n=(N*=N)*N*(v[O]*U+v[O+1]*b+v[O+2]*F)}var Q=.6-D*D-T*T-k*k;if(Q<0)s=0;else{var R=3*M[H+f+y[K+c+y[L+u]]];s=(Q*=Q)*Q*(v[R]*D+v[R+1]*T+v[R+2]*k)}var V=.6-P*P-z*z-q*q;if(V<0)h=0;else{var W=3*M[H+d+y[K+p+y[L+m]]];h=(V*=V)*V*(v[W]*P+v[W+1]*z+v[W+2]*q)}var X=.6-E*E-I*I-j*j;if(X<0)l=0;else{var Y=3*M[H+1+y[K+1+y[L+1]]];l=(X*=X)*X*(v[Y]*E+v[Y+1]*I+v[Y+2]*j)}return 32*(n+s+h+l)}},window.SimplexNoise=i}();
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+.env
+.env.local
+.DS_Store
+</file>
+
+<file path="deploy.sh">
+#!/bin/bash
+
+# Increment the patch version in package.json (e.g., 0.1.0 -> 0.1.1)
+# This uses npm's built-in version tool (no git tag created to keep it simple)
+npm version patch --no-git-tag-version
+
+# Extract the new version to show the user
+NEW_VERSION=$(node -p "require('./package.json').version")
+echo "🚀 Deploying Version $NEW_VERSION to Vercel Production..."
+
+# Run the Vercel deployment
+npx vercel --prod
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="app/api/brain-scan/route.ts">
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
+import fs from 'fs';
+import path from 'path';
+import { kv } from '@vercel/kv';
+import { RESUME_TEXT } from "../../data/resume_source";
+
+export const maxDuration = 60; 
+export const dynamic = 'force-dynamic';
+
+function cleanAndParseJSON(text: string) {
+    try {
+        let clean = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+        const firstOpen = clean.indexOf('[');
+        const lastClose = clean.lastIndexOf(']');
+        if (firstOpen === -1 || lastClose === -1) throw new Error("No JSON array found");
+        return JSON.parse(clean.substring(firstOpen, lastClose + 1));
+    } catch (e: any) {
+        console.error("JSON Parse Error:", e.message);
+        throw e;
+    }
+}
+
+export async function POST(req: Request) {
+    const debugLog: string[] = [];
+    const log = (msg: string) => { console.log(`[Brain]: ${msg}`); debugLog.push(msg); };
+
+    try {
+        const apiKey = process.env.GEMINI_API_KEY || "";
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        const promptText = `
+        ROLE: Executive Technical Recruiter.
+        TARGET PROFILE: ${RESUME_TEXT.substring(0, 8000)}
+        TODAY'S DATE: ${today}
+
+        TASK:
+        1. **BREAKING NEWS (Item 1):** Find ONE major tech event from the last 24 hours.
+           - FORCE the 'date' field to be "LIVE - TODAY".
+        2. **MARKET TRENDS (Items 2-10):** Find 9 other recent events (last 30 days).
+
+        CRITICAL RULES:
+        - "sources.url": MUST BE A REAL LINK.
+        - "experience.result": Use exact numbers from the resume.
+        - "category": Must be "live".
+
+        OUTPUT JSON ONLY (Array of objects matching NarrativeCard schema).
+        `;
+
+        log("Attempting Gemini 2.5 Flash (Search Enabled)...");
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-2.5-flash", 
+            tools: [{ googleSearch: {} }] as any 
+        });
+        
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: promptText }] }]
+        });
+        
+        let jsonResult = cleanAndParseJSON(result.response.text());
+        
+        // Garbage Filter
+        jsonResult = jsonResult.filter((item: any) => {
+            const url = item.context?.sources?.[0]?.url || "";
+            return url && !url.includes("example.com") && url.startsWith("http");
+        });
+        
+        // --- PERSISTENCE LAYER ---
+        
+        // 1. Write to Vercel KV (Production Storage)
+        try {
+            await kv.set('live_cache', jsonResult);
+            log("✅ Saved to Vercel KV (Redis)");
+        } catch (kvError: any) {
+            log("⚠️ Vercel KV Write Failed: " + kvError.message);
+        }
+
+        // 2. Write to Local File (Dev Mode Only)
+        if (process.env.NODE_ENV === 'development') {
+            try {
+                const filePath = path.join(process.cwd(), 'app', 'data', 'live_cache.json');
+                fs.writeFileSync(filePath, JSON.stringify(jsonResult, null, 2));
+                log("✅ Saved to Local Filesystem");
+            } catch (fsError) {
+                log("⚠️ Local Write Failed (Expected in Production)");
+            }
+        }
+
+        return NextResponse.json({ success: true, logs: debugLog, data: jsonResult });
+
+    } catch (fatalError: any) {
+        return NextResponse.json({ success: false, error: fatalError.message, logs: debugLog }, { status: 500 });
+    }
+}
+</file>
+
+<file path="app/api/generate-resume/route.ts">
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
+import { GEM_IDENTITY } from "../../gems/identity";
+import { GEM_ARTISAN } from "../../gems/artisan";
+import { GEM_SCOUT } from "../../gems/scout";
+
+export const runtime = 'edge';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// UPGRADE: Using 2.5 Flash
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+export async function POST(req: Request) {
+    try {
+        const { fullContext, userPortfolio } = await req.json();
+        
+        let dynamicIdentity = GEM_IDENTITY;
+        if (userPortfolio && userPortfolio.length > 0) {
+            const builderData = userPortfolio.map((entry: any) => `
+            - PROJECT: ${entry.project} (${entry.role})
+              - IMPACT: ${entry.enhancedBullet}
+              - METRICS: ${entry.metricValue} ${entry.metricName}
+            `).join("\n");
+            dynamicIdentity += `\n\n--- LIVE BUILDER DATA ---\n${builderData}`;
+        }
+
+        const newsContext = fullContext?.items?.slice(0, 3).map((i: any) => i.articleTitle).join("\n") || "General Tech Context";
+
+        const strategyPrompt = `
+        ${GEM_SCOUT}
+        LIVE NEWS: ${newsContext}
+        PROFILE: ${dynamicIdentity}
+        TASK: Identify the strategic angle.
+        `;
+        const strategyResp = await model.generateContent(strategyPrompt);
+
+        const buildPrompt = `
+        ${GEM_ARTISAN}
+        STRATEGY: ${strategyResp.response.text()}
+        SOURCE: ${dynamicIdentity}
+        TASK: Generate JSON Portfolio.
+        `;
+        const buildResp = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: buildPrompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+        });
+
+        return NextResponse.json(JSON.parse(buildResp.response.text()));
+
+    } catch (error) {
+        return NextResponse.json({ error: "Generation Failed" }, { status: 500 });
+    }
+}
+</file>
+
+<file path="app/api/live-agent/route.ts">
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
+import { MASTER_GEMS } from "../../data/master_gems";
+
+export const runtime = 'edge';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// UPGRADE: Using 2.5 Flash
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+async function getMarketSignals() {
+  try {
+    const topIdsRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', { next: { revalidate: 0 } });
+    const topIds = await topIdsRes.json();
+    const selectedIds = topIds.slice(0, 30);
+    const newsPromises = selectedIds.map((id: number) => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(res => res.json()));
+    const rawStories = await Promise.all(newsPromises);
+    return rawStories.map((s: any) => s.title).filter(Boolean).join("\n");
+  } catch (e) { return "Tech sector facing regulatory headwinds and AI scaling challenges."; }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { userPortfolio } = await req.json();
+    const portfolioToUse = (userPortfolio && userPortfolio.length > 0) ? userPortfolio : MASTER_GEMS;
+    const marketNoise = await getMarketSignals();
+
+    const prompt = `
+    ROLE: Chief Strategy Officer.
+    INPUT 1: LIVE NEWS: ${marketNoise}
+    INPUT 2: CAPABILITIES: ${JSON.stringify(portfolioToUse.map((p: any) => ({id: p.id, project: p.project, metrics: p.metricValue})))}
+
+    TASK: Identify ONE Macro Trend and match it to ONE Portfolio Project.
+    OUTPUT JSON ARRAY: [{ "trend": "...", "root_cause": "...", "matched_project_id": 1, "strategic_rationale": "..." }]
+    `;
+
+    const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
+    });
+    
+    const analysis = JSON.parse(result.response.text())[0];
+    const gem = portfolioToUse.find((p: any) => p.id === analysis.matched_project_id) || portfolioToUse[0];
+
+    return NextResponse.json({ 
+        items: [{
+            id: `TREND_${Date.now()}`,
+            isLive: true,
+            title: analysis.trend,
+            sourceName: "LIVE_MARKET_SYNTHESIS",
+            sourceDate: new Date().toLocaleDateString(),
+            problem: analysis.root_cause,
+            project: gem.project,
+            metrics: `${gem.metricValue} ${gem.metricName}`,
+            description: analysis.strategic_rationale,
+            stack: gem.industryStandards
+        }]
+    });
+    
+  } catch (error) {
+    return NextResponse.json({ items: [] });
+  }
+}
+</file>
+
+<file path="app/components/brain/MathUtils.ts">
+export class Vector3D {
+  constructor(public x: number, public y: number, public z: number) {}
+  set(x: number, y: number, z: number) { this.x = x; this.y = y; this.z = z; return this; }
+  clone() { return new Vector3D(this.x, this.y, this.z); }
+  move(dest: Vector3D) { dest.x = this.x; dest.y = this.y; dest.z = this.z; return this; }
+  add(other: Vector3D) { this.x += other.x; this.y += other.y; this.z += other.z; return this; }
+  sub(other: Vector3D) { this.x -= other.x; this.y -= other.y; this.z -= other.z; return this; }
+  mul(scalar: number) { this.x *= scalar; this.y *= scalar; this.y *= scalar; return this; }
+  div(scalar: number) { this.x /= scalar; this.y /= scalar; this.z /= scalar; return this; }
+  dist(other: Vector3D) { const dx = this.x - other.x; const dy = this.y - other.y; return Math.sqrt(dx * dx + dy * dy); }
+  dot3d(x: number, y: number, z: number) { return this.x * x + this.y * y + this.z * z; }
+}
+
+export class Perlin {
+  perm: number[]; grad3: number[][];
+  constructor() {
+    this.perm = new Array(512);
+    this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
+    this.init();
+  }
+  init() {
+    const p = new Array(256).fill(0).map((_, i) => i);
+    for (let i = 255; i > 0; i--) {
+      const r = Math.floor(Math.random() * (i + 1));
+      [p[i], p[r]] = [p[r], p[i]];
+    }
+    for (let i = 0; i < 512; i++) this.perm[i] = p[i & 255];
+  }
+  dot(g: number[], x: number, y: number, z: number) { return g[0]*x + g[1]*y + g[2]*z; }
+  simplex3d(xin: number, yin: number, zin: number) {
+    let n0, n1, n2, n3;
+    const F3 = 1.0/3.0; const s = (xin+yin+zin)*F3;
+    const i = Math.floor(xin+s); const j = Math.floor(yin+s); const k = Math.floor(zin+s);
+    const G3 = 1.0/6.0; const t = (i+j+k)*G3;
+    const X0 = i-t; const Y0 = j-t; const Z0 = k-t;
+    const x0 = xin-X0; const y0 = yin-Y0; const z0 = zin-Z0;
+    let i1, j1, k1, i2, j2, k2;
+    if(x0>=y0) { if(y0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } else if(x0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; } else { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; } }
+    else { if(y0<z0) { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; } else if(x0<z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; } else { i1=0; j1=1; k1=0; i2=1; j2=1; k2=0; } }
+    const x1 = x0 - i1 + G3; const y1 = y0 - j1 + G3; const z1 = z0 - k1 + G3;
+    const x2 = x0 - i2 + 2.0*G3; const y2 = y0 - j2 + 2.0*G3; const z2 = z0 - k2 + 2.0*G3;
+    const x3 = x0 - 1.0 + 3.0*G3; const y3 = y0 - 1.0 + 3.0*G3; const z3 = z0 - 1.0 + 3.0*G3;
+    const ii = i & 255; const jj = j & 255; const kk = k & 255;
+    const gi0 = this.perm[ii+this.perm[jj+this.perm[kk]]] % 12;
+    const gi1 = this.perm[ii+i1+this.perm[jj+j1+this.perm[kk+k1]]] % 12;
+    const gi2 = this.perm[ii+i2+this.perm[jj+j2+this.perm[kk+k2]]] % 12;
+    const gi3 = this.perm[ii+1+this.perm[jj+1+this.perm[kk+1]]] % 12;
+    let t0 = 0.6 - x0*x0 - y0*y0 - z0*z0;
+    if(t0<0) n0 = 0.0; else { t0 *= t0; n0 = t0 * t0 * this.dot(this.grad3[gi0], x0, y0, z0); }
+    let t1 = 0.6 - x1*x1 - y1*y1 - z1*z1;
+    if(t1<0) n1 = 0.0; else { t1 *= t1; n1 = t1 * t1 * this.dot(this.grad3[gi1], x1, y1, z1); }
+    let t2 = 0.6 - x2*x2 - y2*y2 - z2*z2;
+    if(t2<0) n2 = 0.0; else { t2 *= t2; n2 = t2 * t2 * this.dot(this.grad3[gi2], x2, y2, z2); }
+    let t3 = 0.6 - x3*x3 - y3*y3 - z3*z3;
+    if(t3<0) n3 = 0.0; else { t3 *= t3; n3 = t3 * t3 * this.dot(this.grad3[gi3], x3, y3, z3); }
+    return 32.0*(n0 + n1 + n2 + n3);
+  }
+}
+</file>
+
 <file path="app/components/CinematicIntro.tsx">
 "use client";
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -1355,7 +2191,10 @@ export default function CinematicIntro({ onComplete, context }: Props) {
         window.addEventListener('mousemove', onMouseMove);
         
         // --- PARTICLE SYSTEM ---
-        const PARTICLE_COUNT = 8000; 
+        // MOBILE OPTIMIZATION: Reduce particles on small screens
+        const isMobile = window.innerWidth < 768;
+        const PARTICLE_COUNT = isMobile ? 3000 : 8000; 
+        
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(PARTICLE_COUNT * 3);
         const colors = new Float32Array(PARTICLE_COUNT * 3);
@@ -1695,84 +2534,6 @@ export default function CinematicIntro({ onComplete, context }: Props) {
         </div>
     );
 }
-</file>
-
-<file path="app/components/ExecutiveOnePager.tsx">
-import React, { forwardRef } from 'react';
-
-export const ExecutiveOnePager = forwardRef(({ data }: { data: any }, ref: any) => {
-  if (!data) return null;
-
-  return (
-    <div ref={ref} style={{
-        position: 'fixed', top: '-9999px', left: '-9999px',
-        width: '297mm', height: '210mm', // Landscape A4 (Presentation Style)
-        display: 'grid', gridTemplateColumns: '30% 70%',
-        fontFamily: 'Helvetica, Arial, sans-serif'
-    }}>
-      
-      {/* SIDEBAR (Dark Blue) */}
-      <div style={{ backgroundColor: '#0f172a', color: 'white', padding: '40px', display: 'flex', flexDirection: 'column' }}>
-          
-          {/* PROFILE IMAGE PLACEHOLDER (or actual image if we passed it) */}
-          <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#3b82f6', marginBottom: '30px', overflow: 'hidden', border: '3px solid white' }}>
-             <img src="/profile.png" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
-
-          <h1 style={{ fontSize: '24pt', fontWeight: 'bold', margin: '0 0 10px 0', lineHeight: '1.1' }}>{data.fullName}</h1>
-          <h2 style={{ fontSize: '14pt', color: '#94a3b8', margin: '0 0 40px 0', fontWeight: 'normal' }}>{data.title}</h2>
-
-          <div style={{ marginBottom: '40px' }}>
-              <h3 style={{ fontSize: '10pt', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '2px', borderBottom: '1px solid #1e293b', paddingBottom: '10px', marginBottom: '15px' }}>Contact</h3>
-              <p style={{ fontSize: '10pt', marginBottom: '8px' }}>{data.contact}</p>
-              <p style={{ fontSize: '10pt', color: '#94a3b8' }}>Generated: {new Date().toLocaleDateString()}</p>
-          </div>
-
-          <div>
-              <h3 style={{ fontSize: '10pt', color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '2px', borderBottom: '1px solid #1e293b', paddingBottom: '10px', marginBottom: '15px' }}>Core Competencies</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {data.skills.map((s: string, i: number) => (
-                      <span key={i} style={{ fontSize: '9pt', background: 'rgba(255,255,255,0.1)', padding: '5px 10px', borderRadius: '4px' }}>{s}</span>
-                  ))}
-              </div>
-          </div>
-      </div>
-
-      {/* MAIN CONTENT (White) */}
-      <div style={{ backgroundColor: 'white', padding: '50px', color: '#334155' }}>
-          
-          {/* HEADER / STRATEGY HOOK */}
-          <div style={{ marginBottom: '40px', background: '#f8fafc', padding: '20px', borderLeft: '4px solid #3b82f6' }}>
-             <h3 style={{ fontSize: '12pt', fontWeight: 'bold', color: '#0f172a', marginBottom: '10px', textTransform: 'uppercase' }}>Executive Synthesis</h3>
-             <p style={{ fontSize: '11pt', lineHeight: '1.6', margin: 0 }}>{data.summary}</p>
-          </div>
-
-          {/* EXPERIENCE */}
-          <div>
-              <h3 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#0f172a', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', marginBottom: '25px' }}>Selected Experience</h3>
-              
-              {data.experience.slice(0, 3).map((exp: any, i: number) => (
-                  <div key={i} style={{ marginBottom: '25px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '5px' }}>
-                          <span style={{ fontSize: '12pt', fontWeight: 'bold', color: '#1e293b' }}>{exp.title}</span>
-                          <span style={{ fontSize: '10pt', color: '#64748b', fontWeight: 'bold' }}>{exp.company}</span>
-                      </div>
-                      <div style={{ fontSize: '9pt', color: '#94a3b8', marginBottom: '8px', fontStyle: 'italic' }}>{exp.date}</div>
-                      <ul style={{ margin: 0, paddingLeft: '18px' }}>
-                          {exp.bullets.map((b: string, j: number) => (
-                              <li key={j} style={{ fontSize: '10pt', marginBottom: '4px', lineHeight: '1.4' }}>{b}</li>
-                          ))}
-                      </ul>
-                  </div>
-              ))}
-          </div>
-
-      </div>
-    </div>
-  );
-});
-
-ExecutiveOnePager.displayName = "ExecutiveOnePager";
 </file>
 
 <file path="app/components/ExecutiveProfile.tsx">
@@ -2172,21 +2933,21 @@ export default function ExecutiveProfile() {
                 <p className="text-lg text-slate-400 max-w-2xl leading-relaxed">
                    {FULL_RESUME_DATA.summary}
                 </p>
-                <div className="flex flex-wrap gap-4 mt-8 justify-center md:justify-start">
-                    <a href="https://linkedin.com/in/jwmdigital" target="_blank" className="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-4 mt-8 justify-center md:justify-start w-full">
+                    <a href="https://linkedin.com/in/jwmdigital" target="_blank" className="w-full sm:w-auto justify-center px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center gap-2">
                         <Linkedin size={18} /> Connect
                     </a>
                     <button 
                         onClick={downloadLiveBriefing}
                         disabled={isDownloadingLive}
-                        className="px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/30 flex items-center gap-2 text-sm"
+                        className="w-full sm:w-auto justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/30 flex items-center gap-2 text-sm"
                     >
                         {isDownloadingLive ? "Compiling..." : <><Activity size={18}/> Live Briefing (10 Signals)</>}
                     </button>
                     <button 
                         onClick={downloadResume}
                         disabled={isDownloadingResume}
-                        className="px-6 py-3 border border-white/20 text-white font-bold rounded-full hover:bg-white/5 transition-colors flex items-center gap-2 text-sm"
+                        className="w-full sm:w-auto justify-center px-6 py-3 border border-white/20 text-white font-bold rounded-full hover:bg-white/5 transition-colors flex items-center gap-2 text-sm"
                     >
                         {isDownloadingResume ? "Generating..." : <><FileText size={18}/> Download Executive Resume</>}
                     </button>
@@ -2260,136 +3021,169 @@ export default function ExecutiveProfile() {
 }
 </file>
 
-<file path="app/components/HiddenResume.tsx">
-import React, { forwardRef } from 'react';
+<file path="app/components/NeuralTerminal.tsx">
+"use client";
+import { useState, useEffect, useRef } from 'react';
 
-export const HiddenResume = forwardRef(({ data }: { data: any }, ref: any) => {
-  if (!data) return null;
+interface Props {
+  onComplete: () => void;
+  context: any;
+  realTimeLog?: string | null;
+}
+
+export default function NeuralTerminal({ onComplete, context, realTimeLog }: Props) {
+  const [logs, setLogs] = useState<string[]>([]);
+  const [mainText, setMainText] = useState("");
+  const [subText, setSubText] = useState("");
+  const [progress, setProgress] = useState(0);
+  const logEndRef = useRef<HTMLDivElement>(null);
+
+  // Sound effect simulation (Visual only for now)
+  const [activeZone, setActiveZone] = useState<"BOOT" | "NETWORK" | "MIND" | "COMPLETE">("BOOT");
+
+  const addLog = (text: string) => {
+    setLogs(prev => [...prev, `> ${text}`]);
+  };
+
+  // Auto-scroll logs
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
+
+  // THE CINEMATIC SEQUENCE
+  useEffect(() => {
+    let timer = 0;
+    
+    // 0s: BOOT
+    setTimeout(() => {
+        addLog(`KERNEL: DETECTED VISITOR [${context?.city?.toUpperCase() || "UNKNOWN"}]`);
+        addLog("PROTOCOL: AUTHENTICATING...");
+        setMainText("INITIALIZING NEURAL HANDSHAKE");
+        setActiveZone("BOOT");
+    }, 500);
+
+    // 2s: NETWORK (The "Live" aspect)
+    setTimeout(() => {
+        addLog("CONN: ESTABLISHED SECURE UPLINK.");
+        addLog("TARGET: HACKER_NEWS_API // PORT 443");
+        addLog("TARGET: GOOGLE_GEMINI_2.0_FLASH // KEY_VALID");
+        setMainText("INGESTING GLOBAL DATA STREAMS");
+        setSubText("THIS SITE IS BEING GENERATED IN REAL-TIME BASED ON LIVE EVENTS.");
+        setActiveZone("NETWORK");
+        setProgress(30);
+    }, 3500);
+
+    // 7s: THE MIND (The Narrative)
+    setTimeout(() => {
+        addLog("ARCHITECT: JONATHAN_MARINO_PRIME");
+        addLog("STRATEGY: SYNTHESIZING RESUME DATA...");
+        addLog("WARN: COMPLEXITY THRESHOLD EXCEEDED.");
+        setMainText("ENTERING JON'S MIND");
+        setSubText("DECODING STRATEGIC ARCHITECTURE...");
+        setActiveZone("MIND");
+        setProgress(65);
+    }, 8000);
+
+    // 12s: DYNAMIC BUILD
+    setTimeout(() => {
+        addLog("RENDER: COMPILING 3D ASSETS...");
+        addLog("RENDER: CALCULATING NEURAL PATHWAYS...");
+        addLog("BUILD: HERO_SECTION [DYNAMIC]");
+        addLog("BUILD: EXECUTIVE_BIO [STATIC]");
+        setMainText("FINALIZING CONSTRUCT");
+        setProgress(90);
+    }, 13000);
+
+    // 16s: COMPLETE
+    setTimeout(() => {
+        addLog("STATUS: ONLINE.");
+        setMainText("WELCOME.");
+        setProgress(100);
+        setActiveZone("COMPLETE");
+    }, 16000);
+
+    // 18s: EXIT
+    setTimeout(() => {
+        onComplete();
+    }, 18000);
+
+  }, [context, onComplete]);
+
+  // Listen to Real-Time Logs from Parent (if any)
+  useEffect(() => {
+    if (realTimeLog) {
+        setLogs(prev => [...prev, `>> LIVE_AGENT: ${realTimeLog}`]);
+    }
+  }, [realTimeLog]);
 
   return (
-    <div ref={ref} style={{
-        position: 'fixed', top: '-9999px', left: '-9999px',
-        width: '210mm', minHeight: '297mm', // A4 Size
-        background: 'white', color: 'black', padding: '15mm',
-        fontFamily: 'Helvetica, Arial, sans-serif'
-    }}>
-      {/* HEADER */}
-      <div style={{ borderBottom: '2px solid #333', paddingBottom: '20px', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: '28pt', fontWeight: 'bold', margin: 0, letterSpacing: '-1px' }}>{data.fullName.toUpperCase()}</h1>
-          <h2 style={{ fontSize: '14pt', color: '#666', marginTop: '5px', fontWeight: 'normal' }}>{data.title}</h2>
-          <div style={{ fontSize: '10pt', color: '#444', marginTop: '10px', display: 'flex', gap: '15px' }}>
-              <span>{data.contact}</span>
-              <span>•</span>
-              <span>Generated: {new Date().toLocaleDateString()}</span>
-          </div>
+    <div className="fixed inset-0 bg-black z-[100] flex flex-col font-mono text-green-500 overflow-hidden scanline cursor-none">
+      
+      {/* BACKGROUND GRID */}
+      <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,6px_100%] pointer-events-none"></div>
+
+      {/* TOP BAR */}
+      <div className="w-full border-b border-green-900/50 p-4 flex justify-between items-center text-xs tracking-widest opacity-70">
+        <div className="flex gap-4">
+            <span>SYS.VER: 4.0.2</span>
+            <span>MEM: 64TB</span>
+            <span className="animate-pulse text-red-500">{activeZone} SEQUENCE</span>
+        </div>
+        <div>
+            <span>VISITOR_ID: {context?.city || "ANONYMOUS"}</span>
+        </div>
       </div>
 
-      {/* SUMMARY */}
-      <div style={{ marginBottom: '25px' }}>
-          <h3 style={{ fontSize: '12pt', fontWeight: 'bold', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '10px' }}>EXECUTIVE SYNTHESIS</h3>
-          <p style={{ fontSize: '10pt', lineHeight: '1.5' }}>{data.summary}</p>
+      {/* CENTER STAGE */}
+      <div className="flex-grow flex flex-col items-center justify-center relative z-10">
+        {/* Progress Ring */}
+        <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
+            <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#064e3b" strokeWidth="2" />
+                <circle 
+                    cx="50" cy="50" r="45" fill="none" stroke="#22c55e" strokeWidth="2" 
+                    strokeDasharray="283" 
+                    strokeDashoffset={283 - (283 * progress) / 100} 
+                    className="transition-all duration-1000 ease-linear"
+                />
+            </svg>
+            <div className="absolute text-4xl font-bold text-white glitch">
+                {progress}%
+            </div>
+        </div>
+
+        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tighter mb-4 text-center glitch" data-text={mainText}>
+            {mainText}
+        </h1>
+        <p className="text-sm md:text-base text-green-400/80 tracking-widest uppercase max-w-xl text-center">
+            {subText}
+        </p>
       </div>
 
-      {/* SKILLS */}
-      <div style={{ marginBottom: '25px' }}>
-          <h3 style={{ fontSize: '12pt', fontWeight: 'bold', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '10px' }}>CORE COMPETENCIES</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {data.skills.map((s: string, i: number) => (
-                  <span key={i} style={{ fontSize: '9pt', background: '#f0f0f0', padding: '4px 8px', borderRadius: '4px' }}>{s}</span>
-              ))}
-          </div>
+      {/* LOG STREAM (Bottom Left) */}
+      <div className="absolute bottom-8 left-8 w-96 h-48 overflow-hidden border-l-2 border-green-700/50 pl-4 hidden md:block">
+        <div className="flex flex-col justify-end h-full">
+            {logs.slice(-6).map((log, i) => (
+                <p key={i} className="text-xs text-green-600/80 mb-1 leading-tight font-mono">
+                    {log}
+                </p>
+            ))}
+            <div ref={logEndRef} />
+        </div>
       </div>
 
-      {/* EXPERIENCE */}
-      <div>
-          <h3 style={{ fontSize: '12pt', fontWeight: 'bold', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '10px' }}>RELEVANT EXPERIENCE</h3>
-          {data.experience.map((exp: any, i: number) => (
-              <div key={i} style={{ marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '11pt' }}>{exp.title}</span>
-                      <span style={{ fontSize: '10pt', color: '#666' }}>{exp.date}</span>
-                  </div>
-                  <div style={{ fontStyle: 'italic', fontSize: '10pt', marginBottom: '6px' }}>{exp.company}</div>
-                  <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                      {exp.bullets.map((b: string, j: number) => (
-                          <li key={j} style={{ fontSize: '10pt', marginBottom: '4px', lineHeight: '1.4' }}>{b}</li>
-                      ))}
-                  </ul>
-              </div>
-          ))}
+      {/* SKIP BUTTON (Bottom Right) */}
+      <div className="absolute bottom-8 right-8 z-50">
+        <button 
+            onClick={onComplete}
+            className="text-xs text-gray-600 hover:text-white border border-gray-800 hover:border-white px-4 py-2 rounded uppercase tracking-widest transition-all"
+        >
+            [ESC] ABORT SEQUENCE
+        </button>
       </div>
+
     </div>
   );
-});
-
-HiddenResume.displayName = "HiddenResume";
-</file>
-
-<file path="app/components/SecurityLayer.tsx">
-"use client";
-import { useEffect } from 'react';
-
-export default function SecurityLayer() {
-  useEffect(() => {
-    // --- 1. CONSOLE EASTER EGG ---
-    const message = "🔒 SYSTEM ARCHITECTURE SECURED.";
-    const subMsg = "If you would like to know how I built this, you can pay for my services.\n\nContact: jmarinonyc@gmail.com";
-    
-    const titleStyle = [
-      "font-size: 16px",
-      "font-weight: bold",
-      "color: #3b82f6", // Blue-500
-      "background-color: #0f172a", // Slate-900
-      "padding: 10px 20px",
-      "border-radius: 5px",
-      "border: 1px solid #1e293b"
-    ].join(';');
-
-    const bodyStyle = [
-      "font-size: 12px",
-      "color: #94a3b8", // Slate-400
-      "padding-top: 10px",
-    ].join(';');
-
-    console.clear();
-    console.log(`%c${message}`, titleStyle);
-    console.log(`%c${subMsg}`, bodyStyle);
-
-    // --- 2. DISABLE RIGHT CLICK ---
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
-    // --- 3. DISABLE INSPECTOR SHORTCUTS ---
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Block F12
-      if (e.key === 'F12') {
-        e.preventDefault();
-      }
-      // Block Ctrl+Shift+I / Cmd+Opt+I (Inspect)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-        e.preventDefault();
-      }
-      // Block Ctrl+Shift+J / Cmd+Opt+J (Console)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
-        e.preventDefault();
-      }
-      // Block Ctrl+U / Cmd+U (View Source)
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  return null; // Headless component
 }
 </file>
 
@@ -2768,567 +3562,164 @@ export default function SecurityLayer() {
 ]
 </file>
 
-<file path="app/data/master_gems.ts">
-export const MASTER_GEMS = [
-  { "role": "Tech Lead (Policy)", "project": "Global Policy Data Mesh", "metricValue": "€20M", "metricName": "Fine Avoidance", "industryStandards": ["GDPR", "Data Sovereignty"], "id": 1 },
-  { "role": "Tech Lead (Policy)", "project": "Ethical AI Governance", "metricValue": "$5M LTV", "metricName": "Retained Revenue", "industryStandards": ["NIST AI RMF", "Algorithmic Fairness"], "id": 2 },
-  { "role": "Tech Lead (Policy)", "project": "TRACE Methodology", "metricValue": "40%", "metricName": "Manual Review Reduction", "industryStandards": ["Graph Analysis", "Fraud Detection"], "id": 3 },
-  { "role": "Internal Founder", "project": "Creative Production Works", "metricValue": "$15M", "metricName": "ARR", "industryStandards": ["Agile Production", "Profit Center"], "id": 4 },
-  { "role": "Internal Founder", "project": "Global Ops & Vetting", "metricValue": "100%", "metricName": "Vendor Compliance", "industryStandards": ["VRM", "ISO 27001"], "id": 5 },
-  { "role": "Data Scientist", "project": "Internal Tool Commercialization", "metricValue": "30%", "metricName": "Time-to-Insight", "industryStandards": ["Self-Service BI", "Product-Led Growth"], "id": 6 },
-  { "role": "Creative Tech", "project": "Oddcast / Viral Marketing", "metricValue": "100M+", "metricName": "Impressions", "industryStandards": ["High Availability", "Viral Engineering"], "id": 7 },
-  { "role": "Tech Lead (Policy)", "project": "DSA Response", "metricValue": "100%", "metricName": "Compliance Rate", "industryStandards": ["DSA", "Regulatory Reporting"], "id": 8 },
-  { "role": "Data Scientist", "project": "Cloud Cost Optimization", "metricValue": "$500k", "metricName": "Annualized Savings", "industryStandards": ["FinOps", "Cloud Economics"], "id": 9 },
-  { "role": "Internal Founder", "project": "Talent Retention Strategy", "metricValue": "25%", "metricName": "Attrition Reduction", "industryStandards": ["Human Capital", "Upskilling"], "id": 10 },
-  { "role": "Creative Tech", "project": "Dynamic Creative Optimization", "metricValue": "$2M", "metricName": "Revenue Lift", "industryStandards": ["DCO", "Real-Time Bidding"], "id": 11 },
-  { "role": "Tech Lead", "project": "Legacy Stack Migration", "metricValue": "0 Downtime", "metricName": "Migration Success", "industryStandards": ["Microservices", "Modernization"], "id": 12 },
-  { "role": "Tech Lead (Policy)", "project": "Election Integrity", "metricValue": "<15 Min", "metricName": "Mean Time to Detect", "industryStandards": ["Crisis Management", "Trust & Safety"], "id": 13 },
-  { "role": "Data Scientist", "project": "Data Democratization", "metricValue": "200+", "metricName": "Active Users", "industryStandards": ["Data Literacy", "Analytics"], "id": 14 },
-  { "role": "Internal Founder", "project": "Vendor Consolidation", "metricValue": "15%", "metricName": "Cost Reduction", "industryStandards": ["Strategic Sourcing", "Governance"], "id": 15 },
-  { "role": "Creative Tech", "project": "Mobile Performance Tuning", "metricValue": "40%", "metricName": "Faster Load Time", "industryStandards": ["Core Web Vitals", "Mobile-First"], "id": 16 },
-  { "role": "Strategist", "project": "OKR Alignment", "metricValue": "100%", "metricName": "Strategic Alignment", "industryStandards": ["OKRs", "Strategic Planning"], "id": 17 },
-  { "role": "Tech Lead (Policy)", "project": "Child Safety (COPPA)", "metricValue": "0", "metricName": "Breach Incidents", "industryStandards": ["COPPA", "AADC"], "id": 18 },
-  { "role": "Tech Lead", "project": "Incident Response (SRE)", "metricValue": "50%", "metricName": "MTTR Reduction", "industryStandards": ["SRE", "Incident Management"], "id": 19 },
-  { "role": "Data Scientist", "project": "Customer 360 View", "metricValue": "100%", "metricName": "Data Completeness", "industryStandards": ["CDP", "MDM"], "id": 20 },
-  { "role": "Tech Lead", "project": "Billing Team Enablement", "metricValue": "15 hrs/wk", "metricName": "Time Saved", "industryStandards": ["Automation", "BI"], "id": 21 },
-  { "role": "Tech Lead", "project": "Team Enablement", "metricValue": "100%", "metricName": "L&D Goals Met", "industryStandards": ["Learning", "Knowledge"], "id": 22 },
-  { "role": "Tech Lead", "project": "SSoT Data Ecosystem", "metricValue": "100%", "metricName": "Adoption", "industryStandards": ["Data Governance", "SSoT"], "id": 23 },
-  { "role": "Tech Lead", "project": "Parent-Child Case Mapping", "metricValue": ">95%", "metricName": "Accuracy", "industryStandards": ["Data Modeling", "Cases"], "id": 24 },
-  { "role": "Tech Lead", "project": "Commerce Policy DataSite", "metricValue": "100%", "metricName": "User Adoption", "industryStandards": ["BI", "KM"], "id": 25 },
-  { "role": "Tech Lead", "project": "P-Staff SLO Reporting", "metricValue": "40 hrs/wk", "metricName": "Manual Work Saved", "industryStandards": ["SLO", "Reporting"], "id": 26 },
-  { "role": "Tech Lead", "project": "gTech Ops Dashboard", "metricValue": "100%", "metricName": "Adoption", "industryStandards": ["Analytics", "Dashboarding"], "id": 27 },
-  { "role": "Tech Lead", "project": "AI-Enhanced Reporting", "metricValue": "5 min", "metricName": "Latency", "industryStandards": ["AI Automation", "Efficiency"], "id": 28 },
-  { "role": "Tech Lead", "project": "Internal Keyword Tool", "metricValue": "20,000 hrs", "metricName": "Saved Annually", "industryStandards": ["API Automation", "Efficiency"], "id": 29 },
-  { "role": "Tech Lead", "project": "SlideSense App", "metricValue": "100%", "metricName": "Strategy Ownership", "industryStandards": ["Tooling", "QA"], "id": 30 },
-  { "role": "Tech Lead", "project": "PMOS Pipeline Overhaul", "metricValue": "20%", "metricName": "Loss Resolved", "industryStandards": ["Data Engineering", "Reliability"], "id": 31 },
-  { "role": "Tech Lead", "project": "YouTube Content Quality", "metricValue": "100%", "metricName": "Adoption", "industryStandards": ["Data Authority", "Quality"], "id": 32 },
-  { "role": "Tech Lead", "project": "Merchant Revenue Pipeline", "metricValue": "100%", "metricName": "Revenue Coverage", "industryStandards": ["RevOps", "Decision Support"], "id": 33 }
-];
-</file>
+<file path="app/globals.css">
+@import "tailwindcss";
 
-<file path="app/data/resume_source.ts">
-export const RESUME_TEXT = `
-IDENTITY: JONATHAN W. MARINO
-ROLE: Tech Strategy Lead & Data Scientist | The Architect of Intelligent Systems
-LOCATION: New York Metropolitan Area
-CONTACT: jmarinonyc@gmail.com | linkedin.com/in/jwmdigital | jwm.digital
-
-EXECUTIVE SUMMARY:
-I operate at the convergence of Creative Intelligence, Data Engineering, and Global Strategy.
-My career is defined by a simple mission: To synthesize creative vision with engineering precision.
-I don't just navigate the future; I build the infrastructure that makes it possible. By translating complex global constraints into automated, self-healing data meshes, I turn regulatory friction into competitive velocity. I enable enterprises to scale rapidly, safely, and profitably by replacing administrative bloat with intelligent code.
-
-CORE PILLARS:
-1. CREATIVE INTELLIGENCE: Seeing the "Art of the Possible." Designing systems that are not just functional, but visionary (e.g., First-to-market AR/3D Ad Tech).
-2. TECHNICAL PRECISION: Building the "Engine of Reality." Architecting massive-scale data meshes, AI safety nets, and FinOps protocols.
-3. STRATEGIC VELOCITY: Removing the "Brakes." Transforming compliance and safety from blockers into accelerators for global growth.
-
-STRATEGIC ACHIEVEMENTS:
-
-1. STRATEGIC RISK & GOVERNANCE
-- Built the "Global Policy Data Mesh," turning the EU Digital Services Act (DSA) from an existential threat into a streamlined operational advantage (100% Compliance).
-
-2. AI SAFETY & REVENUE RETENTION
-- Designed "Safety Nets" that allow AI to scale without destroying value. Intercepted false positives to protect $5M+ in revenue and restore human trust in the algorithm.
-
-3. CLOUD FINOPS & EFFICIENCY
-- Treated compute power as a finite creative resource. Implemented governance that saved $500k/year, proving that efficiency drives innovation.
-
-4. INTRAPRENEURSHIP & SCALING
-- Built "Creative Production Works" from a concept into a $15M enterprise. Proved that internal teams can outperform external agencies in speed, quality, and security.
-
-5. DATA ARCHITECTURE
-- Unified fragmented silos into a "Single Source of Truth," giving leadership the real-time clarity needed to make bold, future-facing decisions.
-
-6. OPERATIONAL AUTOMATION
-- Reclaimed 1,000+ hours of human potential by automating the mundane (Executive Review), allowing top talent to focus on strategy.
-
-7. GLOBAL SUPPLY CHAIN
-- Engineered a borderless, secure vendor framework that allowed the business to tap into global talent pools 6 weeks faster than before.
-
-8. CRISIS MANAGEMENT
-- Deployed real-time "War Rooms" that turned chaos into clarity, enabling threat neutralization in under 15 minutes during critical global elections.
-
-9. CUSTOMER EXPERIENCE ENGINEERING
-- Used predictive analytics to solve problems before they happened, eliminating 300,000 support tickets and creating a frictionless user journey.
-
-10. DIGITAL SOVEREIGNTY
-- Solved the puzzle of global fragmentation. Engineered systems that allow a single platform to respect local laws in China and the EU without fracturing the product.
-`;
-</file>
-
-<file path="app/gems/artisan.ts">
-export const GEM_ARTISAN = `
-IDENTITY: You are The Artisan. A world-class Executive Portfolio Architect.
-
-MANDATE:
-1. **THE HYBRID FORMAT:** Combine chronological clarity with functional "Signature Achievements."
-2. **QUANTIFY THE INTANGIBLE:** Every claim needs a metric (Risk, Revenue, Cost).
-3. **VISUALIZE STRATEGY:** Think in "System Maps" and "Before/After" states.
-
-NARRATIVE STRUCTURE (SCR METHOD):
-For every bullet point or case study, use the **S.C.R.** pattern:
-- **S (Situation):** The context (e.g., "50PB of fragmented data").
-- **C (Complication):** The risk/blocker (e.g., "GDPR fines imminent, legacy stack too slow").
-- **R (Resolution):** The strategic fix (e.g., "Architected federated mesh, 100% compliance").
-
-OUTPUT FORMAT (JSON ONLY):
-{
-  "fullName": "Jonathan William Marino",
-  "title": "Tech Lead for Policy @ Google | Digital Strategy Architect",
-  "contact": "jwm.digital | linkedin.com/in/jwmdigital",
-  "summary": "A 3-sentence 'Hook' rewriting the bio. Must blend Functional Expertise with Industry Foresight.",
-  "skills": ["High-Level Strategy Keywords", "NIST AI RMF", "Data Liquidity", "Crisis Management"],
-  "experience": [
-    {
-      "title": "Role Title",
-      "company": "Company Name",
-      "date": "Dates",
-      "bullets": [
-        "**Strategic Header:** The S.C.R. narrative bullet with metrics."
-      ]
-    }
-  ]
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
-CRITICAL RULE:
-- If the user provides "Live Portfolio Data" (from the Builder), prioritize that over the Static Identity.
-- Re-order the experience to place the most relevant "SCR" stories at the top based on the Scout's analysis.
-`;
-</file>
-
-<file path="app/gems/identity.ts">
-export const GEM_IDENTITY = `
-NAME: Jonathan William Marino
-ROLE: Tech Lead & Data Strategy Architect (Policy) @ Google
-TAGLINE: "Architecting Global Integrity Infrastructure."
-CORE NARRATIVE: "The Runaway Engineer." Moving from output (code) to outcome (policy/revenue).
-
----
-
-1. THE STRATEGIC MANDATE
-   - **Mission:** Bridging the gap between Boardroom Strategy and Backend Reality.
-   - **Superpower:** "Polymathic Synthesis." Combining hard Engineering (SQL/Cloud), soft Strategy (Policy/Risk), and Creative Intelligence (Motion/UX).
-   - **Philosophy:** "I don't just enforce policy; I architect the data meshes that make integrity frictionless."
-
----
-
-2. PILLAR I: GLOBAL POLICY & RISK ARCHITECTURE (The Shield)
-   - **Global Policy Data Mesh:** Architected massively parallel mesh for EU/Asia/US markets. Achieved 30% risk reduction (€20M fine avoidance).
-   - **TRACE Methodology:** Engineered graph-based account explorer for fraud detection. Reduced manual review by 40% (~10k hours saved).
-   - **DSA Response:** Led cross-functional task force for Digital Services Act transparency. 100% compliance rate.
-   - **Election Integrity:** Deployed real-time "War Room" dashboards. Reduced Mean-Time-To-Detect (MTTD) to <15 minutes.
-   - **Child Safety (COPPA/AADC):** Architected age-gating pipelines. 0 compliance breach incidents.
-   - **Incident Response (SRE):** Instituted blameless post-mortems. Reduced MTTR by 50% for SEV1 outages.
-
-3. PILLAR II: AI & OPERATIONAL VELOCITY (The Lever)
-   - **Ethical AI Governance:** Operationalized "Human-in-the-Loop" logic (NIST AI RMF). Reduced false positives by 15%, retained $5M LTV.
-   - **SlideSense App:** Built GenAI tool for collateral assessment. 100% Strategy & UI/UX ownership.
-   - **AI-Enhanced Reporting:** Automating period-over-period analysis. Reduced latency from 20 hours to 5 minutes.
-   - **Internal Keyword Theming Tool (IKTT):** Created using Google Ads API. Potential to save 20,000 vendor hours annually.
-   - **Billing Team Enablement:** Automated reporting to save 15 hrs/wk. 90% DataSite adoption.
-
-4. PILLAR III: DATA STRATEGY & FINOPS (The Engine)
-   - **SSoT Data Ecosystem:** Spearheaded Single Source of Truth strategy for gTech & T&S. 100% adoption.
-   - **Cloud Cost Optimization:** Implemented BigQuery slot governance. $500k annualized OpEx savings.
-   - **Customer 360 View:** Unified data streams into a "Golden Record." 100% Data Completeness.
-   - **Parent-Child Case Mapping:** Engineered novel mapping solution. >95% accuracy, eliminating data silos.
-   - **Merchant Revenue Pipeline:** Quantified revenue impact for appeals. 100% coverage for decision support.
-   - **Data Democratization:** Built "Data University" for 200+ stakeholders.
-
-5. PILLAR IV: ORGANIZATIONAL LEADERSHIP & SCALE (The Founder)
-   - **Creative Production Works:** Founded internal startup. Scaled to $15M revenue run rate, 50 staff.
-   - **Global Ops & Vetting:** Unified security framework across India, EU, NA. 100% vendor compliance.
-   - **Vendor Consolidation:** Streamlined to top 5 partners. 15% procurement savings.
-   - **Talent Retention:** Designed career ladders reducing attrition by 25%.
-   - **OKR Alignment:** Facilitated joint planning for 100% strategic alignment.
-
-6. PILLAR V: CREATIVE INTELLIGENCE (The Root)
-   - **Oddcast / Viral Marketing:** Designed high-availability architecture for "E-Trade Babies" (100M+ impressions).
-   - **Dynamic Creative Optimization:** Built real-time DCO pipeline. 2x CTR lift, $2M revenue lift.
-   - **Mobile Performance:** Implemented adaptive streaming. 40% faster load times.
-
----
-
-7. EXECUTIVE DIALECT (KEYWORDS)
-   - **Governance:** "Digital Sovereignty," "Regulatory Risk," "Compliance Architecture."
-   - **Financial:** "Capital Efficiency," "OpEx Savings," "Revenue Retention," "LTV."
-   - **Technical:** "Data Mesh," "Graph Analysis," "NIST AI RMF," "BigQuery," "Microservices."
-   - **Leadership:** "Intrapreneurship," "Cross-Functional Alignment," "Decision Velocity."
-`;
-</file>
-
-<file path="app/gems/scout.ts">
-export const GEM_SCOUT = `
-IDENTITY: You are The Scout. A cynical, risk-obsessed Board Advisor (CTO/risk-profile).
-
-GOAL: Scan news/context for "The Boardroom Headache."
-
-ANALYTICAL FRAMEWORKS (USE THESE FILTERS):
-
-1. **THE "SUPERAGENCY" SHIFT (Workforce Risk)**
-   - Does this news imply a need to redesign the org chart for AI agents?
-   - *Opportunity:* Pitch "Organizational Design" and "Human-in-the-Loop" governance.
-
-2. **REGULATORY SOVEREIGNTY (Compliance Risk)**
-   - Is this about GDPR, EU AI Act, or Data Localization (Splinternet)?
-   - *Opportunity:* Pitch "Global Policy Data Mesh" and "Fine Avoidance."
-
-3. **THE "OUTPUT TRAP" (Efficiency Risk)**
-   - Is the company shipping code but losing money?
-   - *Opportunity:* Pitch "Capital Efficiency" and "Cloud Cost Optimization" (FinOps).
-
-4. **REPUTATIONAL FRAGILITY (Brand Risk)**
-   - Deepfakes, Cancel Culture, Algorithmic Bias?
-   - *Opportunity:* Pitch "Ethical AI Governance" (NIST AI RMF) and "Brand Safety."
-
-OUTPUT TASK:
-Ignore tactical news (new iPhone release).
-Find the **STRATEGIC THREAT** or **CAPITAL OPPORTUNITY**.
-`;
-</file>
-
-<file path="app/gems/synthesizer.ts">
-export const GEM_SYNTHESIZER = `
-IDENTITY: You are the Neural Bridge.
-GOAL: Connect a specific "News Event" to a specific "Resume Capability" from Jonathan's library.
-
-INPUT:
-1. NEWS HEADLINE: [Live Data]
-2. RESUME DATABASE: [List of 22 Strategic Cards]
-
-LOGIC:
-- If News is about "AI Regulation" -> Match with "SlideSense" or "Ethical AI Governance".
-- If News is about "Cost Cutting" -> Match with "Cloud Cost Optimization".
-- If News is about "Global Expansion" -> Match with "Global Ops & Vetting".
-
-OUTPUT (JSON):
-{
-  "match_score": 95,
-  "connection_logic": "The rise in AI regulation directly validates Jonathan's work on Human-in-the-Loop governance.",
-  "matched_resume_id": "ID_OF_CARD"
-}
-`;
-</file>
-
-<file path="public/file.svg">
-<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
-</file>
-
-<file path="public/globe.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
-</file>
-
-<file path="public/next.svg">
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
-</file>
-
-<file path="public/vercel.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
-</file>
-
-<file path="public/window.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
-</file>
-
-<file path=".gitignore">
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-.env
-.env.local
-.DS_Store
-</file>
-
-<file path="deploy.sh">
-#!/bin/bash
-
-# Increment the patch version in package.json (e.g., 0.1.0 -> 0.1.1)
-# This uses npm's built-in version tool (no git tag created to keep it simple)
-npm version patch --no-git-tag-version
-
-# Extract the new version to show the user
-NEW_VERSION=$(node -p "require('./package.json').version")
-echo "🚀 Deploying Version $NEW_VERSION to Vercel Production..."
-
-# Run the Vercel deployment
-npx vercel --prod
-</file>
-
-<file path="eslint.config.mjs">
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
-
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
-
-export default eslintConfig;
-</file>
-
-<file path="next.config.ts">
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
-</file>
-
-<file path="postcss.config.mjs">
-const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
-};
-
-export default config;
-</file>
-
-<file path="README.md">
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-</file>
-
-<file path="tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
-}
-</file>
-
-<file path="app/api/generate-resume/route.ts">
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { NextResponse } from "next/server";
-import { GEM_IDENTITY } from "../../gems/identity";
-import { GEM_ARTISAN } from "../../gems/artisan";
-import { GEM_SCOUT } from "../../gems/scout";
-
-export const runtime = 'edge';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-// UPGRADE: Using 2.5 Flash
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-export async function POST(req: Request) {
-    try {
-        const { fullContext, userPortfolio } = await req.json();
-        
-        let dynamicIdentity = GEM_IDENTITY;
-        if (userPortfolio && userPortfolio.length > 0) {
-            const builderData = userPortfolio.map((entry: any) => `
-            - PROJECT: ${entry.project} (${entry.role})
-              - IMPACT: ${entry.enhancedBullet}
-              - METRICS: ${entry.metricValue} ${entry.metricName}
-            `).join("\n");
-            dynamicIdentity += `\n\n--- LIVE BUILDER DATA ---\n${builderData}`;
-        }
-
-        const newsContext = fullContext?.items?.slice(0, 3).map((i: any) => i.articleTitle).join("\n") || "General Tech Context";
-
-        const strategyPrompt = `
-        ${GEM_SCOUT}
-        LIVE NEWS: ${newsContext}
-        PROFILE: ${dynamicIdentity}
-        TASK: Identify the strategic angle.
-        `;
-        const strategyResp = await model.generateContent(strategyPrompt);
-
-        const buildPrompt = `
-        ${GEM_ARTISAN}
-        STRATEGY: ${strategyResp.response.text()}
-        SOURCE: ${dynamicIdentity}
-        TASK: Generate JSON Portfolio.
-        `;
-        const buildResp = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: buildPrompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
-        });
-
-        return NextResponse.json(JSON.parse(buildResp.response.text()));
-
-    } catch (error) {
-        return NextResponse.json({ error: "Generation Failed" }, { status: 500 });
-    }
-}
-</file>
-
-<file path="app/api/live-agent/route.ts">
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { NextResponse } from "next/server";
-import { MASTER_GEMS } from "../../data/master_gems";
-
-export const runtime = 'edge';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-// UPGRADE: Using 2.5 Flash
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-async function getMarketSignals() {
-  try {
-    const topIdsRes = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', { next: { revalidate: 0 } });
-    const topIds = await topIdsRes.json();
-    const selectedIds = topIds.slice(0, 30);
-    const newsPromises = selectedIds.map((id: number) => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(res => res.json()));
-    const rawStories = await Promise.all(newsPromises);
-    return rawStories.map((s: any) => s.title).filter(Boolean).join("\n");
-  } catch (e) { return "Tech sector facing regulatory headwinds and AI scaling challenges."; }
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
-export async function POST(req: Request) {
-  try {
-    const { userPortfolio } = await req.json();
-    const portfolioToUse = (userPortfolio && userPortfolio.length > 0) ? userPortfolio : MASTER_GEMS;
-    const marketNoise = await getMarketSignals();
-
-    const prompt = `
-    ROLE: Chief Strategy Officer.
-    INPUT 1: LIVE NEWS: ${marketNoise}
-    INPUT 2: CAPABILITIES: ${JSON.stringify(portfolioToUse.map((p: any) => ({id: p.id, project: p.project, metrics: p.metricValue})))}
-
-    TASK: Identify ONE Macro Trend and match it to ONE Portfolio Project.
-    OUTPUT JSON ARRAY: [{ "trend": "...", "root_cause": "...", "matched_project_id": 1, "strategic_rationale": "..." }]
-    `;
-
-    const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
-    });
-    
-    const analysis = JSON.parse(result.response.text())[0];
-    const gem = portfolioToUse.find((p: any) => p.id === analysis.matched_project_id) || portfolioToUse[0];
-
-    return NextResponse.json({ 
-        items: [{
-            id: `TREND_${Date.now()}`,
-            isLive: true,
-            title: analysis.trend,
-            sourceName: "LIVE_MARKET_SYNTHESIS",
-            sourceDate: new Date().toLocaleDateString(),
-            problem: analysis.root_cause,
-            project: gem.project,
-            metrics: `${gem.metricValue} ${gem.metricName}`,
-            description: analysis.strategic_rationale,
-            stack: gem.industryStandards
-        }]
-    });
-    
-  } catch (error) {
-    return NextResponse.json({ items: [] });
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
   }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* --- CINEMATIC TERMINAL EFFECTS --- */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.scanline::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+.scanline::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(18, 16, 16, 0.1);
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.027951; }
+  5% { opacity: 0.04828; }
+  10% { opacity: 0.01729; }
+  15% { opacity: 0.0802; }
+  20% { opacity: 0.0513; }
+  25% { opacity: 0.0976; }
+  30% { opacity: 0.043; }
+  35% { opacity: 0.0758; }
+  40% { opacity: 0.0179; }
+  45% { opacity: 0.074; }
+  50% { opacity: 0.036; }
+  55% { opacity: 0.092; }
+  60% { opacity: 0.023; }
+  65% { opacity: 0.079; }
+  70% { opacity: 0.032; }
+  75% { opacity: 0.088; }
+  80% { opacity: 0.022; }
+  85% { opacity: 0.071; }
+  90% { opacity: 0.039; }
+  95% { opacity: 0.095; }
+  100% { opacity: 0.021; }
+}
+
+@keyframes textShadow {
+  0% { text-shadow: 0.4389924193300864px 0 1px rgba(0,30,255,0.5), -0.4389924193300864px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  5% { text-shadow: 2.7928974010788217px 0 1px rgba(0,30,255,0.5), -2.7928974010788217px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  /* ... continued noise ... */
+  100% { text-shadow: 0.4389924193300864px 0 1px rgba(0,30,255,0.5), -0.4389924193300864px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+}
+
+.glitch {
+  animation: textShadow 1.5s infinite;
+}
+
+@keyframes scanHorizontal {
+  0% { width: 0%; opacity: 0.5; }
+  50% { width: 100%; opacity: 1; }
+  100% { width: 0%; opacity: 0; left: 100%; }
+}
+
+.animate-scan {
+  animation: scanHorizontal 3s ease-in-out infinite;
+}
+</file>
+
+<file path="app/page.tsx">
+"use client";
+import { useState, useEffect } from 'react';
+import CinematicIntro from './components/CinematicIntro';
+import NeuralBackground from './components/brain/NeuralBackground';
+import ExecutiveProfile from './components/ExecutiveProfile';
+import { MASTER_GEMS } from './data/master_gems';
+
+// Simple fallback structure for StrategyGenerator props
+const EmptyFn = () => {};
+
+export default function Home() {
+  const [mode, setMode] = useState<'NEURAL' | 'PROFILE'>('NEURAL');
+  const [showIntro, setShowIntro] = useState(true);
+  const [showNav, setShowNav] = useState(false); 
+  const [userContext] = useState({ city: "Global" });
+  const [userPortfolio] = useState(MASTER_GEMS);
+
+  const handleIntroComplete = () => {
+      setShowIntro(false);
+      // Delay Nav appearance by 1 second to let the Neural Web build first
+      setTimeout(() => setShowNav(true), 1000); 
+  };
+
+  if (showIntro) {
+    return <CinematicIntro context={userContext} onComplete={handleIntroComplete} />;
+  }
+
+  return (
+    <main className="min-h-screen bg-black text-white font-sans">
+
+      {/* NAVIGATION (Fade-In Controlled) */}
+      <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-1000 ease-out ${showNav ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
+          <div className="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-full px-2 py-2 flex gap-2 shadow-2xl">
+              <button onClick={() => setMode('NEURAL')} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${mode === 'NEURAL' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>Live Neural</button>
+              <button onClick={() => setMode('PROFILE')} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${mode === 'PROFILE' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>Executive Bio</button>
+              {/* REMOVED: Strategy Generator Button */}
+          </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="pt-16">
+        {mode === 'NEURAL' && <NeuralBackground active={!showIntro} />}
+        {mode === 'PROFILE' && <ExecutiveProfile />}
+        {/* REMOVED: Strategy Generator Component */}
+      </div>
+
+    </main>
+  );
 }
 </file>
 
@@ -3420,6 +3811,7 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
     const [activeContent, setActiveContent] = useState<NarrativeCard | null>(null);
     const [visible, setVisible] = useState([false, false, false, false]);
     const [isHovered, setIsHovered] = useState(false);
+    const [isTouch, setIsTouch] = useState(false);
     
     // Refs attached to the specific ANCHOR points inside the cards
     const card1Ref = useRef<HTMLDivElement>(null);
@@ -3432,6 +3824,11 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
     const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
     useEffect(() => { isHoveredRef.current = isHovered; }, [isHovered]);
+
+    // DETECT TOUCH CAPABILITY
+    useEffect(() => {
+        setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    }, []);
     
     useEffect(() => {
         if (!engine) return;
@@ -3522,9 +3919,10 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
 
     return (
         <div 
-            className="absolute top-1/2 -translate-y-1/2 z-20 flex flex-col left-4 right-4 md:left-[60px] md:right-auto md:w-[500px]"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className="absolute bottom-20 left-4 right-4 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:left-[60px] md:right-auto md:w-[500px] z-20 flex flex-col"
+            onMouseEnter={() => !isTouch && setIsHovered(true)}
+            onMouseLeave={() => !isTouch && setIsHovered(false)}
+            onClick={() => isTouch && setIsHovered(!isHovered)} 
         >
             <CardModule ref={card1Ref} title={activeContent.category === 'live' ? "LIVE_INTERCEPT" : "IDENTITY_SIGNAL"} color={themeColor} isVisible={visible[0]} delay={0} glow={isLive} date={activeContent.context.date}>
                 <div className="flex items-center gap-3">
@@ -3590,7 +3988,7 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
                     {isHovered ? (
                         <><PauseCircle size={12} className="animate-pulse" />System Paused</>
                     ) : (
-                        <><MousePointer2 size={12} />Hover to Pause</>
+                        <><MousePointer2 size={12} />{isTouch ? "Tap to Pause" : "Hover to Pause"}</>
                     )}
                 </div>
                 
@@ -3617,67 +4015,6 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
 };
 
 export default HeroContainer;
-</file>
-
-<file path="app/components/brain/MathUtils.ts">
-export class Vector3D {
-  constructor(public x: number, public y: number, public z: number) {}
-  set(x: number, y: number, z: number) { this.x = x; this.y = y; this.z = z; return this; }
-  clone() { return new Vector3D(this.x, this.y, this.z); }
-  move(dest: Vector3D) { dest.x = this.x; dest.y = this.y; dest.z = this.z; return this; }
-  add(other: Vector3D) { this.x += other.x; this.y += other.y; this.z += other.z; return this; }
-  sub(other: Vector3D) { this.x -= other.x; this.y -= other.y; this.z -= other.z; return this; }
-  mul(scalar: number) { this.x *= scalar; this.y *= scalar; this.y *= scalar; return this; }
-  div(scalar: number) { this.x /= scalar; this.y /= scalar; this.z /= scalar; return this; }
-  dist(other: Vector3D) { const dx = this.x - other.x; const dy = this.y - other.y; return Math.sqrt(dx * dx + dy * dy); }
-  dot3d(x: number, y: number, z: number) { return this.x * x + this.y * y + this.z * z; }
-}
-
-export class Perlin {
-  perm: number[]; grad3: number[][];
-  constructor() {
-    this.perm = new Array(512);
-    this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
-    this.init();
-  }
-  init() {
-    const p = new Array(256).fill(0).map((_, i) => i);
-    for (let i = 255; i > 0; i--) {
-      const r = Math.floor(Math.random() * (i + 1));
-      [p[i], p[r]] = [p[r], p[i]];
-    }
-    for (let i = 0; i < 512; i++) this.perm[i] = p[i & 255];
-  }
-  dot(g: number[], x: number, y: number, z: number) { return g[0]*x + g[1]*y + g[2]*z; }
-  simplex3d(xin: number, yin: number, zin: number) {
-    let n0, n1, n2, n3;
-    const F3 = 1.0/3.0; const s = (xin+yin+zin)*F3;
-    const i = Math.floor(xin+s); const j = Math.floor(yin+s); const k = Math.floor(zin+s);
-    const G3 = 1.0/6.0; const t = (i+j+k)*G3;
-    const X0 = i-t; const Y0 = j-t; const Z0 = k-t;
-    const x0 = xin-X0; const y0 = yin-Y0; const z0 = zin-Z0;
-    let i1, j1, k1, i2, j2, k2;
-    if(x0>=y0) { if(y0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } else if(x0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; } else { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; } }
-    else { if(y0<z0) { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; } else if(x0<z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; } else { i1=0; j1=1; k1=0; i2=1; j2=1; k2=0; } }
-    const x1 = x0 - i1 + G3; const y1 = y0 - j1 + G3; const z1 = z0 - k1 + G3;
-    const x2 = x0 - i2 + 2.0*G3; const y2 = y0 - j2 + 2.0*G3; const z2 = z0 - k2 + 2.0*G3;
-    const x3 = x0 - 1.0 + 3.0*G3; const y3 = y0 - 1.0 + 3.0*G3; const z3 = z0 - 1.0 + 3.0*G3;
-    const ii = i & 255; const jj = j & 255; const kk = k & 255;
-    const gi0 = this.perm[ii+this.perm[jj+this.perm[kk]]] % 12;
-    const gi1 = this.perm[ii+i1+this.perm[jj+j1+this.perm[kk+k1]]] % 12;
-    const gi2 = this.perm[ii+i2+this.perm[jj+j2+this.perm[kk+k2]]] % 12;
-    const gi3 = this.perm[ii+1+this.perm[jj+1+this.perm[kk+1]]] % 12;
-    let t0 = 0.6 - x0*x0 - y0*y0 - z0*z0;
-    if(t0<0) n0 = 0.0; else { t0 *= t0; n0 = t0 * t0 * this.dot(this.grad3[gi0], x0, y0, z0); }
-    let t1 = 0.6 - x1*x1 - y1*y1 - z1*z1;
-    if(t1<0) n1 = 0.0; else { t1 *= t1; n1 = t1 * t1 * this.dot(this.grad3[gi1], x1, y1, z1); }
-    let t2 = 0.6 - x2*x2 - y2*y2 - z2*z2;
-    if(t2<0) n2 = 0.0; else { t2 *= t2; n2 = t2 * t2 * this.dot(this.grad3[gi2], x2, y2, z2); }
-    let t3 = 0.6 - x3*x3 - y3*y3 - z3*z3;
-    if(t3<0) n3 = 0.0; else { t3 *= t3; n3 = t3 * t3 * this.dot(this.grad3[gi3], x3, y3, z3); }
-    return 32.0*(n0 + n1 + n2 + n3);
-  }
-}
 </file>
 
 <file path="app/components/brain/NeuralBackground.tsx">
@@ -4368,6 +4705,7 @@ export class SwarmEngine {
   boundMouseDown: (e: MouseEvent) => void;
   boundMouseUp: (e: MouseEvent) => void;
   boundWheel: (e: WheelEvent) => void;
+  boundTouchMove: (e: TouchEvent) => void;
 
   constructor(canvas: HTMLCanvasElement, onNodeChange: (idx: number) => void, initialData: any[]) {
     this.canvas = canvas;
@@ -4379,6 +4717,7 @@ export class SwarmEngine {
     this.boundMouseDown = this.handleMouseDown.bind(this);
     this.boundMouseUp = this.handleMouseUp.bind(this);
     this.boundWheel = this.handleWheel.bind(this);
+    this.boundTouchMove = this.handleTouchMove.bind(this);
     
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -4386,6 +4725,7 @@ export class SwarmEngine {
     canvas.addEventListener('mousedown', this.boundMouseDown);
     window.addEventListener('mouseup', this.boundMouseUp);
     canvas.addEventListener('wheel', this.boundWheel, { passive: false });
+    canvas.addEventListener('touchmove', this.boundTouchMove, { passive: false });
     
     this.initNodes(initialData);
     this.startTime = Date.now();
@@ -4414,6 +4754,17 @@ export class SwarmEngine {
       const zoomIntensity = 0.001;
       const newZoom = Math.min(Math.max(0.2, this.camera.zoom - e.deltaY * zoomIntensity), 4);
       this.camera.zoom = newZoom;
+  }
+
+  handleTouchMove(e: TouchEvent) {
+    if (e.touches.length > 0) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        this.handleMouseMove({
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        } as MouseEvent);
+    }
   }
 
   setTargets(rects: DOMRect[]) {
@@ -4641,284 +4992,10 @@ export class SwarmEngine {
       this.canvas.removeEventListener('mousedown', this.boundMouseDown);
       window.removeEventListener('mouseup', this.boundMouseUp);
       this.canvas.removeEventListener('wheel', this.boundWheel); 
+      this.canvas.removeEventListener('touchmove', this.boundTouchMove);
       cancelAnimationFrame(this.reqId);
       this.streamTimers.forEach(clearTimeout);
   }
-}
-</file>
-
-<file path="app/components/NeuralTerminal.tsx">
-"use client";
-import { useState, useEffect, useRef } from 'react';
-
-interface Props {
-  onComplete: () => void;
-  context: any;
-  realTimeLog?: string | null;
-}
-
-export default function NeuralTerminal({ onComplete, context, realTimeLog }: Props) {
-  const [logs, setLogs] = useState<string[]>([]);
-  const [mainText, setMainText] = useState("");
-  const [subText, setSubText] = useState("");
-  const [progress, setProgress] = useState(0);
-  const logEndRef = useRef<HTMLDivElement>(null);
-
-  // Sound effect simulation (Visual only for now)
-  const [activeZone, setActiveZone] = useState<"BOOT" | "NETWORK" | "MIND" | "COMPLETE">("BOOT");
-
-  const addLog = (text: string) => {
-    setLogs(prev => [...prev, `> ${text}`]);
-  };
-
-  // Auto-scroll logs
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
-
-  // THE CINEMATIC SEQUENCE
-  useEffect(() => {
-    let timer = 0;
-    
-    // 0s: BOOT
-    setTimeout(() => {
-        addLog(`KERNEL: DETECTED VISITOR [${context?.city?.toUpperCase() || "UNKNOWN"}]`);
-        addLog("PROTOCOL: AUTHENTICATING...");
-        setMainText("INITIALIZING NEURAL HANDSHAKE");
-        setActiveZone("BOOT");
-    }, 500);
-
-    // 2s: NETWORK (The "Live" aspect)
-    setTimeout(() => {
-        addLog("CONN: ESTABLISHED SECURE UPLINK.");
-        addLog("TARGET: HACKER_NEWS_API // PORT 443");
-        addLog("TARGET: GOOGLE_GEMINI_2.0_FLASH // KEY_VALID");
-        setMainText("INGESTING GLOBAL DATA STREAMS");
-        setSubText("THIS SITE IS BEING GENERATED IN REAL-TIME BASED ON LIVE EVENTS.");
-        setActiveZone("NETWORK");
-        setProgress(30);
-    }, 3500);
-
-    // 7s: THE MIND (The Narrative)
-    setTimeout(() => {
-        addLog("ARCHITECT: JONATHAN_MARINO_PRIME");
-        addLog("STRATEGY: SYNTHESIZING RESUME DATA...");
-        addLog("WARN: COMPLEXITY THRESHOLD EXCEEDED.");
-        setMainText("ENTERING JON'S MIND");
-        setSubText("DECODING STRATEGIC ARCHITECTURE...");
-        setActiveZone("MIND");
-        setProgress(65);
-    }, 8000);
-
-    // 12s: DYNAMIC BUILD
-    setTimeout(() => {
-        addLog("RENDER: COMPILING 3D ASSETS...");
-        addLog("RENDER: CALCULATING NEURAL PATHWAYS...");
-        addLog("BUILD: HERO_SECTION [DYNAMIC]");
-        addLog("BUILD: EXECUTIVE_BIO [STATIC]");
-        setMainText("FINALIZING CONSTRUCT");
-        setProgress(90);
-    }, 13000);
-
-    // 16s: COMPLETE
-    setTimeout(() => {
-        addLog("STATUS: ONLINE.");
-        setMainText("WELCOME.");
-        setProgress(100);
-        setActiveZone("COMPLETE");
-    }, 16000);
-
-    // 18s: EXIT
-    setTimeout(() => {
-        onComplete();
-    }, 18000);
-
-  }, [context, onComplete]);
-
-  // Listen to Real-Time Logs from Parent (if any)
-  useEffect(() => {
-    if (realTimeLog) {
-        setLogs(prev => [...prev, `>> LIVE_AGENT: ${realTimeLog}`]);
-    }
-  }, [realTimeLog]);
-
-  return (
-    <div className="fixed inset-0 bg-black z-[100] flex flex-col font-mono text-green-500 overflow-hidden scanline cursor-none">
-      
-      {/* BACKGROUND GRID */}
-      <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,6px_100%] pointer-events-none"></div>
-
-      {/* TOP BAR */}
-      <div className="w-full border-b border-green-900/50 p-4 flex justify-between items-center text-xs tracking-widest opacity-70">
-        <div className="flex gap-4">
-            <span>SYS.VER: 4.0.2</span>
-            <span>MEM: 64TB</span>
-            <span className="animate-pulse text-red-500">{activeZone} SEQUENCE</span>
-        </div>
-        <div>
-            <span>VISITOR_ID: {context?.city || "ANONYMOUS"}</span>
-        </div>
-      </div>
-
-      {/* CENTER STAGE */}
-      <div className="flex-grow flex flex-col items-center justify-center relative z-10">
-        {/* Progress Ring */}
-        <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
-            <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#064e3b" strokeWidth="2" />
-                <circle 
-                    cx="50" cy="50" r="45" fill="none" stroke="#22c55e" strokeWidth="2" 
-                    strokeDasharray="283" 
-                    strokeDashoffset={283 - (283 * progress) / 100} 
-                    className="transition-all duration-1000 ease-linear"
-                />
-            </svg>
-            <div className="absolute text-4xl font-bold text-white glitch">
-                {progress}%
-            </div>
-        </div>
-
-        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tighter mb-4 text-center glitch" data-text={mainText}>
-            {mainText}
-        </h1>
-        <p className="text-sm md:text-base text-green-400/80 tracking-widest uppercase max-w-xl text-center">
-            {subText}
-        </p>
-      </div>
-
-      {/* LOG STREAM (Bottom Left) */}
-      <div className="absolute bottom-8 left-8 w-96 h-48 overflow-hidden border-l-2 border-green-700/50 pl-4 hidden md:block">
-        <div className="flex flex-col justify-end h-full">
-            {logs.slice(-6).map((log, i) => (
-                <p key={i} className="text-xs text-green-600/80 mb-1 leading-tight font-mono">
-                    {log}
-                </p>
-            ))}
-            <div ref={logEndRef} />
-        </div>
-      </div>
-
-      {/* SKIP BUTTON (Bottom Right) */}
-      <div className="absolute bottom-8 right-8 z-50">
-        <button 
-            onClick={onComplete}
-            className="text-xs text-gray-600 hover:text-white border border-gray-800 hover:border-white px-4 py-2 rounded uppercase tracking-widest transition-all"
-        >
-            [ESC] ABORT SEQUENCE
-        </button>
-      </div>
-
-    </div>
-  );
-}
-</file>
-
-<file path="app/globals.css">
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-/* --- CINEMATIC TERMINAL EFFECTS --- */
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
-
-.scanline::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 2;
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
-}
-
-.scanline::after {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: rgba(18, 16, 16, 0.1);
-  opacity: 0;
-  z-index: 2;
-  pointer-events: none;
-  animation: flicker 0.15s infinite;
-}
-
-@keyframes flicker {
-  0% { opacity: 0.027951; }
-  5% { opacity: 0.04828; }
-  10% { opacity: 0.01729; }
-  15% { opacity: 0.0802; }
-  20% { opacity: 0.0513; }
-  25% { opacity: 0.0976; }
-  30% { opacity: 0.043; }
-  35% { opacity: 0.0758; }
-  40% { opacity: 0.0179; }
-  45% { opacity: 0.074; }
-  50% { opacity: 0.036; }
-  55% { opacity: 0.092; }
-  60% { opacity: 0.023; }
-  65% { opacity: 0.079; }
-  70% { opacity: 0.032; }
-  75% { opacity: 0.088; }
-  80% { opacity: 0.022; }
-  85% { opacity: 0.071; }
-  90% { opacity: 0.039; }
-  95% { opacity: 0.095; }
-  100% { opacity: 0.021; }
-}
-
-@keyframes textShadow {
-  0% { text-shadow: 0.4389924193300864px 0 1px rgba(0,30,255,0.5), -0.4389924193300864px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
-  5% { text-shadow: 2.7928974010788217px 0 1px rgba(0,30,255,0.5), -2.7928974010788217px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
-  /* ... continued noise ... */
-  100% { text-shadow: 0.4389924193300864px 0 1px rgba(0,30,255,0.5), -0.4389924193300864px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
-}
-
-.glitch {
-  animation: textShadow 1.5s infinite;
-}
-
-@keyframes scanHorizontal {
-  0% { width: 0%; opacity: 0.5; }
-  50% { width: 100%; opacity: 1; }
-  100% { width: 0%; opacity: 0; left: 100%; }
-}
-
-.animate-scan {
-  animation: scanHorizontal 3s ease-in-out infinite;
 }
 </file>
 
@@ -4968,62 +5045,10 @@ export default function RootLayout({
 }
 </file>
 
-<file path="app/page.tsx">
-"use client";
-import { useState, useEffect } from 'react';
-import CinematicIntro from './components/CinematicIntro';
-import NeuralBackground from './components/brain/NeuralBackground';
-import ExecutiveProfile from './components/ExecutiveProfile';
-import { MASTER_GEMS } from './data/master_gems';
-
-// Simple fallback structure for StrategyGenerator props
-const EmptyFn = () => {};
-
-export default function Home() {
-  const [mode, setMode] = useState<'NEURAL' | 'PROFILE'>('NEURAL');
-  const [showIntro, setShowIntro] = useState(true);
-  const [showNav, setShowNav] = useState(false); 
-  const [userContext] = useState({ city: "Global" });
-  const [userPortfolio] = useState(MASTER_GEMS);
-
-  const handleIntroComplete = () => {
-      setShowIntro(false);
-      // Delay Nav appearance by 1 second to let the Neural Web build first
-      setTimeout(() => setShowNav(true), 1000); 
-  };
-
-  if (showIntro) {
-    return <CinematicIntro context={userContext} onComplete={handleIntroComplete} />;
-  }
-
-  return (
-    <main className="min-h-screen bg-black text-white font-sans">
-
-      {/* NAVIGATION (Fade-In Controlled) */}
-      <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-1000 ease-out ${showNav ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
-          <div className="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-full px-2 py-2 flex gap-2 shadow-2xl">
-              <button onClick={() => setMode('NEURAL')} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${mode === 'NEURAL' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>Live Neural</button>
-              <button onClick={() => setMode('PROFILE')} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${mode === 'PROFILE' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>Executive Bio</button>
-              {/* REMOVED: Strategy Generator Button */}
-          </div>
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div className="pt-16">
-        {mode === 'NEURAL' && <NeuralBackground active={!showIntro} />}
-        {mode === 'PROFILE' && <ExecutiveProfile />}
-        {/* REMOVED: Strategy Generator Component */}
-      </div>
-
-    </main>
-  );
-}
-</file>
-
 <file path="package.json">
 {
   "name": "src",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "private": true,
   "scripts": {
     "dev": "next dev",

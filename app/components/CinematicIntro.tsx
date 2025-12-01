@@ -16,9 +16,18 @@ declare global {
 export default function CinematicIntro({ onComplete, context }: Props) {
     const rootRef = useRef<HTMLDivElement>(null);
     const [isResolved, setIsResolved] = useState(false);
+    const [canSkip, setCanSkip] = useState(false);
+
+    useEffect(() => {
+        const hasSeen = localStorage.getItem('jwm_intro_seen');
+        if (hasSeen) {
+            setCanSkip(true);
+        }
+    }, []);
 
     const runCleanup = useCallback(() => {
         if (!isResolved) {
+            localStorage.setItem('jwm_intro_seen', 'true');
             setIsResolved(true);
             setTimeout(onComplete, 500); 
         }
@@ -34,7 +43,6 @@ export default function CinematicIntro({ onComplete, context }: Props) {
         const runCleanupExternal = runCleanup;
         const simplex = new SimplexNoise(); 
 
-        // 1. Helper: Circular Texture
         const createCircleTexture = () => {
             const canvas = document.createElement('canvas');
             canvas.width = 32;
@@ -49,7 +57,6 @@ export default function CinematicIntro({ onComplete, context }: Props) {
             return new THREE.CanvasTexture(canvas);
         };
 
-        // 2. Helper: Curl Noise Physics
         const computeCurl = (x: number, y: number, z: number, target: any) => {
             const eps = 0.1;
             const n1 = simplex.noise3D(x, y + eps, z);
@@ -198,18 +205,18 @@ export default function CinematicIntro({ onComplete, context }: Props) {
             return [r, g, b];
         }
 
-        // Updated Script: 10 Lines, Technical & Intriguing
+        // UPDATED NARRATIVE SCRIPT
         const cinematicScript = [
-            [1.5, "Welcome."],
-            [6.0, "This page is being built in real-time."],
-            [11.0, "Right now, a network of AI agents is exploring."],
-            [17.0, "They are scanning the web for context."],
-            [23.0, "Curating the most relevant data for this moment."],
-            [29.0, "And assembling a dynamic portfolio from scratch."],
-            [35.0, "No static templates, just live creation."],
-            [41.0, "Watch as the structure takes shape."],
-            [47.0, "Your unique experience is ready."],
-            [53.0, "Welcome."]
+            [1.5, "You have just set this page in motion."],
+            [7.0, "We are initiating the swarm protocols."],
+            [12.5, "I am defining the scope of the search."],
+            [18.0, "They are scanning the web for live context."],
+            [23.5, "They are filtering the noise to find meaning."],
+            [29.0, "We are assembling the raw data into a structure."],
+            [34.5, "I am designing this portfolio on the fly."],
+            [40.0, "I am breathing life into the code."],
+            [45.5, "You are seeing something that didn't exist seconds ago."],
+            [51.0, "Welcome."]
         ];
 
         let lastNarrativeIndex = -1;
@@ -434,13 +441,15 @@ export default function CinematicIntro({ onComplete, context }: Props) {
                 </div>
             </div>
 
-            {/* SKIP BUTTON */}
-            <button 
-                onClick={runCleanup}
-                className="absolute bottom-8 right-8 z-[200] text-[10px] md:text-xs font-bold text-white/50 hover:text-white border border-white/20 hover:border-white/50 px-4 py-2 rounded uppercase tracking-widest transition-all backdrop-blur-sm cursor-pointer pointer-events-auto"
-            >
-                Skip Sequence »
-            </button>
+            {/* SKIP BUTTON - ONLY SHOW IF RETURNING VISITOR */}
+            {canSkip && (
+                <button 
+                    onClick={runCleanup}
+                    className="absolute bottom-8 right-8 z-[200] text-[10px] md:text-xs font-bold text-white/50 hover:text-white border border-white/20 hover:border-white/50 px-4 py-2 rounded uppercase tracking-widest transition-all backdrop-blur-sm cursor-pointer pointer-events-auto"
+                >
+                    Skip Sequence »
+                </button>
+            )}
         </div>
     );
 }
