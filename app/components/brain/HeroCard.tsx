@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
 import { 
-  Fingerprint, ExternalLink, Lightbulb, User, Pause, Activity, Calendar, MousePointer2, PauseCircle
+  ExternalLink, Lightbulb, User, Activity, Calendar, MousePointer2, PauseCircle
 } from 'lucide-react';
 import { NarrativeCard } from './NeuralData';
 import { SwarmEngine } from './SwarmEngine';
 
-// CardModule: Ref is now attached DIRECTLY to the visible connector bar
 const CardModule = forwardRef(({ title, children, color, isVisible, delay, glow, date, link }: any, ref: any) => {
     return (
         <div 
@@ -53,8 +52,6 @@ const CardModule = forwardRef(({ title, children, color, isVisible, delay, glow,
                 </a>
             )}
             
-            {/* 1. VISUAL CONNECTOR BAR (Now also acts as the Anchor) */}
-            {/* We attach the Ref here directly to ensure coordinates match the visible element exactly */}
             <div 
                 ref={ref}
                 style={{ 
@@ -87,7 +84,6 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isTouch, setIsTouch] = useState(false);
     
-    // Refs attached to the specific ANCHOR points inside the cards
     const card1Ref = useRef<HTMLDivElement>(null);
     const card2Ref = useRef<HTMLDivElement>(null);
     const card3Ref = useRef<HTMLDivElement>(null);
@@ -99,7 +95,6 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
 
     useEffect(() => { isHoveredRef.current = isHovered; }, [isHovered]);
 
-    // DETECT TOUCH CAPABILITY
     useEffect(() => {
         setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
     }, []);
@@ -111,10 +106,8 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
         
         const updateTargets = () => {
             const refs = [card1Ref, card2Ref, card3Ref, card4Ref];
-            // Get the bounding rect of the visible anchor bar
             const rects = refs.map(r => r.current?.getBoundingClientRect() || new DOMRect(0,0,0,0));
             
-            // We pass the anchor rects directly. SwarmEngine will target their center.
             if (rects[0] && rects[0].top !== 0) {
                 engine.setTargets(rects);
             }
@@ -126,7 +119,6 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
         return () => cancelAnimationFrame(rafId);
     }, [engine, content]);
 
-    // --- STRICT CONTENT SWAPPING LOGIC ---
     useEffect(() => {
         if (timerRef.current) clearTimeout(timerRef.current);
         
@@ -193,11 +185,20 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
 
     return (
         <div 
-            className="absolute bottom-20 left-4 right-4 md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:left-[60px] md:right-auto md:w-[500px] z-20 flex flex-col"
+            className="absolute z-20 flex flex-col no-scrollbar
+                       inset-0 pt-32 pb-20 px-4 overflow-y-auto 
+                       md:overflow-visible md:inset-auto md:top-1/2 md:bottom-auto md:h-auto md:left-[60px] md:right-auto md:w-[500px] md:-translate-y-1/2 md:px-0 md:pb-0"
             onMouseEnter={() => !isTouch && setIsHovered(true)}
             onMouseLeave={() => !isTouch && setIsHovered(false)}
             onClick={() => isTouch && setIsHovered(!isHovered)} 
         >
+            <style jsx>{`
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            `}</style>
+            
+            <div className="sticky top-0 h-8 w-full bg-gradient-to-b from-[#02040a] to-transparent z-10 md:hidden pointer-events-none"></div>
+
             <CardModule ref={card1Ref} title={activeContent.category === 'live' ? "LIVE_INTERCEPT" : "IDENTITY_SIGNAL"} color={themeColor} isVisible={visible[0]} delay={0} glow={isLive} date={activeContent.context.date}>
                 <div className="flex items-center gap-3">
                     <div className={"p-2 rounded border " + (isLive ? 'bg-red-950/50 border-red-500/50' : 'bg-slate-800 border-slate-700')}>
@@ -253,7 +254,7 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
                 </div>
             </CardModule>
             
-            <div className="mt-4 flex items-center gap-3 animate-in fade-in duration-700 pl-1">
+            <div className="mt-4 pb-4 flex items-center gap-3 animate-in fade-in duration-700 pl-1 shrink-0">
                 <div className={"flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-md text-[10px] font-mono tracking-widest uppercase transition-all " + (
                     isHovered 
                     ? 'bg-red-500/10 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(220,38,38,0.4)]' 
@@ -275,15 +276,6 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
                     </div>
                 )}
             </div>
-            <style jsx>{`
-                @keyframes progress {
-                    0% { width: 0% }
-                    100% { width: 100% }
-                }
-                .animate-progress {
-                    animation: progress 12s linear forwards;
-                }
-            `}</style>
         </div>
     );
 };
