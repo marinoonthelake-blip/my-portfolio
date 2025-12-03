@@ -185,6 +185,9 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
 
     return (
         <div 
+            // FIXED LAYOUT:
+            // Mobile: inset-0 (Full Screen) + pt-32 (Top Padding) -> Prevents overlap with Header
+            // Desktop (md): Floating Card behavior restored
             className="absolute z-20 flex flex-col no-scrollbar
                        inset-0 pt-32 pb-20 px-4 overflow-y-auto 
                        md:overflow-visible md:inset-auto md:top-1/2 md:bottom-auto md:h-auto md:left-[60px] md:right-auto md:w-[500px] md:-translate-y-1/2 md:px-0 md:pb-0"
@@ -197,6 +200,7 @@ const HeroContainer: React.FC<HeroProps> = ({ content, engine }) => {
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
             
+            {/* Mobile Gradient Fade at top of scroll area */}
             <div className="sticky top-0 h-8 w-full bg-gradient-to-b from-[#02040a] to-transparent z-10 md:hidden pointer-events-none"></div>
 
             <CardModule ref={card1Ref} title={activeContent.category === 'live' ? "LIVE_INTERCEPT" : "IDENTITY_SIGNAL"} color={themeColor} isVisible={visible[0]} delay={0} glow={isLive} date={activeContent.context.date}>
